@@ -3,8 +3,6 @@
 
 # spatialCooccur <img src="man/figures/logo.png" align="right" height="138" />
 
-[![R-CMD-check](https://github.com/juninamo/spatialCooccur/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/juninamo/spatialCooccur/actions)
-
 `spatialCooccur` is an R package for analyzing spatial co-occurrence and
 neighborhood interactions in spatial transcriptomics data. It is built
 around Seurat objects and provides tools to compute co-occurrence
