@@ -22,9 +22,12 @@
 
 # ---- Main Functions ----
 
-#' Simulate Spatial Coordinates and Cell Types
+utils::globalVariables(c(".", "cell", "cell_type", "n_all_cells", "rnorm", "runif", "sd", "x", "y"))
+
+#' @name generate_sim
+#' @title Simulate Spatial Coordinates and Cell Types
 #'
-#' Generate synthetic spatial transcriptomics data for simulation and benchmarking.
+#' @description Generate synthetic spatial transcriptomics data for simulation and benchmarking.
 #'
 #' @param close_ratio Proportion of close interactions between selected cell types.
 #' @param n_types Number of distinct cell types.
@@ -662,7 +665,7 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
 #' @return Data.frame with scores.
 #' @export
 cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", neighbors.k = 20, radius = 30, maxnsteps = 1) {
-  if(class(df)=="Seurat"){
+  if (inherits(df, "Seurat")){
     return(cooccur_local.Seurat(df, cluster_x, cluster_y, connectivity_key, neighbors.k, radius, maxnsteps))
   }
   coords <- df %>%
@@ -772,7 +775,7 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #' @return A list with z-score and count matrices.
 #' @export
 nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4) {
-  if(class(df)=="Seurat"){
+  if(inherits(df, "Seurat")){
     return(nhood_enrichment.Seurat(df, cluster_key, neighbors.k, connectivity_key, transformation, n_perms, seed, n_jobs))
   }
   set.seed(seed)
