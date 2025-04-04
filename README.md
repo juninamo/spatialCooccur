@@ -7,7 +7,7 @@ output: rmarkdown::github_document
 
 # spatialCooccur <img src="man/figures/logo.png" align="right" height="138" />
 
-[![R-CMD-check](https://github.com/YOUR_USERNAME/spatialCooccur/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/YOUR_USERNAME/spatialCooccur/actions)
+[![R-CMD-check](https://github.com/juninamo/spatialCooccur/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/juninamo/spatialCooccur/actions)
 
 `spatialCooccur` is an R package for analyzing spatial co-occurrence and
 neighborhood interactions in spatial transcriptomics data. It is built
@@ -21,7 +21,7 @@ You can install the development version from GitHub using:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("YOUR_USERNAME/spatialCooccur")
+devtools::install_github("juninamo/spatialCooccur")
 ```
 
 ## Features
