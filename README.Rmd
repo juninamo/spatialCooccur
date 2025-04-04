@@ -52,7 +52,7 @@ summary(cooccur_local_df)
 Jun Inamo, et al. XXX. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi.org/XX](https://doi.org/XX)
 
 <kbd>
-<img src="https://github.com/juninamo/Spatial_Neighborhood_Analysis/blob/main/images/Figure1.png" width="800" align="center">
+<img src="man/figures/Figure1.png" width="800" align="center">
 </kbd>
 
 ## Contact
