@@ -30,22 +30,45 @@ see details
 - Permutation-based z-score estimation
 - Works seamlessly with Seurat spatial objects
 
-## Example
+### 1. Spatial Neighborhood Analysis (SNA)
+To simulate spatial transcriptomic data and perform neighborhood enrichment analysis:
 
-``` r
-library(spatialCooccur)
-library(Seurat)
+```r
+df = generate_sim(close_ratio = 1, n_types = 15, max_loc = 800, n_cells = 500, test_type = "circle", distance_param = 20, seed=1234)
 
-# Simulate example data
-df <- generate_sim(n_cells = 500, n_types = 4, test_type = "circle")
-
-# Compute neighborhood enrichment
-res <- nhood_enrichment(df, cluster_key = "cell_type")
-
-# View z-score matrix
-res$zscore
+# Run neighborhood enrichment analysis
+nhood_enrichment_res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 30, n_perms = 100, seed = 1234, n_jobs = 4)
+nhood_enrichment_res$zscore
 ```
 
-## License
+### 2. Spatial Co-localization Score (sCLS)
+To compute co-localization scores for cell interactions:
 
-MIT © Jun Inamo
+```r
+cooccur_local_df <- cooccur_local(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2", neighbors.k = 30, radius = 30)
+summary(cooccur_local_df)
+```
+## Citation 
+Jun Inamo, et al. XXX. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi.org/XX](https://doi.org/XX)
+
+<kbd>
+<img src="https://github.com/juninamo/Spatial_Neighborhood_Analysis/blob/main/images/Figure1.png" width="800" align="center">
+</kbd>
+
+## Contact
+For questions or issues related to this tutorial, please contact;
+
+**Name:** Jun Inamo  
+**Email:** jun.inamo@cuanschutz.edu  
+**Affiliation:** Computational Omics and Systems Immunology (COSI) Lab, Division of Rheumatology and Center for Health AI, University of Colorado School of Medicine, CO, USA 
+
+The data presented here comes from the [Yomogida lab](https://www.yomogidalab.com/) through collaborating with [XXX](https://www.XXX) and [YYY](https://www.XXX).
+
+## Acknowledgments
+This research was supported by Japan Society for the Promotion of Science (JSPS) Grant-in-Aids for JSPS XXX. 
+
+&nbsp;&nbsp;
+
+## License
+This repository is provided under the MIT License.
+
