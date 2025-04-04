@@ -380,20 +380,22 @@ devtools::install_github(&quot;juninamo/spatialCooccur&quot;)</code></pre>
 <li>Permutation-based z-score estimation</li>
 <li>Works seamlessly with Seurat spatial objects</li>
 </ul>
+<div id="spatial-neighborhood-analysis-sna" class="section level3">
+<h3>1. Spatial Neighborhood Analysis (SNA)</h3>
+<p>To simulate spatial transcriptomic data and perform neighborhood
+enrichment analysis:</p>
+<pre class="r"><code>df = generate_sim(close_ratio = 1, n_types = 15, max_loc = 800, n_cells = 500, test_type = &quot;circle&quot;, distance_param = 20, seed=1234)
+
+# Run neighborhood enrichment analysis
+nhood_enrichment_res &lt;- nhood_enrichment(df, cluster_key = &quot;cell_type&quot;, neighbors.k = 30, n_perms = 100, seed = 1234, n_jobs = 4)
+nhood_enrichment_res$zscore</code></pre>
 </div>
-<div id="example" class="section level2">
-<h2>Example</h2>
-<pre class="r"><code>library(spatialCooccur)
-library(Seurat)
-
-# Simulate example data
-df &lt;- generate_sim(n_cells = 500, n_types = 4, test_type = &quot;circle&quot;)
-
-# Compute neighborhood enrichment
-res &lt;- nhood_enrichment(df, cluster_key = &quot;cell_type&quot;)
-
-# View z-score matrix
-res$zscore</code></pre>
+<div id="spatial-co-localization-score-scls" class="section level3">
+<h3>2. Spatial Co-localization Score (sCLS)</h3>
+<p>To compute co-localization scores for cell interactions:</p>
+<pre class="r"><code>cooccur_local_df &lt;- cooccur_local(df, cluster_x = &quot;cell_type_1&quot;, cluster_y = &quot;cell_type_2&quot;, neighbors.k = 30, radius = 30)
+summary(cooccur_local_df)</code></pre>
+</div>
 </div>
 <div id="license" class="section level2">
 <h2>License</h2>
