@@ -1,0 +1,490 @@
+---
+title: Tutorial for spatial neighborhood analysis (SNA) & spatial co-localization score (sCLS) using simulation data
+author: 
+  name: Jun Inamo
+  email: jun.inamo@cuanschutz.edu
+  affiliation: Computational Omics and Systems Immunology (COSI) Lab, Division of Rheumatology and Center for Health AI, University of Colorado School of Medicine, CO, USA
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  BiocStyle::html_document:
+    toc_float: true
+---
+
+
+  
+```{r, echo=FALSE, results="hide", message=FALSE}
+knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+# BiocManager::install("BiocStyle")
+library(BiocStyle)
+```
+
+```{r, message=FALSE, warning=FALSE}
+source("functions.R")
+```
+
+# Spatial neighborhood analysis (SNA, cell type level analysis)
+
+First generate dummy data where two cell types (cell_type_1 and cell_type_2 in "cell_type" cik) are close to each other. Here we assume that cell_type_1 and cell_type_2 are close to each other (concentric cicle) by close_ratio.
+Make sure to assume >10 cell types to see the effect of neighborhood enrichment analysis. If this total cell types are less than 10, the analysis may by susceptible to false positive results because cell labels are shuffling in permutation test.
+
+
+```{r}
+
+seed=1234
+close_ratio=1  # proportion of cell_type_1 and cell_type_2 that are close to each other
+n_types=15  # Number of cell types
+max_loc=800 # Maximum x and y coordinates in space
+n_cells=500  # Number of total cells
+test_type="circle" # "line", "circle", "distribute"
+distance_param=20  # distance between cell_type_1 and cell_type_2
+
+df = generate_sim(close_ratio = close_ratio, 
+                  n_types = n_types,  
+                  max_loc = max_loc,
+                  n_cells = n_cells,  
+                  test_type = test_type,
+                  distance_param = distance_param,  
+                  seed=seed)
+head(df) 
+# x and y: coordinates
+# cell_type: cell type
+```
+
+check the distribution of cell types in the space
+
+
+```{r, fig.width=8, fig.height=4}
+
+cluster_colors = manual_colors
+names(cluster_colors) = paste0("cell_type_",1:n_types)
+
+g1 = ggplot(df, aes(x = x, y = y, color = cell_type)) +
+  geom_point(alpha = 0.7) +
+  scale_color_manual(values = cluster_colors) +
+  theme_void() +
+  ggtitle("Simulated Cell Interaction Data")
+
+g2 = ggplot(df %>% dplyr::mutate(cell_type = ifelse(cell_type %in% c("cell_type_1","cell_type_2"),as.character(cell_type),"others")), aes(x = x, y = y, fill = cell_type)) +
+  geom_point(data = df %>% dplyr::mutate(cell_type = ifelse(cell_type %in% c("cell_type_1","cell_type_2"),as.character(cell_type),"others")) %>% dplyr::filter(cell_type %in% c("others")),
+             alpha = 0.7, size = 2, shape = 21, stroke = 0.05, color = "black") +
+  geom_point(data = df %>% dplyr::mutate(cell_type = ifelse(cell_type %in% c("cell_type_1","cell_type_2"),as.character(cell_type),"others")) %>% dplyr::filter(cell_type %in% c("cell_type_1","cell_type_2")),
+             alpha = 0.8, size = 2, shape = 21, stroke = 0.05, color = "black") +
+  labs(title = "Simulated Cell Interaction Data",
+       subtitle = paste("n_types:", n_types, "| close_ratio:", close_ratio, "| max_loc:", max_loc, "| n_cells:", n_cells, "| distance_param:",distance_param)) +
+  scale_color_manual(values = c("cell_type_1" = "red", 
+                                "cell_type_2" = "blue",
+                                "others" = "grey90")) +
+  scale_fill_manual(values = c("cell_type_1" = "red", 
+                               "cell_type_2" = "blue",
+                               "others" = "grey90")) +
+  theme_void()
+g1|g2
+```
+
+Run neighborhood enrichment analysis
+
+```{r}
+n_perm = 100
+neighbors.k_ = 30 # Number of neighbors to search
+
+nhood_enrichment_res <- nhood_enrichment(
+  df,
+  cluster_key = "cell_type", 
+  neighbors.k = neighbors.k_, 
+  connectivity_key = "nn", 
+  transformation = TRUE,
+  n_perms = n_perm, seed = seed, n_jobs = 4
+)
+nhood_enrichment_res=nhood_enrichment_res$zscore
+
+nhood_enrichment_res
+```
+
+How to read the Z-score matrix
+•    Row: Reference cell type (cell_type_i)
+•    Column: Nearby cell type (cell_type_j)
+•    The value of nhood_enrichment[i, j] is the Z-score of ‘how close cell_type_i is to cell_type_j’
+
+Therefore,
+•    nhood_enrichment[‘cell_type_1’, ‘cell_type_2’]
+•    How much cell_type_2 is gathered near cell_type_1
+•    nhood_enrichment[‘cell_type_2’, ‘cell_type_1’]
+• How many cell_type_1s are near cell_type_2?
+  
+  Appropriate selection
+• When comparing a two-way relationship: check both nhood_enrichment[‘cell_type_1’, ‘cell_type_2’] and nhood_enrichment[‘cell_type_2’, ‘cell_type_1’]
+• When investigating only one-way relationships:
+  • Is there a high concentration of cell_type_2 around cell_type_1? → nhood_enrichment[‘cell_type_1’, ‘cell_type_2’]
+• Is there a high concentration of cell_type_1 around cell_type_2? → nhood_enrichment[‘cell_type_2’, ‘cell_type_1’]
+
+
+```{r, fig.width=8, fig.height=8}
+
+colnames(nhood_enrichment_res) = gsub("^Cluster","",colnames(nhood_enrichment_res))
+rownames(nhood_enrichment_res) = gsub("^Cluster","",rownames(nhood_enrichment_res))
+pval_mat <- 1 - pnorm(nhood_enrichment_res)
+
+fdr_vec <- p.adjust(as.vector(pval_mat), method = "BH")
+fdr_mat <- matrix(fdr_vec, nrow=nrow(nhood_enrichment_res), ncol=ncol(nhood_enrichment_res),
+                  dimnames = dimnames(nhood_enrichment_res))
+
+sig_mat <- ifelse(fdr_mat < 0.05, "**", ifelse(fdr_mat > 0.05 & fdr_mat < 0.1, "*", ""))
+
+common_names <- intersect(rownames(nhood_enrichment_res), colnames(nhood_enrichment_res))
+for (nm in common_names) {
+  nhood_enrichment_res[nm, nm] <- NA
+  sig_mat[nm, nm] <- ""
+}
+
+heatmap <- Heatmap(nhood_enrichment_res,
+                   name = "Z-score",
+                   col = colorRamp2(c(-2, 0, 2), c("#0072B5FF", "white", "#BC3C29FF")), 
+                   show_row_names = TRUE, 
+                   show_column_names = TRUE,  
+                   cluster_rows = TRUE,  
+                   cluster_columns = TRUE,  
+                   #show_column_dend = FALSE,
+                   #show_row_dend = FALSE,
+                   row_title = "",  
+                   column_title = "Spatial Neigborhood Enrichment by cell types",
+                   rect_gp = gpar(col = "black", lwd = 0.3),
+                   na_col = "black",          # make sure cell with same cell types in the row and column be NA
+                   
+                   cell_fun = function(j, i, x, y, width, height, fill) {
+                     if(sig_mat[i, j] == "**") {
+                       grid.text("**", 
+                                 x = x,
+                                 y = y - 0.2 * height,  
+                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
+                     }
+                     if(sig_mat[i, j] == "*") {
+                       grid.text("*", 
+                                 x = x,
+                                 y = y - 0.2 * height,  
+                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
+                     }
+                   }
+)
+
+draw(heatmap, 
+     merge_legend = TRUE,
+     heatmap_legend_side = "bottom", 
+     annotation_legend_side = "bottom")
+
+
+```
+
+Run the same analysis with different distance parameters
+
+
+```{r}
+
+set.seed(seed)
+random_seeds <- sample(1000:9999, 100)
+
+accuracy_df_all = data.frame()
+
+library(foreach)
+library(doParallel)
+cl <- makeCluster(4)
+registerDoParallel(cl)
+
+accuracy_df <- foreach(
+  distance_param = c(5,10,20,30,40,50,75,100),
+  .combine = rbind, 
+  .packages = c("ggplot2", "dplyr", "Seurat", "doParallel")
+) %:%
+  foreach(
+    test_type = c("circle"), 
+    .combine = rbind
+  ) %:%
+  foreach(
+    seed_ = random_seeds,
+    .combine = rbind
+  ) %dopar% {
+    
+    set.seed(seed_) 
+    print(grep(seed_, random_seeds))
+    
+    df = generate_sim(close_ratio = close_ratio, 
+                      n_types = n_types,  
+                      max_loc = max_loc,
+                      n_cells = n_cells,  
+                      test_type = test_type,
+                      distance_param = distance_param,  
+                      seed=1234)
+    
+    nhood_enrichment_res <- nhood_enrichment(
+      df,
+      cluster_key = "cell_type", 
+      neighbors.k = neighbors.k_, 
+      connectivity_key = "nn", 
+      transformation = TRUE,
+      n_perms = n_perm, seed = seed_, n_jobs = 4
+    )
+    
+    nhood_enrichment_res <- nhood_enrichment_res$zscore
+    diag(nhood_enrichment_res) <- 0
+    colnames(nhood_enrichment_res) <- gsub("^Cluster", "", colnames(nhood_enrichment_res))
+    rownames(nhood_enrichment_res) <- gsub("^Cluster", "", rownames(nhood_enrichment_res))
+    
+    pval_mat <- 1 - pnorm(nhood_enrichment_res)
+    fdr_vec <- p.adjust(as.vector(pval_mat), method = "BH")
+    fdr_mat <- matrix(fdr_vec, nrow = nrow(nhood_enrichment_res), ncol = ncol(nhood_enrichment_res), dimnames = dimnames(nhood_enrichment_res))
+    
+    sig_mat <- ifelse(fdr_mat < 0.05, "**", ifelse(fdr_mat > 0.05 & fdr_mat < 0.1, "*", ""))
+    
+    result <- data.frame(
+      test_type = test_type,
+      seed = seed_,
+      distance_param = distance_param,
+      zscore = nhood_enrichment_res["cell_type_1", "cell_type_2"],
+      zscore_false = nhood_enrichment_res["cell_type_3", "cell_type_4"]
+    )
+    
+    return(result)
+  }
+
+stopCluster(cl)
+
+accuracy_df <- as.data.frame(accuracy_df)
+head(accuracy_df)
+accuracy_df_all = rbind(accuracy_df_all,accuracy_df)
+
+accuracy_df_all$n_types = n_types
+accuracy_df_all$neighbors.k_ = neighbors.k_
+accuracy_df_all$close_ratio = close_ratio
+accuracy_df_all$n_perm = n_perm
+accuracy_df_all$general_seed = seed
+accuracy_df_all$max_loc = max_loc
+accuracy_df_all$n_cells = n_cells
+
+
+```
+
+
+```{r, fig.width=4, fig.height=3}
+
+summary_df <- accuracy_df_all %>%
+  dplyr::mutate(zscore_false = abs(zscore_false)) %>%
+  tidyr::pivot_longer(cols = c(zscore, zscore_false), names_to = "zscore_type", values_to = "zscore") %>%
+  dplyr::group_by(zscore_type, test_type, distance_param) %>%
+  dplyr::summarise(
+    median_zscore = median(zscore),
+    lower_ci = quantile(zscore, 0.025),
+    upper_ci = quantile(zscore, 0.975)
+  ) %>%
+  dplyr::ungroup()
+
+ggplot(summary_df, aes(x = distance_param, y = median_zscore, color = zscore_type)) +
+  geom_line(size = 1) + 
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.1) + 
+  geom_point(size = 2) + 
+  facet_wrap(test_type ~ .) + 
+  labs(
+    x = "Distance Parameter",
+    y = "Z-score",
+    title = "Z-score Median and Confidence Interval by Distance Parameter",
+    subtitle = paste("n_types:", n_types, "| neighbors.k_:", neighbors.k_, "| close_ratio:", close_ratio, "| max_loc:", max_loc, "| n_cells:", n_cells)
+  ) +
+  scale_x_log10(breaks = c(unique(summary_df$distance_param))) + 
+  scale_color_manual(values = c("zscore" = "red", "zscore_false" = "grey40")) +  
+  geom_hline(yintercept = 0, linetype = "dashed") +  
+  #geom_hline(yintercept = 1.96, linetype = "dashed", color = "grey70") +  
+  geom_hline(yintercept = abs(qnorm((0.05/2/n_types),F)), linetype = "dashed", color = "grey70") + 
+  theme_classic() +
+  theme(
+    strip.text = element_text(size = 14, face = "bold"), 
+    axis.title = element_text(size = 14),
+    axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
+  )
+```
+
+
+# Spatial co-localization score (sCLA, cell-cell level analysis)
+
+Again we generate dummy data where two cell types (cell_type_1 and cell_type_2 in "cell_type" cik) are close to each other. Here we assume that cell_type_1 and cell_type_2 are close to each other (concentric cicle) by close_ratio.
+
+```{r}
+
+seed=1234
+close_ratio=1  # proportion of cell_type_1 and cell_type_2 that are close to each other
+n_types=10  # Number of cell types
+max_loc=800 # Maximum x and y coordinates in space
+n_cells=500  # Number of total cells
+test_type="circle" # "line", "circle", "distribute"
+distance_param = 20  # distance between cell_type_1 and cell_type_2
+
+df = generate_sim(close_ratio = close_ratio, 
+                  n_types = n_types,  
+                  max_loc = max_loc,
+                  n_cells = n_cells,  
+                  test_type = test_type,
+                  distance_param = distance_param,  
+                  seed=seed)
+head(df) 
+# x and y: coordinates
+# cell_type: cell type
+```
+
+
+
+check the distribution of cell types in the space
+
+
+```{r, fig.width=8, fig.height=4}
+
+cluster_colors = manual_colors
+names(cluster_colors) = paste0("cell_type_",1:n_types)
+
+g1 = ggplot(df, aes(x = x, y = y, color = cell_type)) +
+  geom_point(alpha = 0.7) +
+  scale_color_manual(values = cluster_colors) +
+  theme_void() +
+  ggtitle("Simulated Cell Interaction Data")
+
+g2 = ggplot(df %>% dplyr::mutate(cell_type = ifelse(cell_type %in% c("cell_type_1","cell_type_2"),as.character(cell_type),"others")), aes(x = x, y = y, fill = cell_type)) +
+  geom_point(data = df %>% dplyr::mutate(cell_type = ifelse(cell_type %in% c("cell_type_1","cell_type_2"),as.character(cell_type),"others")) %>% dplyr::filter(cell_type %in% c("others")),
+             alpha = 0.7, size = 2, shape = 21, stroke = 0.05, color = "black") +
+  geom_point(data = df %>% dplyr::mutate(cell_type = ifelse(cell_type %in% c("cell_type_1","cell_type_2"),as.character(cell_type),"others")) %>% dplyr::filter(cell_type %in% c("cell_type_1","cell_type_2")),
+             alpha = 0.8, size = 2, shape = 21, stroke = 0.05, color = "black") +
+  labs(title = "Simulated Cell Interaction Data",
+       subtitle = paste("n_types:", n_types, "| close_ratio:", close_ratio, "| max_loc:", max_loc, "| n_cells:", n_cells, "| distance_param:",distance_param)) +
+  scale_color_manual(values = c("cell_type_1" = "red", 
+                                "cell_type_2" = "blue",
+                                "others" = "grey90")) +
+  scale_fill_manual(values = c("cell_type_1" = "red", 
+                               "cell_type_2" = "blue",
+                               "others" = "grey90")) +
+  theme_void()
+g1|g2
+```
+
+Run co-localization analysis
+
+
+```{r}
+cluster_x <- "cell_type_1"
+cluster_y <- "cell_type_2"
+
+radius_ = 30 # Radius to search for neighbors (µm, cell_type_2) around anchor cells (cell_type_1)
+neighbors.k_ = 30 # Number of neighbors to search
+
+cooccur_local_df <- cooccur_local(
+  df,
+  cluster_x        = cluster_x,
+  cluster_y        = cluster_y,
+  connectivity_key = "nn",
+  neighbors.k      = neighbors.k_, 
+  radius           = radius_,
+  maxnsteps        = 15
+)
+summary(cooccur_local_df)
+```
+
+Check how the co-localization score is distributed in the space
+
+```{r, fig.width=12, fig.height=4}
+g3 = ggplot() +
+  geom_point(df %>%
+               dplyr::mutate(score = cooccur_local_df$cooccur_local_cell_type_1_cell_type_2#,
+                             #score = ifelse(cell_type %in% c("cell_type_1","cell_type_2"), score, 0)
+               ) %>%
+               dplyr::filter(!(cell_type %in% c("cell_type_1","cell_type_2"))), 
+             mapping = aes(x = x, y = y, fill = score),
+             alpha = 0.7, size = 2, shape = 21, stroke = 0.05, color = "black") +
+  geom_point(df %>%
+               dplyr::mutate(score = cooccur_local_df$cooccur_local_cell_type_1_cell_type_2#,
+                             #score = ifelse(cell_type %in% c("cell_type_1","cell_type_2"), score, 0)
+               ) %>%
+               dplyr::filter(cell_type %in% c("cell_type_1","cell_type_2")), 
+             mapping = aes(x = x, y = y, fill = score),
+             alpha = 0.7, size = 2, shape = 21, stroke = 0.05, color = "black") +
+  theme_void() +
+  scale_fill_gradient(low = "grey90", high = "red") +
+  ggtitle("Simulated Cell Interaction Data")
+g1 | g2 | g3
+```
+
+Check the relationship between the co-localization score and the distance between cell_type_1 and cell_type_2
+
+
+```{r}
+
+one_cells <- df %>% dplyr::filter(cell_type=="cell_type_1")
+two_cells <- df %>% dplyr::filter(cell_type=="cell_type_2")
+
+res <- RANN::nn2(data = one_cells[,1:2], query = two_cells[,1:2], k = 1)
+dist_to_nearest <- res$nn.dists[, 1]
+two_cells$dist_nearest <- dist_to_nearest
+
+res <- RANN::nn2(data = two_cells[,1:2], query = one_cells[,1:2], k = 1)
+dist_to_nearest <- res$nn.dists[, 1]
+one_cells$dist_nearest <- dist_to_nearest
+
+coords_df = dplyr::left_join(df %>%
+                               dplyr::mutate(score = cooccur_local_df$cooccur_local_cell_type_1_cell_type_2), 
+                             rbind(one_cells,two_cells), by = c("x","y","cell_type"))
+coef = cor.test(na.omit(coords_df)$score,na.omit(coords_df)$dist_nearest,method = "spearman",use = "pairwise.complete.obs")$estimate
+pval = cor.test(na.omit(coords_df)$score,na.omit(coords_df)$dist_nearest,method = "spearman",use = "pairwise.complete.obs")$p.value
+
+ggplot(data = coords_df, aes(x = dist_nearest, y = score)) +
+  geom_point_rast() +
+  geom_smooth(
+    method = "lm", se = FALSE, color = "blue"
+  ) +
+  theme_classic(base_size = 14) +
+  labs(
+    x = "Distance to nearest each other (µm)",
+    y = paste("Co-occurence score"),
+    title = paste0(test_type,"\nEst. interacted distance = ", distance_param), 
+    subtitle = paste0(
+      "Spearman's r = ", round(coef, 2),
+      ", adj-p = ", signif(pval, 3)
+    )
+  )
+
+
+
+```
+
+
+Check the ROC curve and AUC value to evaluate the performance of the co-localization score
+
+```{r}
+
+coords_df$true_label <- ifelse(coords_df$dist_nearest <= radius_, 1, 0) 
+
+roc_obj <- pROC::roc(coords_df$true_label, coords_df$score)
+
+auc_value <- pROC::auc(roc_obj)
+
+pROC::ggroc(roc_obj) +
+  ggtitle(paste("ROC Curve (AUC =", round(auc_value, 3), ")")) +
+  geom_abline(intercept = 1, linetype = 2) +
+  theme_minimal()
+
+```
+
+Check the distribution of the co-localization score by cell type
+
+```{r}
+
+coords_df %>%
+  ggplot(aes(x = cell_type, y = score, fill = cell_type)) +
+  geom_violin(width = 1, alpha = 0.7) +
+  geom_boxplot(width = 0.1, alpha = 0.7) +
+  #geom_jitter(width = 0.1, alpha = 0.7) +
+  theme_minimal() +
+  labs(
+    x = "Cell Type",
+    y = "Co-occurence score",
+    title = paste0(test_type,"\nEst. interacted distance = ", distance_param)
+  )
+```
+
+# sessionInfo
+
+```{r}
+sessionInfo()
+```
