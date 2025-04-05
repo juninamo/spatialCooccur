@@ -573,16 +573,28 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
   local_score = vector()
 
   for (name in names(seurat_obj@images)) {
-    coords <- seurat_obj[[name]]$centroids@coords %>%
-      as.data.frame() %>%
-      dplyr::mutate(cell = Cells(seurat_obj[[name]])) %>%
-      tibble::column_to_rownames(var = "cell") %>%
-      dplyr::mutate(
-        cluster = seurat_obj@meta.data[
-          seurat_obj@meta.data[, sample_key] == name,
-          cluster_key
-        ]
-      )
+    if(sample_key=="fov"){
+      coords <- seurat_obj[[name]]$centroids@coords %>%
+        as.data.frame() %>%
+        dplyr::mutate(cell = Cells(seurat_obj[[name]])) %>%
+        tibble::column_to_rownames(var = "cell") %>%
+        dplyr::mutate(
+          cluster = seurat_obj@meta.data[, cluster_key]
+        )
+
+    } else {
+      coords <- seurat_obj[[name]]$centroids@coords %>%
+        as.data.frame() %>%
+        dplyr::mutate(cell = Cells(seurat_obj[[name]])) %>%
+        tibble::column_to_rownames(var = "cell") %>%
+        dplyr::mutate(
+          cluster = seurat_obj@meta.data[
+            seurat_obj@meta.data[, sample_key] == name,
+            cluster_key
+          ]
+        )
+
+    }
 
     res_nn2 <- RANN::nn2(
       data       = coords[,1:2],
