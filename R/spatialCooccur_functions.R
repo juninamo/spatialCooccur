@@ -543,24 +543,44 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
 #' @return A data.frame with local co-occurrence scores.
 #' @export
 cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_key = "nn", cluster_key = "seurat_clusters", sample_key = "sample_id", neighbors.k = 20, radius = 30, maxnsteps = 15) {
-  all_nn <- list()
-  all_snn <- list()
-  cell_id = vector()
 
-  for (name in names(seurat_obj@images)) {
-    coords <- seurat_obj[[name]]$centroids@coords %>%
-      as.data.frame() %>%
-      dplyr::mutate(cell = Cells(seurat_obj[[name]]))
-    cells <- coords$cell
-    rownames(coords) <- cells
-    coords <- as.matrix(coords[, c("x", "y")])
+  if(is.null(sample_key)) {
+    for (name in names(seurat_obj@images)) {
+      coords <- seurat_obj$centroids@coords %>%
+        as.data.frame() %>%
+        dplyr::mutate(cell = Cells(seurat_obj))
+      cells <- coords$cell
+      rownames(coords) <- cells
+      coords <- as.matrix(coords[, c("x", "y")])
 
-    neighbors <- FindNeighbors(coords, k.param = neighbors.k, verbose = FALSE)
+      neighbors <- FindNeighbors(coords, k.param = neighbors.k, verbose = FALSE)
 
-    all_nn[[name]] <- neighbors$nn
-    all_snn[[name]] <- neighbors$snn
-    cell_id = c(cell_id,cells)
+      all_nn <- neighbors$nn
+      all_snn <- neighbors$snn
+      cell_id = c(cell_id,cells)
+    }
+  } else {
+
+    all_nn <- list()
+    all_snn <- list()
+    cell_id = vector()
+
+    for (name in names(seurat_obj@images)) {
+      coords <- seurat_obj[[name]]$centroids@coords %>%
+        as.data.frame() %>%
+        dplyr::mutate(cell = Cells(seurat_obj[[name]]))
+      cells <- coords$cell
+      rownames(coords) <- cells
+      coords <- as.matrix(coords[, c("x", "y")])
+
+      neighbors <- FindNeighbors(coords, k.param = neighbors.k, verbose = FALSE)
+
+      all_nn[[name]] <- neighbors$nn
+      all_snn[[name]] <- neighbors$snn
+      cell_id = c(cell_id,cells)
+    }
   }
+
 
   if(connectivity_key == "nn") {
     adj <- bdiag(all_nn)
@@ -571,16 +591,13 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
 
   local_score = vector()
 
-  for (name in names(seurat_obj@images)) {
-    coords <- seurat_obj[[name]]$centroids@coords %>%
+  if(is.null(sample_key)) {
+    coords <- seurat_obj$centroids@coords %>%
       as.data.frame() %>%
-      dplyr::mutate(cell = Cells(seurat_obj[[name]])) %>%
+      dplyr::mutate(cell = Cells(seurat_obj)) %>%
       tibble::column_to_rownames(var = "cell") %>%
       dplyr::mutate(
-        cluster = seurat_obj@meta.data[
-          seurat_obj@meta.data[, sample_key] == name,
-          cluster_key
-        ]
+        cluster = seurat_obj@meta.data[,cluster_key]
       )
 
     res_nn2 <- RANN::nn2(
@@ -590,7 +607,6 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
       radius     = radius,
       k          = neighbors.k
     )
-
 
     local_score_ <- numeric(nrow(coords))
     names(local_score_) <- rownames(coords)
@@ -617,6 +633,56 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
       }
     }
     local_score = c(local_score, local_score_)
+
+  } else {
+    for (name in names(seurat_obj@images)) {
+      coords <- seurat_obj[[name]]$centroids@coords %>%
+        as.data.frame() %>%
+        dplyr::mutate(cell = Cells(seurat_obj[[name]])) %>%
+        tibble::column_to_rownames(var = "cell") %>%
+        dplyr::mutate(
+          cluster = seurat_obj@meta.data[
+            seurat_obj@meta.data[, sample_key] == name,
+            cluster_key
+          ]
+        )
+
+      res_nn2 <- RANN::nn2(
+        data       = coords[,1:2],
+        query      = coords[,1:2],
+        searchtype = "radius",
+        radius     = radius,
+        k          = neighbors.k
+      )
+
+
+      local_score_ <- numeric(nrow(coords))
+      names(local_score_) <- rownames(coords)
+
+      for (i in seq_len(nrow(coords))) {
+        neighbors_i <- res_nn2$nn.idx[i, ]
+        neighbors_i <- neighbors_i[neighbors_i > 0]
+        neighbors_i <- neighbors_i[neighbors_i != i]
+
+        if (length(neighbors_i) == 0) {
+          local_score_[i] <- 0
+          next
+        }
+
+        cluster_vec <- coords$cluster
+        c_vec <- as.character(cluster_vec[neighbors_i])
+
+        cond_present <- any(c_vec == cluster_y) & any(c_vec == cluster_x)
+
+        if (cond_present) {
+          local_score_[i] <- 1
+        } else {
+          local_score_[i] <- 0
+        }
+      }
+      local_score = c(local_score, local_score_)
+    }
+
   }
 
   diffuse_step <- function(adj, local_score) {
@@ -665,9 +731,9 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
 #' @return Data.frame with scores.
 #' @export
 cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", neighbors.k = 20, radius = 30, maxnsteps = 1) {
-  if (inherits(df, "Seurat")){
-    return(cooccur_local.Seurat(df, cluster_x, cluster_y, connectivity_key, neighbors.k, radius, maxnsteps))
-  }
+  #if (inherits(df, "Seurat")){
+  #  return(cooccur_local.Seurat(df, cluster_x, cluster_y, connectivity_key, neighbors.k, radius, maxnsteps))
+  #}
   coords <- df %>%
     dplyr::mutate(cell = rownames(.))
   cell_id <- coords$cell
@@ -775,9 +841,9 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #' @return A list with z-score and count matrices.
 #' @export
 nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4) {
-  if(inherits(df, "Seurat")){
-    return(nhood_enrichment.Seurat(df, cluster_key, neighbors.k, connectivity_key, transformation, n_perms, seed, n_jobs))
-  }
+  #if(inherits(df, "Seurat")){
+  #  return(nhood_enrichment.Seurat(df, cluster_key, neighbors.k, connectivity_key, transformation, n_perms, seed, n_jobs))
+  #}
   set.seed(seed)
 
   cluster_data <- df[,cluster_key]

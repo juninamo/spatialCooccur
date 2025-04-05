@@ -1,18 +1,15 @@
 Package: spatialCooccur
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: This package provides tools for spatial co-occurrence analysis
-    of cell types in spatial transcriptomics data. It includes neighborhood-based
-    enrichment, co-occurrence metrics, and visualization methods.
+Type: Package
+Title: Neighborhood Co-Occurrence and Spatial Interaction Analysis for Spatial Transcriptomics
+Version: 0.1.0
+Author: Jun Inamo <jun.inamo@cuanschutz.edu> [aut, cre]
+Maintainer: Jun Inamo <jun.inamo@cuanschutz.edu>
+Description: This package provides a set of tools for analyzing neighborhood co-occurrence and spatial interactions in spatial transcriptomics data using Seurat objects. It includes spatial permutation tests, enrichment score calculations, and local diffusion modeling to evaluate cell-cell spatial relationships.
 License: MIT + file LICENSE
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
+LazyData: true
 RoxygenNote: 7.2.3
-URL: https://github.com/juninamo/spatialCooccur
-BugReports: https://github.com/juninamo/spatialCooccur/issues
+Depends: R (>= 4.1)
 Imports:
     Seurat,
     dplyr,
@@ -32,5 +29,9 @@ Imports:
     parallel,
     glue,
     tibble,
-    moments,
-    gridExtra
+    moments
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
+
