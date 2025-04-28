@@ -51,17 +51,23 @@ Jun Inamo, et al. XXX. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi
 <img src="man/figures/Figure1.png" width="800" align="center">
 </kbd>
 
+&nbsp;&nbsp;
+
 - Spatial Neighborhood Analysis
 
 <kbd>
 <img src="man/figures/Figure2.png" width="800" align="center">
 </kbd>
 
+&nbsp;&nbsp;
+
 - Spatial Co-localization Score
 
 <kbd>
 <img src="man/figures/Figure3.png" width="800" align="center">
 </kbd>
+
+&nbsp;&nbsp;
 
 
 ## Contact
