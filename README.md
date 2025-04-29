@@ -43,9 +43,9 @@ cooccur_local_df <- cooccur_local(df, cluster_x = "cell_type_1", cluster_y = "ce
 summary(cooccur_local_df)
 ```
 ## Citation 
-Jun Inamo, et al. XXX. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi.org/XX](https://doi.org/XX)
+Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kari Hayes, Nathan Rogers, Heather Leach, Kentaro Yomogida. Subcellular spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi.org/XX](https://doi.org/XX)
 
-- Study design
+- Study design and identified cell clusters in JIA-synovium
 
 <kbd>
 <img src="man/figures/Figure1.png" width="800" align="center">
