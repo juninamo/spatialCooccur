@@ -42,6 +42,7 @@ To compute co-localization scores for cell interactions:
 cooccur_local_df <- cooccur_local(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2", neighbors.k = 30, radius = 30)
 summary(cooccur_local_df)
 ```
+<!-- 
 ## Citation 
 Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kari Hayes, Nathan Rogers, Heather Leach, Kentaro Yomogida. Subcellular spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi.org/XX](https://doi.org/XX)
 
@@ -52,6 +53,7 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 </kbd>
 
 &nbsp;&nbsp;
+-->
 
 - Spatial Neighborhood Analysis
 
