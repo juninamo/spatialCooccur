@@ -71,6 +71,8 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 
 &nbsp;&nbsp;
 
+## 📝 Citation 
+Jun Inamo, et al. Subcellular spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*medRxiv 2025*](https://www.medrxiv.org/content/10.1101/2025.08.05.25332835v1), doi:[https://doi.org/10.1101/2025.08.05.25332835](https://doi.org/10.1101/2025.08.05.25332835)
 
 ## Contact
 For questions or issues related to this tutorial, please contact;
