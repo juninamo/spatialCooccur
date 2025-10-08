@@ -8,7 +8,7 @@ Description: This package provides a set of tools for analyzing neighborhood co-
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Depends: R (>= 4.1)
 Imports:
     Seurat,
@@ -16,16 +16,7 @@ Imports:
     Matrix,
     RANN,
     igraph,
-    patchwork,
-    ggplot2,
-    ggrastr,
-    ggrepel,
     magrittr,
-    pheatmap,
-    ggraph,
-    circlize,
-    scales,
-    ComplexHeatmap,
     parallel,
     glue,
     tibble,
@@ -34,4 +25,3 @@ Suggests:
     testthat,
     knitr,
     rmarkdown
-

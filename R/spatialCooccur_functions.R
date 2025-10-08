@@ -1,20 +1,10 @@
 # ---- Dependencies ----
 #' @import Seurat
-#' @import patchwork
-#' @import ggplot2
-#' @import ggrepel
 #' @import magrittr
 #' @import dplyr
-#' @import ggrastr
-#' @import pheatmap
 #' @import Matrix
-#' @import ggraph
-#' @import circlize
-#' @import scales
-#' @import ComplexHeatmap
 #' @import parallel
 #' @import RANN
-#' @import gridExtra
 #' @import igraph
 #' @import glue
 #' @import tibble
@@ -374,7 +364,7 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
   # (2) Create a graph based on nn.idx that shows ‘cells close to each other’
   # Draw an edge between the cell in row i and the cells listed in nn.idx[i, ]
   # (excluding 0)
-  edges <- vector("list", length = nrow(res_nn2$nn.idx))  # 一旦リストで準備
+  edges <- vector("list", length = nrow(res_nn2$nn.idx))
   num_clus <- vector("list", length = nrow(res_nn2$nn.idx))
   for (i in seq_len(nrow(res_nn2$nn.idx))) {
     # Nearest index (excluding 0)
