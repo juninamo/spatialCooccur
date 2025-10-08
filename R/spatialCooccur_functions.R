@@ -30,9 +30,6 @@ utils::globalVariables(c(".", "cell", "cell_type", "n_all_cells", "rnorm", "runi
 #'
 #' @return A data.frame with simulated spatial coordinates and cell type labels.
 #' @export
-#' @examples
-#' sim_data <- generate_sim(close_ratio = 0.7, n_types = 5, n_cells = 1000, test_type = "circle")
-#' head(sim_data)
 generate_sim <- function(close_ratio = 0.7,
                          n_types = 10,
                          max_loc = 800,
@@ -223,10 +220,6 @@ compute_count <- function(adj, int_clust_row, int_clust_col, n_cls, cluster_data
 #'
 #' @return Permuted co-occurrence count matrix.
 #' @export
-#' @examples
-#' #' # Assuming `adj` is your adjacency matrix and `cluster_data` is your cluster assignments
-#' #' n_cls <- length(unique(cluster_data))
-#' #' #' permuted_counts <- permute_clusters(adj, cluster_data, n_cls, cluster_data, transformation = TRUE)
 permute_clusters <- function(adj, int_clust, n_cls, cluster_data, transformation) {
   int_clust_row <- sample(int_clust)
   int_clust_col <- sample(int_clust)
@@ -243,8 +236,6 @@ permute_clusters <- function(adj, int_clust, n_cls, cluster_data, transformation
 #'
 #' @return A list with co-occurrence count and enrichment ratio matrices.
 #' @export
-#' @examples
-#' #' # Assuming `seurat_obj` is your Seurat object with spatial data
 calc_co_occurrence_for_radius <- function(seurat_obj, radius, sample_key, cluster_key, k = 30) {
   all_clusters <- levels(factor(seurat_obj@meta.data[[cluster_key]]))
 
@@ -311,9 +302,6 @@ calc_co_occurrence_for_radius <- function(seurat_obj, radius, sample_key, cluste
 #'
 #' @return A matrix of normalized enrichment ratios.
 #' @export
-#' @examples
-#' #' # Assuming `co_occur_count` is your co-occurrence count matrix
-#' #' #' ratio_matrix <- compute_co_occurrence_ratio(co_occur_count)
 compute_co_occurrence_ratio <- function(co_occur_count) {
   rn <- rownames(co_occur_count)
   cn <- colnames(co_occur_count)
@@ -351,18 +339,6 @@ compute_co_occurrence_ratio <- function(co_occur_count) {
 #'
 #' @return A data.frame of detected interaction clusters and metadata.
 #' @export
-#' @examples
-#' #' # Assuming `seurat_object` is your Seurat object with spatial data
-#' #' #' interaction_spots <- search_interaction_spot(
-#' #' #'   seurat_object = seurat_object,
-#' # #' #'   fov = "Sample1",
-#' # #' #'   radius = 50,
-#' # #' #'   n_min = 5,
-#' # #' #'   neighbors.k = 200,
-#' # #' #'   cell_id = c("Cell1", "Cell2", "Cell3"),
-#' # #' #'   cluster_col = "cell_type",
-#' # #' #'   target_cluster = c("TypeA", "TypeB")
-#' # #' #' )
 search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors.k = 200, cell_id = cell_id, cluster_col = cluster_col, target_cluster = target_cluster) {
   coords <- seurat_object[[fov]]$centroids@coords %>%
     as.data.frame() %>%
@@ -443,18 +419,6 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
 #'
 #' @return Updated Seurat object with z-scores in misc slot.
 #' @export
-#' @examples
-#' #' # Assuming `seurat_object` is your Seurat object with spatial data
-#' # #' seurat_object <- neighborhood_enrichment.Seurat(
-#' # #'   seurat_obj = seurat_object,
-#' # #'   cluster_key = "cell_type",
-#' # #'   neighbors.k = 30,
-#' # #'   connectivity_key = "nn",
-#' # #'   transformation = TRUE,
-#' # #'   n_perms = 100,
-#' # #'   seed = 1938493,
-#' # #'   n_jobs = 4
-#' # #' )
 nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4) {
   set.seed(seed)
 
@@ -568,18 +532,6 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
 #'
 #' @return A data.frame with local co-occurrence scores.
 #' @export
-#' @examples
-#' # cooccur_local.Seurat(
-#' #   seurat_obj,
-#' # #   cluster_x = "Cluster1",
-#' # #   cluster_y = "Cluster2",
-#' # #   connectivity_key = "nn",
-#' # #   cluster_key = "seurat_clusters",
-#' # #   sample_key = "sample_id",
-#' # #   neighbors.k = 20,
-#' # #   radius = 30,
-#' # #   maxnsteps = 15
-#' # )
 cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_key = "nn", cluster_key = "seurat_clusters", sample_key = "sample_id", neighbors.k = 20, radius = 30, maxnsteps = 15) {
   all_nn <- list()
   all_snn <- list()
@@ -717,8 +669,6 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
 #'
 #' @return Data.frame with scores.
 #' @export
-#' @examples
-#' cooccur_local(spatial_coords, "A", "B", connectivity_key = "nn", neighbors.k = 20, radius = 30, maxnsteps = 1)
 cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", neighbors.k = 20, radius = 30, maxnsteps = 1) {
   #if (inherits(df, "Seurat")){
   #  return(cooccur_local.Seurat(df, cluster_x, cluster_y, connectivity_key, neighbors.k, radius, maxnsteps))
@@ -829,8 +779,6 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #'
 #' @return A list with z-score and count matrices.
 #' @export
-#' @examples
-#' neighborhood_enrichment(spatial_coords, cluster_key = "cell_type", neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4)
 nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4) {
   #if(inherits(df, "Seurat")){
   #  return(nhood_enrichment.Seurat(df, cluster_key, neighbors.k, connectivity_key, transformation, n_perms, seed, n_jobs))
@@ -923,8 +871,6 @@ nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key
 #' Default Manual Colors for Clusters
 #'
 #' @export
-#' @examples
-#' manual_colors
 manual_colors <- c(
   "0" = "#E41A1C", "1" = "#377EB8", "2" = "#4DAF4A", "3" = "#984EA3", "4" = "#FF7F00",
   "5" = "#FFFF33", "6" = "#A65628", "7" = "lightgrey", "8" = "#999999", "9" = "#66C2A5",
