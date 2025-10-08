@@ -1,9 +1,10 @@
 Package: spatialCooccur
 Type: Package
 Title: Neighborhood Co-Occurrence and Spatial Interaction Analysis for Spatial Transcriptomics
-Version: 0.1.0
-Author: Jun Inamo <jun.inamo@cuanschutz.edu> [aut, cre]
-Maintainer: Jun Inamo <jun.inamo@cuanschutz.edu>
+Version: 0.99.0
+Authors@R: person("Jun", "Inamo",
+                  email = "jun.inamo@cuanschutz.edu",
+                  role = c("aut", "cre"))
 Description: This package provides a set of tools for analyzing neighborhood co-occurrence and spatial interactions in spatial transcriptomics data using Seurat objects. It includes spatial permutation tests, enrichment score calculations, and local diffusion modeling to evaluate cell-cell spatial relationships.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -25,3 +26,4 @@ Suggests:
     testthat,
     knitr,
     rmarkdown
+biocViews: Software, Transcriptomics, Spatial, GeneExpression, Visualization

@@ -1,0 +1,689 @@
+---
+title: Tutorial for spatial neighborhood analysis (SNA) & spatial co-localization score (sCLS) using 10X public data
+author: 
+  name: Jun Inamo
+  email: jun.inamo@cuanschutz.edu
+  affiliation: Computational Omics and Systems Immunology (COSI) Lab, Division of Rheumatology and Center for Health AI, University of Colorado School of Medicine, CO, USA
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  BiocStyle::html_document:
+    toc_float: true
+---
+
+
+
+```{r, echo=FALSE, results="hide", message=FALSE}
+knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+# BiocManager::install("BiocStyle")
+library(BiocStyle)
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+
+figure_dir="sim_cooccur"
+dir.create(paste0("./output/figure/",figure_dir), showWarnings = FALSE)
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(Seurat)
+library(magrittr)
+library(dplyr)
+# devtools::install_github("zhanghao-njmu/SCP")
+library(SCP)
+library(ggplot2)
+library(circlize)
+library(ComplexHeatmap)
+library(gridExtra)
+
+library(spatialCooccur)
+
+BuildSNNSeurat <- function (data.use, k.param = 30, prune.SNN = 1/15, nn.eps = 0) {
+  my.knn <- nn2(data = data.use, k = k.param, searchtype = "standard", eps = nn.eps)
+  nn.ranked <- my.knn$nn.idx
+  
+  snn_res <- ComputeSNN(nn_ranked = nn.ranked, prune = prune.SNN)
+  rownames(snn_res) <- row.names(data.use)
+  colnames(snn_res) <- row.names(data.use)
+  return(snn_res)
+}
+environment(BuildSNNSeurat) <- asNamespace("Seurat")
+```
+
+# Xenium Human Breast Gene Expression
+
+- curl -O     https://cf.10xgenomics.com/samples/xenium/2.0.0/Xenium_V1_human_Breast_2fov/Xenium_V1_human_Breast_2fov_outs.zip
+
+## Preprocessing & Cell annotation
+
+```{r}
+path <- "./../10X_Xenium_sample/Xenium_V1_human_Breast_2fov_outs/"
+data_name = stringr::str_split(path, "/")[[1]][length(stringr::str_split(path, "/")[[1]])-1]
+dir.create(paste0("./output/figure/",figure_dir,"/",data_name), showWarnings = FALSE)
+
+# Load the Xenium data
+data <- ReadXenium(path, outs = c("matrix", "microns"), type = c("centroids", "segmentations"))
+## continue the regular LoadXenium
+segmentations.data <- list(
+  centroids = CreateCentroids(data$centroids),
+  segmentation = CreateSegmentation(data$segmentations))
+coords <- CreateFOV(
+  coords = segmentations.data, 
+  type = c("segmentation", "centroids"), 
+  molecules = data$microns, 
+  assay = "Spatial")
+xenium.obj <- CreateSeuratObject(
+  counts = data$matrix[["Gene Expression"]], 
+  assay = "Spatial")
+xenium.obj[["BlankCodeword"]] <- CreateAssayObject(counts = data$matrix[["Unassigned Codeword"]])
+xenium.obj[["ControlCodeword"]] <- CreateAssayObject(counts = data$matrix[["Negative Control Codeword"]])
+xenium.obj[["ControlProbe"]] <- CreateAssayObject(counts = data$matrix[["Negative Control Probe"]])
+xenium.obj[["fov"]] <- coords
+rm(data); gc(); gc()
+rm(coords); gc(); gc()
+rm(segmentations.data); gc(); gc()
+
+xenium.obj <- subset(xenium.obj, subset = nCount_Spatial > 0)
+
+print(dim(xenium.obj@assays$Spatial$counts))
+xenium.obj@assays$Spatial$counts[1:5,1:5]
+head(xenium.obj@meta.data)
+summary(xenium.obj@meta.data$nCount_Spatial)
+summary(xenium.obj@meta.data$nFeature_Spatial)
+
+VlnPlot(xenium.obj, features = c("nFeature_Spatial", "nCount_Spatial"), ncol = 2, pt.size = 0)
+
+ImageDimPlot(xenium.obj, fov = "fov", molecules = c("TUBB2B", "PELI1", "CENPF", "KRT23","PDGFRB","ITGAX","KRT14","GZMA"), nmols = 20000)
+
+```
+
+
+```{r}
+
+xenium.obj <- SCTransform(xenium.obj, assay = "Spatial",
+                          conserve.memory = TRUE, vst.flavor="v2")
+xenium.obj <- RunPCA(xenium.obj, assay = "SCT", verbose = FALSE)
+xenium.obj <- FindNeighbors(xenium.obj, 
+                     reduction = "pca", 
+                     k.param = 30,
+                     dims = 1:30)
+xenium.obj <- RunUMAP(xenium.obj, 
+               reduction = "pca", 
+               n.neighbors = 30L,
+               min.dist = 0.3,
+               dims = 1:30)
+
+print("Clustering...")
+# Louvain
+snn_pcs <- BuildSNNSeurat(xenium.obj[["pca"]]@cell.embeddings[,1:30], 
+                          nn.eps = 0)
+
+resolution_list <- c(0.2, 0.4, 0.6, 0.8, 1.0)
+ids_cos <- Reduce(cbind, parallel::mclapply(resolution_list, function(res_use) {
+  Seurat:::RunModularityClustering(SNN = snn_pcs, 
+                                   modularity = 1, 
+                                   resolution = res_use, 
+                                   algorithm = 3, 
+                                   n.start = 10, 
+                                   n.iter = 10, random.seed = 0, print.output = FALSE, 
+                                   temp.file.location = NULL, edge.file.name = NULL)    
+}, mc.cores = min(16, length(resolution_list))))
+ids_cos %<>% data.frame()
+colnames(ids_cos) <- sprintf("res_%.2f", resolution_list)
+
+ids_cos$res_0.20 <- as.character(ids_cos$res_0.20)
+ids_cos$res_0.40 <- as.character(ids_cos$res_0.40)
+ids_cos$res_0.60 <- as.character(ids_cos$res_0.60)
+ids_cos$res_0.80 <- as.character(ids_cos$res_0.80)
+ids_cos$res_1.00 <- as.character(ids_cos$res_1.00)
+
+rownames(ids_cos) = rownames(xenium.obj@meta.data)
+ids_cos <- ids_cos %>%
+  dplyr::mutate(across(everything(), ~ factor(.x, levels = sort(unique(.x)))))
+xenium.obj <- AddMetaData(xenium.obj, ids_cos)
+head(xenium.obj@meta.data)
+
+
+resolution = "0.60"
+Idents(xenium.obj) = xenium.obj@meta.data[,paste0("res_",resolution)]
+
+cluster_col = paste0("res_",resolution)
+
+```
+
+```{r}
+
+g = CellDimPlot(
+  srt = xenium.obj, 
+  group.by = cluster_col, 
+  reduction = "UMAP", theme_use = "theme_blank",
+  raster = FALSE,
+  stat_plot_size = 3
+) 
+g 
+
+
+```
+
+```{r}
+xenium.obj.markers <- FindAllMarkers(xenium.obj, only.pos = TRUE)
+xenium.obj.markers %>%
+  group_by(cluster) %>%
+  dplyr::slice_max(avg_log2FC, n = 10) %>%
+  as.data.frame() 
+```
+
+
+Cluster annotation:
+0	Basal-like epithelial cells / Myoepithelial cells
+1	Proliferating epithelial cells
+2	Basal/myoepithelial tumor cells
+3	Unclassified immune-like cells
+4	Inflammatory immune cells (e.g. B cells / monocytes)
+5	Cancer-associated fibroblasts (CAFs)
+6	Macrophages (TAMs)
+7	Cytotoxic / Activated T cells
+8	Endothelial cells
+
+
+```{r}
+table(xenium.obj@meta.data[,cluster_col])
+xenium.obj@meta.data$new_cluster = dplyr::case_when(
+  xenium.obj@meta.data[,cluster_col] == "0" ~ "BasalMyo_epithelial_cells",
+  xenium.obj@meta.data[,cluster_col] == "1" ~ "Proliferating_epithelial_cells",
+  xenium.obj@meta.data[,cluster_col] == "2" ~ "BasalMyo_tumor_cells",
+  xenium.obj@meta.data[,cluster_col] == "3" ~ "Unclassified_immune-like_cells",
+  xenium.obj@meta.data[,cluster_col] == "4" ~ "Inflammatory_immune_cells",
+  xenium.obj@meta.data[,cluster_col] == "5" ~ "Cancer-associated_fibroblasts",
+  xenium.obj@meta.data[,cluster_col] == "6" ~ "Tumor-associated_macrophages",
+  xenium.obj@meta.data[,cluster_col] == "7" ~ "Cytotoxic_T",
+  xenium.obj@meta.data[,cluster_col] == "8" ~ "Endothelial_cells"
+)
+table(xenium.obj@meta.data$new_cluster)
+cluster_col = "new_cluster"
+Idents(xenium.obj) = xenium.obj@meta.data$new_cluster
+```
+
+```{r}
+
+cluster_COLORS = manual_colors
+names(cluster_COLORS) = levels(Idents(xenium.obj))
+cluster_COLORS = na.omit(cluster_COLORS)
+g = CellDimPlot(
+  srt = xenium.obj, 
+  group.by = cluster_col, 
+  reduction = "UMAP", theme_use = "theme_blank",
+  raster = FALSE,
+  stat_plot_size = 1
+) &
+  scale_color_manual(values = cluster_COLORS) &
+  guides(color = guide_legend(override.aes = list(size=5,
+                                                 alpha = 1),
+                             title = "cluster",
+                             ncol = 1))
+g 
+ggsave(paste0("./output/figure/",figure_dir,"/",data_name,"/CellDimPlot.pdf"), g, width=7, height=4, dpi=300)
+```
+
+```{r}
+g = ImageDimPlot(xenium.obj,
+             fov = "fov", 
+             size = 1.2,
+             group.by = cluster_col, 
+             dark.background = F)  &
+  scale_fill_manual(values = cluster_COLORS) &
+  guides(fill = guide_legend(override.aes = list(size=5,
+                                                 alpha = 1),
+                             title = "cluster",
+                             ncol = 1))
+g 
+ggsave(paste0("./output/figure/",figure_dir,"/",data_name,"/ImageDimPlot_byClusters.pdf"), g, width=6, height=4, dpi=300)
+
+print(xenium.obj)
+```
+
+## Spatial neighborhood analysis (SNA, cell type level analysis)
+
+```{r}
+n_perm = 100
+neighbors.k_ = 30 # Number of neighbors to search
+seed = 1234
+
+start_time = Sys.time()
+xenium.obj <- nhood_enrichment.Seurat(
+  xenium.obj,
+  cluster_key = cluster_col, 
+  neighbors.k = neighbors.k_, 
+  connectivity_key = "nn", 
+  transformation = TRUE,
+  n_perms = n_perm, seed = seed, n_jobs = 4
+)
+end_time = Sys.time()
+print("Elapsed time:")
+difftime(end_time, start_time, units = "secs")
+```
+
+```{r, fig.width=6, fig.height=6, message=FALSE, warning=FALSE}
+mat = xenium.obj@misc[[paste0(cluster_col,"_nhood_enrichment")]]$zscore
+colnames(mat) = gsub("^Cluster","",colnames(mat))
+rownames(mat) = gsub("^Cluster","",rownames(mat))
+
+pval_mat <- 1 - pnorm(mat)
+
+fdr_vec <- p.adjust(as.vector(pval_mat), method = "BH")
+fdr_mat <- matrix(fdr_vec, nrow=nrow(mat), ncol=ncol(mat),
+                  dimnames = dimnames(mat))
+sig_mat <- ifelse(fdr_mat < 0.05, "**", ifelse(fdr_mat > 0.05 & fdr_mat < 0.1, "*", ""))
+
+common_names <- intersect(rownames(mat), colnames(mat))
+for (nm in common_names) {
+  mat[nm, nm] <- NA
+  sig_mat[nm, nm] <- ""
+}
+
+heatmap <- Heatmap(mat,
+                   name = "Z-score",
+                   col = colorRamp2(c(-2, 0, 2), c("#0072B5FF", "white", "#BC3C29FF")), 
+                   show_row_names = TRUE, 
+                   show_column_names = TRUE,  
+                   cluster_rows = TRUE,  
+                   cluster_columns = TRUE,  
+                   #show_column_dend = FALSE,
+                   #show_row_dend = FALSE,
+                   row_title = "",  
+                   column_title = paste0("Spatial Neigborhood Enrichment\n",data_name),
+                   rect_gp = gpar(col = "black", lwd = 0.3),
+                   na_col = "black",         
+                   column_names_gp = grid::gpar(fontsize = 10),
+                   row_names_gp = grid::gpar(fontsize = 10),
+
+                   cell_fun = function(j, i, x, y, width, height, fill) {
+                     if(sig_mat[i, j] == "**") {
+                       grid.text("**", 
+                                 x = x,
+                                 y = y - 0.2 * height, 
+                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
+                     }
+                     if(sig_mat[i, j] == "*") {
+                       grid.text("*", 
+                                 x = x,
+                                 y = y - 0.2 * height,  
+                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
+                     }
+                   }
+)
+
+#pdf(paste0("./output/figure/",figure_dir,"/",data_name,"/SNA_heatmap.pdf"), width=4.5, height=5.5)
+draw(heatmap, 
+     merge_legend = TRUE,
+     heatmap_legend_side = "bottom", 
+     annotation_legend_side = "bottom")
+#dev.off()
+```
+
+## Spatial co-localization score (sCLA, cell-cell level analysis)
+
+
+```{r, message=FALSE, warning=FALSE}
+
+cluster_x <- "Cytotoxic_T"
+cluster_y <- "Cancer-associated_fibroblasts"
+table(Idents(xenium.obj))
+radius_ = 30 # Radius to search for neighbors (µm, cell_type_2) around anchor cells (cell_type_1)
+
+start_time = Sys.time()
+cooccur_local_df <- cooccur_local.Seurat(
+  xenium.obj,
+  cluster_key      = cluster_col,
+  sample_key       = NULL,
+  cluster_x        = cluster_x,
+  cluster_y        = cluster_y,
+  connectivity_key = "nn",
+  neighbors.k      = neighbors.k_, 
+  radius           = radius_,
+  maxnsteps        = 15
+)
+end_time = Sys.time()
+print("Elapsed time:")
+difftime(end_time, start_time, units = "secs")
+summary(cooccur_local_df)
+```
+
+```{r, message=FALSE, warning=FALSE}
+xenium.obj = AddMetaData(xenium.obj, cooccur_local_df)
+
+g = ImageFeaturePlot(xenium.obj, 
+                     features = paste0("cooccur_local_",cluster_x,"_",cluster_y), 
+                     #dark.background = F,
+                     cols = c("white", "red"))
+g
+ggsave(paste0("./output/figure/",figure_dir,"/",data_name,"/ImageFeaturePlot_",cluster_x,"_",cluster_y,".pdf"), g, width=6, height=4, dpi=300)
+
+```
+
+
+<br/><br/>
+
+
+# Xenium Mouse Brain
+
+- wget https://cf.10xgenomics.com/samples/xenium/1.0.2/Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP/Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_outs.zip
+- unzip Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_outs.zip
+  
+## Preprocessing & Cell annotation
+
+```{r}
+path <- "./../10X_Xenium_sample/Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_outs/"
+data_name = stringr::str_split(path, "/")[[1]][length(stringr::str_split(path, "/")[[1]])-1]
+dir.create(paste0("./output/figure/",figure_dir,"/",data_name), showWarnings = FALSE)
+
+xenium.obj <- LoadXenium(path, fov = "fov")
+# remove cells with 0 counts
+xenium.obj <- subset(xenium.obj, subset = nCount_Xenium > 0)
+
+VlnPlot(xenium.obj, features = c("nFeature_Xenium", "nCount_Xenium"), ncol = 2, pt.size = 0)
+
+
+```
+```{r, fig.width=8, fig.height=8}
+ImageDimPlot(xenium.obj, 
+             fov = "fov", 
+             size = 0.5,
+             molecules = c("Gad1", "Sst", "Pvalb", "Gfap"), nmols = 20000)
+```
+
+
+```{r}
+xenium.obj <- SCTransform(xenium.obj, assay = "Xenium")
+xenium.obj <- RunPCA(xenium.obj, npcs = 30, features = rownames(xenium.obj))
+xenium.obj <- RunUMAP(xenium.obj, dims = 1:30)
+xenium.obj <- FindNeighbors(xenium.obj, reduction = "pca", dims = 1:30)
+xenium.obj <- FindClusters(xenium.obj, resolution = 0.3)
+
+```
+
+```{r}
+
+cluster_col="seurat_clusters"
+g = CellDimPlot(
+  srt = xenium.obj, 
+  group.by = cluster_col, 
+  reduction = "UMAP", theme_use = "theme_blank",
+  raster = FALSE,
+  stat_plot_size = 3
+) 
+g 
+
+
+```
+
+```{r, fig.width=8, fig.height=12}
+FeaturePlot(xenium.obj, features = c("Cux2", "Bcl11b", "Foxp2", "Gad1", "Sst", "Gfap"))
+```
+
+```{r, fig.width=8, fig.height=8}
+ImageDimPlot(xenium.obj, cols = "polychrome", 
+             size = 0.75)
+```
+
+```{r}
+# devtools::install_github("dmcable/spacexr", build_vignettes = FALSE)
+library(spacexr)
+
+query.counts <- GetAssayData(xenium.obj, assay = "Xenium", slot = "counts")
+coords <- GetTissueCoordinates(xenium.obj[["fov"]], which = "centroids")
+rownames(coords) <- coords$cell
+coords$cell <- NULL
+query <- SpatialRNA(coords, query.counts, colSums(query.counts))
+```
+
+```{r, message=FALSE, warning=FALSE}
+# allen.corted.ref can be downloaded here:
+# https://www.dropbox.com/s/cuowvm4vrf65pvq/allen_cortex.rds?dl=1
+allen.cortex.ref <- readRDS("./../10X_Xenium_sample/allen_cortex.rds")
+allen.cortex.ref <- UpdateSeuratObject(allen.cortex.ref)
+
+Idents(allen.cortex.ref) <- "subclass"
+# remove CR cells because there aren't enough of them for annotation
+allen.cortex.ref <- subset(allen.cortex.ref, subset = subclass != "CR")
+counts <- GetAssayData(allen.cortex.ref, assay = "RNA", slot = "counts")
+cluster <- as.factor(allen.cortex.ref$subclass)
+names(cluster) <- colnames(allen.cortex.ref)
+nUMI <- allen.cortex.ref$nCount_RNA
+names(nUMI) <- colnames(allen.cortex.ref)
+nUMI <- colSums(counts)
+levels(cluster) <- gsub("/", "-", levels(cluster))
+reference <- Reference(counts, cluster, nUMI)
+```
+
+```{r, message=FALSE, warning=FALSE}
+# run RCTD with many cores
+RCTD <- create.RCTD(query, reference, max_cores = 8)
+RCTD <- run.RCTD(RCTD, doublet_mode = "doublet")
+```
+
+```{r}
+annotations.df <- RCTD@results$results_df
+annotations <- annotations.df$first_type
+names(annotations) <- rownames(annotations.df)
+xenium.obj$predicted.celltype <- annotations
+keep.cells <- Cells(xenium.obj)[!is.na(xenium.obj$predicted.celltype)]
+xenium.obj <- subset(xenium.obj, cells = keep.cells)
+```
+
+```{r}
+cluster_col="predicted.celltype"
+Idents(xenium.obj) = xenium.obj@meta.data[,cluster_col]
+
+```
+
+```{r}
+markers = xenium.obj.markers %>%
+  group_by(cluster) %>%
+  dplyr::slice_max(avg_log2FC, n = 1) %>%
+  as.data.frame() %>%
+  pull(gene) %>%
+  unique()
+marker_COLORS = manual_colors
+names(marker_COLORS) = markers
+  
+ImageDimPlot(xenium.obj, fov = "fov", molecules = markers, nmols = 20000) &
+  scale_color_manual(values = marker_COLORS) 
+```
+
+
+```{r}
+
+cluster_COLORS = manual_colors
+names(cluster_COLORS) = levels(Idents(xenium.obj))
+cluster_COLORS = na.omit(cluster_COLORS)
+g = CellDimPlot(
+  srt = xenium.obj, 
+  group.by = cluster_col, 
+  reduction = "UMAP", theme_use = "theme_blank",
+  raster = FALSE,
+  stat_plot_size = 1
+) &
+  scale_color_manual(values = cluster_COLORS) &
+  guides(color = guide_legend(override.aes = list(size=5,
+                                                 alpha = 1),
+                             title = "cluster",
+                             ncol = 1))
+g 
+ggsave(paste0("./output/figure/",figure_dir,"/",data_name,"/CellDimPlot.pdf"), g, width=7, height=4, dpi=300)
+
+print(xenium.obj)
+```
+
+```{r}
+g = ImageDimPlot(xenium.obj,
+             fov = "fov", 
+             size = 0.5,
+             group.by = cluster_col)  &
+  scale_fill_manual(values = cluster_COLORS)
+g 
+ggsave(paste0("./output/figure/",figure_dir,"/",data_name,"/ImageDimPlot_byClusters.pdf"), g, width=6, height=4, dpi=300)
+```
+
+## Spatial neighborhood analysis (SNA, cell type level analysis)
+
+```{r}
+n_perm = 100
+neighbors.k_ = 30 # Number of neighbors to search
+seed = 1234
+
+start_time = Sys.time()
+xenium.obj <- nhood_enrichment.Seurat(
+  xenium.obj,
+  cluster_key = cluster_col, 
+  neighbors.k = neighbors.k_, 
+  connectivity_key = "nn", 
+  transformation = TRUE,
+  n_perms = n_perm, seed = seed, n_jobs = 4
+)
+end_time = Sys.time()
+print("Elapsed time:")
+difftime(end_time, start_time, units = "secs")
+```
+
+```{r, fig.width=6, fig.height=6, message=FALSE, warning=FALSE}
+mat = xenium.obj@misc[[paste0(cluster_col,"_nhood_enrichment")]]$zscore
+colnames(mat) = gsub("^Cluster","",colnames(mat))
+rownames(mat) = gsub("^Cluster","",rownames(mat))
+
+pval_mat <- 1 - pnorm(mat)
+
+fdr_vec <- p.adjust(as.vector(pval_mat), method = "BH")
+fdr_mat <- matrix(fdr_vec, nrow=nrow(mat), ncol=ncol(mat),
+                  dimnames = dimnames(mat))
+
+sig_mat <- ifelse(fdr_mat < 0.05, "**", ifelse(fdr_mat > 0.05 & fdr_mat < 0.1, "*", ""))
+
+common_names <- intersect(rownames(mat), colnames(mat))
+for (nm in common_names) {
+  mat[nm, nm] <- NA
+  sig_mat[nm, nm] <- ""
+}
+
+heatmap <- Heatmap(mat,
+                   name = "Z-score",
+                   col = colorRamp2(c(-2, 0, 2), c("#0072B5FF", "white", "#BC3C29FF")), 
+                   show_row_names = TRUE, 
+                   show_column_names = TRUE,  
+                   cluster_rows = TRUE,  
+                   cluster_columns = TRUE,  
+                   #show_column_dend = FALSE,
+                   #show_row_dend = FALSE,
+                   row_title = "",  
+                   column_title = paste0("Spatial Neigborhood Enrichment\n",data_name),
+                   rect_gp = gpar(col = "black", lwd = 0.3),
+                   na_col = "black",         
+                   column_names_gp = grid::gpar(fontsize = 10),
+                   row_names_gp = grid::gpar(fontsize = 10),
+
+                   cell_fun = function(j, i, x, y, width, height, fill) {
+                     if(sig_mat[i, j] == "**") {
+                       grid.text("**", 
+                                 x = x,
+                                 y = y - 0.2 * height,  
+                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
+                     }
+                     if(sig_mat[i, j] == "*") {
+                       grid.text("*", 
+                                 x = x,
+                                 y = y - 0.2 * height, 
+                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
+                     }
+                   }
+)
+
+#pdf(paste0("./output/figure/",figure_dir,"/",data_name,"/SNA_heatmap.pdf"), width=4.5, height=5.5)
+draw(heatmap, 
+     merge_legend = TRUE,
+     heatmap_legend_side = "bottom", 
+     annotation_legend_side = "bottom")
+#dev.off()
+```
+
+## Spatial co-localization score (sCLA, cell-cell level analysis)
+
+
+```{r, message=FALSE, warning=FALSE}
+
+cluster_x <- "L6 IT"
+cluster_y <- "L6 CT"
+table(Idents(xenium.obj))
+radius_ = 30 # Radius to search for neighbors (µm, cell_type_2) around anchor cells (cell_type_1)
+
+start_time = Sys.time()
+cooccur_local_df <- cooccur_local.Seurat(
+  xenium.obj,
+  cluster_key      = cluster_col,
+  sample_key       = NULL,
+  cluster_x        = cluster_x,
+  cluster_y        = cluster_y,
+  connectivity_key = "nn",
+  neighbors.k      = neighbors.k_, 
+  radius           = radius_,
+  maxnsteps        = 15
+)
+end_time = Sys.time()
+print("Elapsed time:")
+difftime(end_time, start_time, units = "secs")
+
+
+colnames(cooccur_local_df) = gsub(" ", "_", colnames(cooccur_local_df))
+summary(cooccur_local_df)
+```
+
+```{r, message=FALSE, warning=FALSE}
+xenium.obj = AddMetaData(xenium.obj, cooccur_local_df)
+
+g = ImageFeaturePlot(xenium.obj, 
+                     features = gsub(" ", "_", paste0("cooccur_local_",cluster_x,"_",cluster_y)), 
+                     #dark.background = F,
+                     cols = c("white", "red"))
+g
+ggsave(paste0("./output/figure/",figure_dir,"/",data_name,"/ImageFeaturePlot_",gsub(" ", "_", cluster_x),"_",gsub(" ", "_", cluster_y),".pdf"), g, width=6, height=4, dpi=300)
+
+```
+
+```{r, fig.width=12, fig.height=8}
+
+cluster_COLORS_ = cluster_COLORS[cluster_x]
+g_x = ImageDimPlot(xenium.obj,
+             fov = "fov", 
+             size = 0.3,
+             group.by = cluster_col)  &
+  scale_fill_manual(values = cluster_COLORS_) &
+  guides(fill = guide_legend(override.aes = list(size=5,
+                                                 alpha = 1),
+                             title = "cluster",
+                             ncol = 1))
+cluster_COLORS_ = cluster_COLORS[cluster_y]
+g_y = ImageDimPlot(xenium.obj,
+             fov = "fov", 
+             size = 0.3,
+             group.by = cluster_col)  &
+  scale_fill_manual(values = cluster_COLORS_) &
+  guides(fill = guide_legend(override.aes = list(size=5,
+                                                 alpha = 1),
+                             title = "cluster",
+                             ncol = 1))
+g_x + g_y
+ggsave(paste0("./output/figure/",figure_dir,"/",data_name,"/ImageDimPlot_",gsub(" ", "_", cluster_x),"_",gsub(" ", "_", cluster_y),".pdf"), g_x + g_y, width=6, height=4, dpi=300)
+
+```
+
+<br/><br/>
+
+***
+
+
+# sessionInfo
+
+```{r}
+sessionInfo()
+```
+
+
