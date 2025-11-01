@@ -1,6 +1,8 @@
 
 # spatialCooccur <img src="man/figures/logo.png" align="right" height="138" />
 
+[![DOI](https://zenodo.org/badge/960705353.svg)](https://doi.org/10.5281/zenodo.17498341)
+
 `spatialCooccur` is an R package for analyzing spatial co-occurrence and
 neighborhood interactions in spatial transcriptomics data. It is built
 around Seurat objects and provides tools to compute co-occurrence
