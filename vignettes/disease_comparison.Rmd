@@ -158,18 +158,27 @@ interaction is planted.
 ```{r simulate}
 set.seed(1)
 df_groups <- generate_sim_groups(
-  n_samples_per_group = 4,
-  group_close_ratio = list(disease = 0.85, control = 0.15),
+  n_samples_per_group = 8,
+  group_close_ratio = list(disease = 0.95, control = 0.05),
   n_types = 5,
-  n_cells = 400,
+  n_cells = 500,
   test_type = "distribute",
-  distance_param = 15,
-  between_sample_noise = 0.03,
+  distance_param = 10,
+  between_sample_noise = 0.02,
   seed = 1
 )
 head(df_groups)
 table(df_groups$sample_id, df_groups$group)
 ```
+
+The settings above are tuned so the planted `cell_type_1` ↔
+`cell_type_2` signal is strong enough that downstream
+[`compare_groups()`](#group-comparison) reaches BH-adjusted significance
+across the full 5 × 5 cluster grid. With smaller `n_samples_per_group`
+or a narrower `close_ratio` gap, the Wilcoxon p-value floor combined
+with 25-pair multiple-testing correction often prevents `padj < 0.05`
+even when the planted effect is real — keep that in mind when designing
+your own experiments.
 
 `df_groups` is a long-format data.frame with columns `x`, `y`,
 `cell_type`, `sample_id`, `group`, `patient`. The same shape is what the
@@ -185,7 +194,7 @@ control = 0.15)`, the disease samples should show clear local pairing of
 `distance_param` from each seed), while control samples should look
 nearly random.
 
-```{r spatial_map, fig.width = 8, fig.height = 4.5, eval = requireNamespace("ggplot2", quietly = TRUE)}
+```{r spatial_map, fig.width = 8, fig.height = 8, eval = requireNamespace("ggplot2", quietly = TRUE)}
 library(ggplot2)
 
 # Order panels so disease and control sit on contiguous rows
@@ -196,7 +205,7 @@ df_groups$sample_id <- factor(
 
 ggplot(df_groups, aes(x = x, y = y, color = cell_type)) +
   geom_point(size = 0.6, alpha = 0.8) +
-  facet_wrap(~ group + sample_id, nrow = 2) +
+  facet_wrap(~ group + sample_id, nrow = 4) +
   coord_equal() +
   scale_color_manual(values = manual_colors[seq_len(nlevels(df_groups$cell_type))]) +
   guides(color = guide_legend(override.aes = list(size = 2.5))) +
@@ -211,7 +220,7 @@ ggplot(df_groups, aes(x = x, y = y, color = cell_type)) +
 To highlight the planted interaction, restrict to the two seeded cell
 types and overlay them on a grey background of all other cells:
 
-```{r spatial_map_focus, fig.width = 8, fig.height = 4.5, eval = requireNamespace("ggplot2", quietly = TRUE)}
+```{r spatial_map_focus, fig.width = 8, fig.height = 8, eval = requireNamespace("ggplot2", quietly = TRUE)}
 target <- c("cell_type_1", "cell_type_2")
 df_groups$.target <- ifelse(as.character(df_groups$cell_type) %in% target,
                             as.character(df_groups$cell_type), "other")
@@ -221,7 +230,7 @@ ggplot(df_groups, aes(x = x, y = y)) +
              color = "grey85", size = 0.4) +
   geom_point(data = subset(df_groups, .target != "other"),
              aes(color = .target), size = 0.9) +
-  facet_wrap(~ group + sample_id, nrow = 2) +
+  facet_wrap(~ group + sample_id, nrow = 4) +
   coord_equal() +
   scale_color_manual(values = c(cell_type_1 = "#E41A1C", cell_type_2 = "#377EB8")) +
   labs(title = "Planted interaction: cell_type_1 vs cell_type_2",
@@ -244,8 +253,8 @@ per_sample <- nhood_enrichment_per_sample(
   group_key    = "group",
   cluster_key  = "cell_type",
   patient_key  = "patient",
-  neighbors.k  = 15,
-  n_perms      = 100,
+  neighbors.k  = 12,
+  n_perms      = 200,
   n_jobs       = 1,
   seed         = 1
 )
@@ -255,6 +264,56 @@ head(per_sample)
 Each row is `sample_id x cluster_i x cluster_j`. The factor levels of
 `cell_type` are harmonized across samples so that the `cluster_i`,
 `cluster_j` columns are directly comparable.
+
+## Sanity check: per-group enrichment heatmaps
+
+Before running any statistical test it pays to plot the *observed*
+neighborhood enrichment z-score, averaged across samples within each
+group. If the simulator is working, the disease group should show a
+clearly positive z-score on the `cell_type_1` ↔ `cell_type_2` pair
+(planted by `generate_sim()` with `close_ratio = 0.85`), and the
+control group should be near zero everywhere.
+
+```{r per_group_heatmap, fig.width = 9, fig.height = 4.2, eval = requireNamespace("ggplot2", quietly = TRUE)}
+library(ggplot2)
+
+# Average the per-sample z-score within group (this is the input compare_groups
+# will then test against zero between groups).
+mean_z <- aggregate(zscore ~ cluster_i + cluster_j + group,
+                    data = per_sample, FUN = function(x) mean(x, na.rm = TRUE))
+
+# Symmetric color limits around 0 so disease vs control are directly comparable
+lim <- max(abs(mean_z$zscore), na.rm = TRUE)
+
+ggplot(mean_z, aes(x = cluster_i, y = cluster_j, fill = zscore)) +
+  geom_tile(color = "grey90", linewidth = 0.2) +
+  geom_text(aes(label = sprintf("%.1f", zscore)), size = 2.7) +
+  facet_wrap(~ group) +
+  scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B",
+                       midpoint = 0, limits = c(-lim, lim)) +
+  coord_equal() +
+  labs(title = "Observed neighborhood enrichment z-score by group",
+       subtitle = "mean across samples; planted signal is on cell_type_1 vs cell_type_2",
+       x = "cluster i", y = "cluster j", fill = "mean z") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+The cell at `(cell_type_1, cell_type_2)` (and its symmetric counterpart)
+is the only one that should differ markedly between the two facets — and
+in particular it should be strongly positive in disease and near zero in
+control. Use this plot as a quick check that the simulation actually
+reflects the disease structure you intended *before* trusting the
+group-comparison p-values below.
+
+You can also look at this group-mean object as a small table for a
+direct numeric comparison:
+
+```{r per_group_table}
+target_pair <- subset(mean_z,
+                      cluster_i == "cell_type_1" & cluster_j == "cell_type_2")
+target_pair
+```
 
 For the radius-based ratio, the local interaction score, and the
 interaction-spot count, use the parallel helpers:

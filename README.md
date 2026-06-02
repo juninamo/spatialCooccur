@@ -6,8 +6,9 @@
 `spatialCooccur` is an R package for analyzing spatial co-occurrence and
 neighborhood interactions in spatial transcriptomics data. It is built
 around Seurat objects and provides tools to compute co-occurrence
-enrichment, perform permutation-based tests, and visualize local
-interaction scores.
+enrichment, perform permutation-based tests, visualize local
+interaction scores, and **compare scores between disease groups** across
+multiple samples.
 
 ## Installation
 
@@ -20,11 +21,38 @@ devtools::install_github("juninamo/spatialCooccur")
 
 ## Features
 
+**Single-sample analysis**
+
 - Simulate spatial transcriptomic layouts with `generate_sim()`
 - Calculate neighborhood co-occurrence enrichment with
-  `nhood_enrichment()`
+  `nhood_enrichment()` (permutation-based z-score)
+- Compute radius-based co-occurrence ratio with
+  `calc_co_occurrence_for_radius()` / `compute_co_occurrence_ratio()`
 - Identify local interaction zones using `cooccur_local()`
-- Works seamlessly with Seurat spatial objects
+- Detect connected interaction spots with `search_interaction_spot()`
+
+**Multi-sample / disease-group comparison**
+
+- Generate multi-sample group-structured simulations with
+  `generate_sim_groups()`
+- Compute per-sample scores with `nhood_enrichment_per_sample()`,
+  `cooccur_ratio_per_sample()`, `cooccur_local_per_sample()`, or
+  `interaction_spot_per_sample()` (supports Seurat / list of Seurat /
+  data.frame input, image- or patient-level aggregation)
+- Test cluster pairs between groups with `compare_groups()` —
+  Wilcoxon / Welch's *t* / linear mixed model (`lme4`) / patient-blocked
+  permutation
+- Visualize with `plot_group_delta_heatmap()`, `plot_pair_boxplot()`,
+  `plot_volcano_groups()`
+
+**Works with Seurat spatial objects out of the box.**
+
+**Vignettes**
+
+- `vignette("disease_comparison", "spatialCooccur")` — end-to-end
+  disease-group comparison workflow with worked example
+- `vignette("algorithms", "spatialCooccur")` — mathematical reference for
+  every core function
 
 ### 1. Spatial Neighborhood Analysis (SNA)
 To simulate spatial transcriptomic data and perform neighborhood enrichment analysis:
@@ -46,8 +74,11 @@ summary(cooccur_local_df)
 ```
 
 ### 3. Disease-group comparison
-To compare neighborhood enrichment between disease groups across multiple
-samples, compute per-sample scores and then test each cluster pair:
+To compare a spatial co-occurrence score between disease groups across
+multiple samples, compute per-sample scores and then test each cluster
+pair. The same `*_per_sample()` + `compare_groups()` pattern works for
+neighborhood enrichment z-score, radius-based ratio, local
+co-occurrence score, and interaction-spot counts.
 
 ```r
 # Simulate two groups, 3 samples each
@@ -58,26 +89,37 @@ df_groups <- generate_sim_groups(
   distance_param = 15
 )
 
-# Per-sample z-scores
+# Per-sample z-scores (one row per sample x cluster_i x cluster_j)
 per_sample <- nhood_enrichment_per_sample(
   df_groups, sample_key = "sample_id", group_key = "group",
   cluster_key = "cell_type", patient_key = "patient",
   neighbors.k = 20, n_perms = 100
 )
 
-# Group comparison: Wilcoxon by default; "lmm" uses lme4::lmer with patient
-# as a random effect; "perm" runs a group-label permutation test (blocked
-# by patient when patient_key is supplied)
+# Group comparison: method = "wilcox" (default) | "t" | "lmm" | "perm"
+# - "lmm"  uses lme4::lmer(value ~ group + (1 | patient))
+# - "perm" runs a group-label permutation test, blocked by patient
+#          when patient_key is supplied
 res <- compare_groups(
   per_sample, value = "zscore",
   method = "wilcox", ref_group = "control"
 )
 head(res)
+
+# Visualize: per-pair effect heatmap, volcano, and per-sample boxplot
+plot_group_delta_heatmap(res)
+plot_volcano_groups(res, label_top = 5)
+plot_pair_boxplot(
+  per_sample, value = "zscore",
+  pairs = data.frame(cluster_i = "cell_type_1",
+                     cluster_j = "cell_type_2"),
+  add_p = TRUE, ref_group = "control"
+)
 ```
 
-The same `*_per_sample()` + `compare_groups()` pattern works for
-`cooccur_ratio_per_sample()`, `cooccur_local_per_sample()`, and
-`interaction_spot_per_sample()`.
+See `vignette("disease_comparison", "spatialCooccur")` for the full
+workflow, sanity-check heatmaps, and the algorithm description (math)
+for each `compare_groups()` method.
 <!-- 
 ## Citation 
 Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kari Hayes, Nathan Rogers, Heather Leach, Kentaro Yomogida. Subcellular spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi.org/XX](https://doi.org/XX)
@@ -108,14 +150,14 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 &nbsp;&nbsp;
 
 ## 📝 Citation 
-Jun Inamo, et al. Subcellular spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*medRxiv 2025*](https://www.medrxiv.org/content/10.1101/2025.08.05.25332835v1), doi:[https://doi.org/10.1101/2025.08.05.25332835](https://doi.org/10.1101/2025.08.05.25332835)
+Jun Inamo, Roselyn Fierkens, Michael R. Clay, Anna Helena Jonsson, Clara Lin, Kari Hayes, Nathan Rogers, Heather Leach, Kentaro Yomogida. Spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*JCI Insight* 2026;11(1):e198074](https://doi.org/10.1172/jci.insight.198074). doi:[10.1172/jci.insight.198074](https://doi.org/10.1172/jci.insight.198074)
 
 ## Contact
 For questions or issues related to this tutorial, please contact;
 
 **Name:** Jun Inamo  
-**Email:** juninamo@keio.jp
-**Affiliation:** Division of Rheumatology, Department of Internal Medicine, Keio University School of Medicine
+**Email:** juninamo@keio.jp  
+**Affiliation:** Department of Microbiology and Immunology, Keio University School of Medicine
 
 The data presented in the paper (spatial transcriptome data from JIA-synovoum) was generated by the [Yomogida lab](https://www.yomogidalab.com/).
 
