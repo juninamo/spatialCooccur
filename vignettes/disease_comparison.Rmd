@@ -37,11 +37,123 @@ library(spatialCooccur)
 
 # Simulate a two-group dataset
 
-`generate_sim_groups()` wraps `generate_sim()` to produce
-`n_samples_per_group` samples per condition, each with a possibly noised
-`close_ratio` around the group baseline. Here we use `test_type = "distribute"`
-so that planted co-localization is at the spatial scale the local
-neighborhood graph is sensitive to.
+## How `generate_sim()` builds one sample
+
+Before generating the full disease/control dataset, it helps to look at
+what a single sample produced by `generate_sim()` actually contains.
+
+A sample is a flat `data.frame` of cells with `x`, `y`, and `cell_type`
+columns. With `test_type = "distribute"`:
+
+1. All cells are first dropped uniformly at random in a `max_loc x
+   max_loc` box.
+2. Each cell is assigned one of `n_types` cell types.
+3. A fraction `close_ratio` of the `cell_type_2` cells is then *moved*
+   next to a randomly chosen `cell_type_1` cell, at distance
+   `distance_param` (with small Gaussian jitter).
+
+So `close_ratio` controls the strength of the planted 1 ↔ 2 spatial
+interaction. `distance_param` controls how *close* the pairing is.
+
+```{r sim_anatomy, fig.width = 9, fig.height = 3, eval = requireNamespace("ggplot2", quietly = TRUE)}
+library(ggplot2)
+
+# A small parameter sweep on close_ratio, all other params fixed.
+ratios  <- c(0.0, 0.3, 0.7, 1.0)
+df_list <- lapply(ratios, function(r) {
+  d <- generate_sim(close_ratio    = r,
+                    n_types        = 5,
+                    n_cells        = 400,
+                    max_loc        = 300,
+                    test_type      = "distribute",
+                    distance_param = 15,
+                    seed           = 7)
+  d$close_ratio <- sprintf("close_ratio = %.1f", r)
+  d$.target     <- ifelse(as.character(d$cell_type) %in%
+                            c("cell_type_1", "cell_type_2"),
+                          as.character(d$cell_type), "other")
+  d
+})
+df_sweep <- do.call(rbind, df_list)
+df_sweep$close_ratio <- factor(df_sweep$close_ratio,
+                               levels = sprintf("close_ratio = %.1f", ratios))
+
+ggplot(df_sweep, aes(x = x, y = y)) +
+  geom_point(data = subset(df_sweep, .target == "other"),
+             color = "grey85", size = 0.35) +
+  geom_point(data = subset(df_sweep, .target != "other"),
+             aes(color = .target), size = 0.9) +
+  facet_wrap(~ close_ratio, nrow = 1) +
+  coord_equal() +
+  scale_color_manual(values = c(cell_type_1 = "#E41A1C", cell_type_2 = "#377EB8")) +
+  labs(title = "Effect of close_ratio on one simulated sample",
+       subtitle = "grey = other cell types, red = cell_type_1, blue = cell_type_2",
+       x = NULL, y = NULL, color = NULL) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid.minor = element_blank())
+```
+
+As `close_ratio` grows from 0 to 1 you can see the red and blue points
+visibly clump into pairs while the grey background stays uniform. That
+clumping is exactly the signal `nhood_enrichment` should pick up.
+
+To make `distance_param` concrete, zoom into one sample and draw a
+segment from each red seed to its paired blue partner:
+
+```{r sim_distance_param, fig.width = 6, fig.height = 5, eval = requireNamespace("ggplot2", quietly = TRUE)}
+one <- generate_sim(close_ratio    = 1.0,
+                    n_types        = 5,
+                    n_cells        = 300,
+                    max_loc        = 300,
+                    test_type      = "distribute",
+                    distance_param = 25,
+                    seed           = 42)
+
+# Reconstruct the seed-partner pairs deterministically by re-running the
+# seeding logic of generate_sim() so we can draw the connecting segments.
+set.seed(42)
+.x  <- runif(300, 0, 300); .y <- runif(300, 0, 300)
+.ct <- sample(paste0("cell_type_", 1:5), 300, replace = TRUE)
+i1  <- which(.ct == "cell_type_1")
+i2  <- which(.ct == "cell_type_2")
+n_pairs <- round(length(i2) * 1.0)
+ic1 <- sample(i1, n_pairs, replace = TRUE)
+ic2 <- sample(i2, n_pairs)
+
+# Use the moved coordinates of cell_type_2 from the simulated sample,
+# matched back by index.
+segs <- data.frame(
+  x = one$x[ic1], y = one$y[ic1],
+  xend = one$x[ic2], yend = one$y[ic2]
+)
+# Keep only nearby pairs for clarity in the zoom
+zoom <- segs[segs$x > 50 & segs$x < 230 & segs$y > 50 & segs$y < 230, ]
+
+ggplot() +
+  geom_point(data = one, aes(x = x, y = y),
+             color = "grey85", size = 0.4) +
+  geom_segment(data = zoom,
+               aes(x = x, y = y, xend = xend, yend = yend),
+               color = "grey40", linewidth = 0.3) +
+  geom_point(data = subset(one, cell_type == "cell_type_1"),
+             aes(x = x, y = y), color = "#E41A1C", size = 1.2) +
+  geom_point(data = subset(one, cell_type == "cell_type_2"),
+             aes(x = x, y = y), color = "#377EB8", size = 1.2) +
+  coord_equal() +
+  labs(title = "Each blue (cell_type_2) sits ≈ distance_param away from a red seed",
+       subtitle = "lines connect each seed (cell_type_1) to its paired partner (cell_type_2)",
+       x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
+```
+
+`generate_sim_groups()` then calls `generate_sim()` once per sample,
+using a group-specific `close_ratio` (plus a small per-sample noise), so
+the result is `n_samples_per_group x length(group_close_ratio)` samples
+sharing the same coordinate space but differing in how strongly the 1 ↔ 2
+interaction is planted.
 
 ```{r simulate}
 set.seed(1)
@@ -63,6 +175,65 @@ table(df_groups$sample_id, df_groups$group)
 `cell_type`, `sample_id`, `group`, `patient`. The same shape is what the
 `*_per_sample()` helpers accept directly; for Seurat input they read the
 equivalent fields from `meta.data` and `@images`.
+
+## Spatial map of the simulated samples
+
+Before any statistics, it helps to see the planted structure: with
+`test_type = "distribute"` and `group_close_ratio = list(disease = 0.85,
+control = 0.15)`, the disease samples should show clear local pairing of
+`cell_type_1` (the seed type) and `cell_type_2` (the partner placed at
+`distance_param` from each seed), while control samples should look
+nearly random.
+
+```{r spatial_map, fig.width = 8, fig.height = 4.5, eval = requireNamespace("ggplot2", quietly = TRUE)}
+library(ggplot2)
+
+# Order panels so disease and control sit on contiguous rows
+df_groups$sample_id <- factor(
+  df_groups$sample_id,
+  levels = unique(df_groups$sample_id[order(df_groups$group, df_groups$sample_id)])
+)
+
+ggplot(df_groups, aes(x = x, y = y, color = cell_type)) +
+  geom_point(size = 0.6, alpha = 0.8) +
+  facet_wrap(~ group + sample_id, nrow = 2) +
+  coord_equal() +
+  scale_color_manual(values = manual_colors[seq_len(nlevels(df_groups$cell_type))]) +
+  guides(color = guide_legend(override.aes = list(size = 2.5))) +
+  labs(title = "Simulated samples by disease group",
+       x = NULL, y = NULL, color = "cell type") +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid.minor = element_blank())
+```
+
+To highlight the planted interaction, restrict to the two seeded cell
+types and overlay them on a grey background of all other cells:
+
+```{r spatial_map_focus, fig.width = 8, fig.height = 4.5, eval = requireNamespace("ggplot2", quietly = TRUE)}
+target <- c("cell_type_1", "cell_type_2")
+df_groups$.target <- ifelse(as.character(df_groups$cell_type) %in% target,
+                            as.character(df_groups$cell_type), "other")
+
+ggplot(df_groups, aes(x = x, y = y)) +
+  geom_point(data = subset(df_groups, .target == "other"),
+             color = "grey85", size = 0.4) +
+  geom_point(data = subset(df_groups, .target != "other"),
+             aes(color = .target), size = 0.9) +
+  facet_wrap(~ group + sample_id, nrow = 2) +
+  coord_equal() +
+  scale_color_manual(values = c(cell_type_1 = "#E41A1C", cell_type_2 = "#377EB8")) +
+  labs(title = "Planted interaction: cell_type_1 vs cell_type_2",
+       subtitle = "disease samples should show tight 1–2 pairing; control samples should not",
+       x = NULL, y = NULL, color = NULL) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid.minor = element_blank())
+
+df_groups$.target <- NULL
+```
 
 # Per-sample neighborhood enrichment
 
@@ -109,6 +280,154 @@ cooccur_local_per_sample(
 `compare_groups()` runs a per-cluster-pair test between two groups. Set
 `ref_group` to make the sign of `effect` interpretable
 (`effect = mean(test) - mean(reference)`).
+
+## Algorithm
+
+Let $S$ be the set of samples, $G_s \in \{g_\mathrm{ref}, g_\mathrm{test}\}$
+the group of sample $s$, and $V_{s,i,j}$ the per-sample score (e.g. the
+z-score from `nhood_enrichment_per_sample()`) for the ordered cluster
+pair $(i, j)$. `compare_groups()` iterates over every unique
+$(i, j)$ and runs the chosen two-group test on the vector
+$\{V_{s,i,j}\}_{s \in S}$ split by $G_s$.
+
+For each pair it reports
+
+$$
+\hat{\mu}_g \;=\; \frac{1}{|S_g|}\sum_{s \in S_g} V_{s,i,j},
+\qquad
+\widehat{\text{effect}}_{i,j} \;=\; \hat{\mu}_{g_\mathrm{test}} - \hat{\mu}_{g_\mathrm{ref}},
+$$
+
+where $S_g = \{s : G_s = g\}$.
+
+After all pairs are tested, raw $p$-values $p_{i,j}$ are corrected for
+multiple testing across pairs:
+
+$$
+\tilde{p}_{i,j} \;=\; \mathrm{adjust}\bigl(\{p_{i,j}\};\, \text{method}\bigr),
+$$
+
+defaulting to the Benjamini–Hochberg FDR procedure
+($\tilde{p}_{(k)} = \min_{m \ge k}\bigl\{\frac{M}{m} p_{(m)}\bigr\}$, with
+$M$ the number of pairs and $p_{(k)}$ the $k$-th smallest $p$-value).
+
+The four `method` choices differ only in how each per-pair $p_{i,j}$ is
+computed.
+
+### `method = "wilcox"` — Wilcoxon rank-sum
+
+Let $V^{(\mathrm{ref})}$ and $V^{(\mathrm{test})}$ denote the per-sample
+scores in each group (sizes $n_1, n_2$), and let $R_k$ be the rank of
+$V^{(\mathrm{test})}_k$ when all $n_1 + n_2$ values are pooled and ranked.
+The Mann–Whitney $U$ statistic is
+
+$$
+U \;=\; \sum_{k=1}^{n_2} R_k \;-\; \frac{n_2(n_2+1)}{2}.
+$$
+
+Under the null ($V^{(\mathrm{ref})}$ and $V^{(\mathrm{test})}$ share a
+distribution),
+
+$$
+\mathbb{E}[U] = \frac{n_1 n_2}{2}, \quad
+\mathrm{Var}(U) = \frac{n_1 n_2 (n_1 + n_2 + 1)}{12},
+$$
+
+and the two-sided $p$-value comes from the normal approximation in
+`stats::wilcox.test(..., exact = FALSE)`.
+
+This test is non-parametric and robust, which makes it the safest
+default when you have a handful of samples per group.
+
+### `method = "t"` — Welch's two-sample $t$
+
+Same per-pair split as above. Let $\bar V_g$, $s_g^2$ be the sample mean
+and unbiased variance in each group. Welch's statistic is
+
+$$
+t \;=\; \frac{\bar V^{(\mathrm{test})} - \bar V^{(\mathrm{ref})}}
+              {\sqrt{\dfrac{s_1^2}{n_1} + \dfrac{s_2^2}{n_2}}}
+$$
+
+with Welch–Satterthwaite degrees of freedom
+
+$$
+\nu \;=\; \frac{\left(\dfrac{s_1^2}{n_1} + \dfrac{s_2^2}{n_2}\right)^2}
+                {\dfrac{(s_1^2/n_1)^2}{n_1 - 1} + \dfrac{(s_2^2/n_2)^2}{n_2 - 1}}.
+$$
+
+Use this if you trust approximate normality of the per-sample scores.
+
+### `method = "lmm"` — linear mixed model
+
+When you have multiple images per patient, you should not treat them as
+independent observations. For a given pair $(i, j)$, write the score of
+image $k$ from patient $p$ as
+
+$$
+V_{p,k,i,j} \;=\; \beta_0 \;+\; \beta_1 \, \mathbb{1}\{G_{p,k} = g_\mathrm{test}\}
+                 \;+\; u_p \;+\; \varepsilon_{p,k},
+$$
+
+with random patient intercept $u_p \sim \mathcal{N}(0, \sigma_u^2)$ and
+residuals $\varepsilon_{p,k} \sim \mathcal{N}(0, \sigma_\varepsilon^2)$.
+
+`compare_groups()` fits this with `lme4::lmer(value ~ group + (1 |
+patient))`, then tests $H_0\!: \beta_1 = 0$ with a Wald-z approximation
+using the $t$-value from `summary(fit)$coefficients`:
+
+$$
+z \;=\; \frac{\hat\beta_1}{\widehat{\mathrm{SE}}(\hat\beta_1)},
+\qquad
+p \;=\; 2\,\Phi(-|z|).
+$$
+
+If each patient contributes only a single observation the LMM collapses
+to OLS and `compare_groups()` falls back to `lm()`. The Wald-z $p$-value
+is approximate; for stricter inference fit with `lmerTest` outside the
+package.
+
+### `method = "perm"` — group-label permutation
+
+Let $\Delta = \hat\mu_{g_\mathrm{test}} - \hat\mu_{g_\mathrm{ref}}$ be
+the observed mean difference for pair $(i, j)$. We then shuffle the
+group labels $B$ times (`n_perms`) to build a null distribution.
+
+Without `patient_key`, every permutation reassigns sample-level labels
+independently:
+
+$$
+\Delta^{(b)} \;=\; \hat\mu^{(b)}_{g_\mathrm{test}} - \hat\mu^{(b)}_{g_\mathrm{ref}},
+\quad b = 1, \dots, B.
+$$
+
+With `patient_key`, labels are shuffled at the patient level (each
+patient keeps the same label across all of its images), which preserves
+within-patient correlation.
+
+The two-sided $p$-value uses the standard $+1$-smoothed estimator
+
+$$
+p \;=\; \frac{1 \;+\; \#\{b : |\Delta^{(b)}| \ge |\Delta|\}}{1 \;+\; B},
+$$
+
+avoiding $p = 0$ in finite-$B$ samples. This is the preferred method
+when the per-sample score distribution is far from normal or when you
+need patient-level blocking.
+
+### Multiple-testing adjustment
+
+All $p$-values are passed through `stats::p.adjust(..., method =
+adjust)`. The default `"BH"` controls the false discovery rate across the
+$M$ tested cluster pairs at the chosen level $\alpha$ by
+
+$$
+k^{*} \;=\; \max\Bigl\{k : p_{(k)} \le \frac{k}{M}\,\alpha\Bigr\},
+$$
+
+and rejecting all pairs with $p_{(k)} \le p_{(k^*)}$. The returned
+`padj` column holds the BH-adjusted values directly, so a downstream
+$\tilde p_{i,j} < \alpha$ check gives exactly the BH decision.
 
 ```{r wilcox}
 cmp_wilcox <- compare_groups(
