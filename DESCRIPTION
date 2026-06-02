@@ -25,5 +25,10 @@ Imports:
 Suggests:
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    lme4,
+    ggplot2,
+    ggrepel,
+    viridisLite
+VignetteBuilder: knitr
 biocViews: Software, Transcriptomics, Spatial, GeneExpression, Visualization

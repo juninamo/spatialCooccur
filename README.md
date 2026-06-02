@@ -44,6 +44,40 @@ To compute co-localization scores for cell interactions:
 cooccur_local_df <- cooccur_local(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2", neighbors.k = 30, radius = 30)
 summary(cooccur_local_df)
 ```
+
+### 3. Disease-group comparison
+To compare neighborhood enrichment between disease groups across multiple
+samples, compute per-sample scores and then test each cluster pair:
+
+```r
+# Simulate two groups, 3 samples each
+df_groups <- generate_sim_groups(
+  n_samples_per_group = 3,
+  group_close_ratio = list(disease = 0.8, control = 0.2),
+  n_types = 5, n_cells = 400, test_type = "distribute",
+  distance_param = 15
+)
+
+# Per-sample z-scores
+per_sample <- nhood_enrichment_per_sample(
+  df_groups, sample_key = "sample_id", group_key = "group",
+  cluster_key = "cell_type", patient_key = "patient",
+  neighbors.k = 20, n_perms = 100
+)
+
+# Group comparison: Wilcoxon by default; "lmm" uses lme4::lmer with patient
+# as a random effect; "perm" runs a group-label permutation test (blocked
+# by patient when patient_key is supplied)
+res <- compare_groups(
+  per_sample, value = "zscore",
+  method = "wilcox", ref_group = "control"
+)
+head(res)
+```
+
+The same `*_per_sample()` + `compare_groups()` pattern works for
+`cooccur_ratio_per_sample()`, `cooccur_local_per_sample()`, and
+`interaction_spot_per_sample()`.
 <!-- 
 ## Citation 
 Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kari Hayes, Nathan Rogers, Heather Leach, Kentaro Yomogida. Subcellular spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi.org/XX](https://doi.org/XX)

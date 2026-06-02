@@ -1,0 +1,205 @@
+---
+title: "Disease-group comparison with spatialCooccur"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Disease-group comparison with spatialCooccur}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  fig.width  = 6,
+  fig.height = 4.5,
+  dpi = 90
+)
+```
+
+This vignette walks through the disease- / condition-group comparison
+workflow in **spatialCooccur**. The pattern is:
+
+1. Collect per-sample spatial transcriptomics data (one image per sample,
+   or multiple images grouped by patient).
+2. Compute a spatial co-occurrence score *per sample* with one of the
+   `*_per_sample()` helpers.
+3. Test for differences between groups (e.g. disease vs. control) with
+   `compare_groups()`.
+4. Visualize with `plot_group_delta_heatmap()`, `plot_pair_boxplot()`, or
+   `plot_volcano_groups()`.
+
+```{r load}
+library(spatialCooccur)
+```
+
+# Simulate a two-group dataset
+
+`generate_sim_groups()` wraps `generate_sim()` to produce
+`n_samples_per_group` samples per condition, each with a possibly noised
+`close_ratio` around the group baseline. Here we use `test_type = "distribute"`
+so that planted co-localization is at the spatial scale the local
+neighborhood graph is sensitive to.
+
+```{r simulate}
+set.seed(1)
+df_groups <- generate_sim_groups(
+  n_samples_per_group = 4,
+  group_close_ratio = list(disease = 0.85, control = 0.15),
+  n_types = 5,
+  n_cells = 400,
+  test_type = "distribute",
+  distance_param = 15,
+  between_sample_noise = 0.03,
+  seed = 1
+)
+head(df_groups)
+table(df_groups$sample_id, df_groups$group)
+```
+
+`df_groups` is a long-format data.frame with columns `x`, `y`,
+`cell_type`, `sample_id`, `group`, `patient`. The same shape is what the
+`*_per_sample()` helpers accept directly; for Seurat input they read the
+equivalent fields from `meta.data` and `@images`.
+
+# Per-sample neighborhood enrichment
+
+```{r per_sample, message = FALSE}
+per_sample <- nhood_enrichment_per_sample(
+  df_groups,
+  sample_key   = "sample_id",
+  group_key    = "group",
+  cluster_key  = "cell_type",
+  patient_key  = "patient",
+  neighbors.k  = 15,
+  n_perms      = 100,
+  n_jobs       = 1,
+  seed         = 1
+)
+head(per_sample)
+```
+
+Each row is `sample_id x cluster_i x cluster_j`. The factor levels of
+`cell_type` are harmonized across samples so that the `cluster_i`,
+`cluster_j` columns are directly comparable.
+
+For the radius-based ratio, the local interaction score, and the
+interaction-spot count, use the parallel helpers:
+
+```{r other_per_sample, eval = FALSE}
+cooccur_ratio_per_sample(
+  df_groups, sample_key = "sample_id", group_key = "group",
+  cluster_key = "cell_type", patient_key = "patient",
+  radius = 30, k = 15
+)
+
+cooccur_local_per_sample(
+  df_groups, sample_key = "sample_id", group_key = "group",
+  cluster_key = "cell_type",
+  cluster_x = "cell_type_1", cluster_y = "cell_type_2",
+  patient_key = "patient",
+  neighbors.k = 15, radius = 30
+)
+```
+
+# Group comparison
+
+`compare_groups()` runs a per-cluster-pair test between two groups. Set
+`ref_group` to make the sign of `effect` interpretable
+(`effect = mean(test) - mean(reference)`).
+
+```{r wilcox}
+cmp_wilcox <- compare_groups(
+  per_sample,
+  value     = "zscore",
+  method    = "wilcox",
+  adjust    = "BH",
+  ref_group = "control"
+)
+head(cmp_wilcox)
+```
+
+When you have multiple images per patient, prefer a mixed model (random
+intercept on patient) or a patient-blocked permutation:
+
+```{r lmm, eval = requireNamespace("lme4", quietly = TRUE)}
+cmp_lmm <- compare_groups(
+  per_sample,
+  value       = "zscore",
+  method      = "lmm",
+  patient_key = "patient",
+  ref_group   = "control"
+)
+head(cmp_lmm)
+```
+
+```{r perm}
+cmp_perm <- compare_groups(
+  per_sample,
+  value       = "zscore",
+  method      = "perm",
+  patient_key = "patient",
+  n_perms     = 500,
+  ref_group   = "control",
+  seed        = 1
+)
+head(cmp_perm)
+```
+
+# Visualization
+
+```{r plots, eval = requireNamespace("ggplot2", quietly = TRUE), fig.show = "hold"}
+plot_group_delta_heatmap(cmp_wilcox)
+plot_volcano_groups(cmp_wilcox, label_top = 5)
+plot_pair_boxplot(
+  per_sample,
+  value     = "zscore",
+  pairs     = data.frame(cluster_i = "cell_type_1",
+                         cluster_j = "cell_type_2"),
+  add_p     = TRUE,
+  ref_group = "control"
+)
+```
+
+# Patient-level aggregation
+
+If you have multiple images per patient and want one observation per
+patient, pass `unit = "patient"` to the `*_per_sample()` helpers. Each
+image-level result is then averaged within patient before group
+comparison:
+
+```{r patient_level, eval = FALSE}
+per_patient <- nhood_enrichment_per_sample(
+  df_groups, sample_key = "sample_id", group_key = "group",
+  cluster_key = "cell_type", patient_key = "patient",
+  unit = "patient",
+  neighbors.k = 15, n_perms = 100, n_jobs = 1
+)
+```
+
+# Inputs other than a data.frame
+
+All `*_per_sample()` helpers accept three kinds of input:
+
+* A `Seurat` object with multiple images. `sample_key` is a column of
+  `meta.data` whose values match `names(obj@images)`.
+* A `list` of `Seurat` objects, where each may itself have multiple
+  images. `source_index` in `build_sample_design()` records the list
+  origin.
+* A `data.frame` with `x`, `y`, the cluster column, and the sample /
+  group / (optional) patient columns.
+
+`build_sample_design()` is the small helper that turns any of these into
+the design table used downstream — call it directly if you only want the
+sample / group / patient mapping.
+
+```{r design}
+build_sample_design(
+  df_groups,
+  sample_key  = "sample_id",
+  group_key   = "group",
+  patient_key = "patient"
+)
+```
