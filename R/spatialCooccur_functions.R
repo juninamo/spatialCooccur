@@ -473,15 +473,16 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
       envir = environment()
     )
 
-    while(TRUE) {
-      tryCatch({
-        perms <- parLapply(cl, seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation))
-        return(perms)
-      }, error = function(e) {
-        #message("Error occurred, retrying...")
-        Sys.sleep(5)
-      })
+    for (attempt in seq_len(3L)) {
+      out <- tryCatch(
+        parLapply(cl, seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation)),
+        error = function(e) { message("[spatialCooccur] parallel attempt ", attempt, " failed: ", conditionMessage(e)); NULL })
+      if (!is.null(out)) return(out)
+      Sys.sleep(1)
     }
+    # bounded retries exhausted -> sequential fallback (avoids infinite hang)
+    message("[spatialCooccur] falling back to sequential permutations.")
+    lapply(seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation))
   }
 
   perms <- perform_permutations(adj, int_clust, n_cls, cluster_data, n_perms, n_jobs, transformation)
@@ -489,7 +490,7 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
   compute_zscore <- function(counts, perms) {
     n_clusters <- ncol(counts)
     zscore <- matrix(NA, nrow = n_clusters, ncol = n_clusters,
-                     dimnames = list(paste("Cluster", 1:n_clusters), paste("Cluster", 1:n_clusters)))
+                     dimnames = dimnames(counts))
 
     for (i in seq_len(n_clusters)) {
       for (j in seq_len(n_clusters)) {
@@ -497,18 +498,13 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
         perm_mean <- mean(perm_values)
         perm_sd <- sd(perm_values)
 
-        zscore[i, j] <- (counts[i, j] - perm_mean) / perm_sd
+        zscore[i, j] <- if (is.na(perm_sd) || perm_sd == 0) NA_real_ else (counts[i, j] - perm_mean) / perm_sd
       }
     }
 
     return(zscore)
   }
   zscore <- compute_zscore(count, perms)
-
-  perms_matrix <- do.call(rbind, perms)
-  perm_means <- colMeans(perms_matrix)
-  perm_sds <- apply(perms_matrix, 2, sd)
-  zscore <- (count - perm_means) / perm_sds
 
   seurat_obj@misc[[paste0(cluster_key, "_nhood_enrichment")]] <- list(
     zscore = zscore,
@@ -825,15 +821,16 @@ nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key
       envir = environment()
     )
 
-    while(TRUE) {
-      tryCatch({
-        perms <- parLapply(cl, seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation))
-        return(perms)
-      }, error = function(e) {
-        #message("Error occurred, retrying...")
-        Sys.sleep(5)
-      })
+    for (attempt in seq_len(3L)) {
+      out <- tryCatch(
+        parLapply(cl, seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation)),
+        error = function(e) { message("[spatialCooccur] parallel attempt ", attempt, " failed: ", conditionMessage(e)); NULL })
+      if (!is.null(out)) return(out)
+      Sys.sleep(1)
     }
+    # bounded retries exhausted -> sequential fallback (avoids infinite hang)
+    message("[spatialCooccur] falling back to sequential permutations.")
+    lapply(seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation))
   }
 
   perms <- perform_permutations(adj, int_clust, n_cls, cluster_data, n_perms, n_jobs, transformation)
@@ -841,25 +838,20 @@ nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key
   compute_zscore <- function(counts, perms) {
     n_clusters <- ncol(counts)
     zscore <- matrix(NA, nrow = n_clusters, ncol = n_clusters,
-                     dimnames = list(paste("Cluster", 1:n_clusters), paste("Cluster", 1:n_clusters)))
+                     dimnames = dimnames(counts))
 
     for (i in seq_len(n_clusters)) {
       for (j in seq_len(n_clusters)) {
         perm_values <- sapply(perms, function(perm) perm[i, j])
         perm_mean <- mean(perm_values)
         perm_sd <- sd(perm_values)
-        zscore[i, j] <- (counts[i, j] - perm_mean) / perm_sd
+        zscore[i, j] <- if (is.na(perm_sd) || perm_sd == 0) NA_real_ else (counts[i, j] - perm_mean) / perm_sd
       }
     }
 
     return(zscore)
   }
   zscore <- compute_zscore(count, perms)
-
-  perms_matrix <- do.call(rbind, perms)
-  perm_means <- colMeans(perms_matrix)
-  perm_sds <- apply(perms_matrix, 2, sd)
-  zscore <- (count - perm_means) / perm_sds
 
   return(list(
     zscore = zscore,
