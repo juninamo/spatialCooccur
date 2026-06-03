@@ -1,7 +1,7 @@
 Package: spatialCooccur
 Type: Package
 Title: Neighborhood Co-Occurrence and Spatial Interaction Analysis for Spatial Transcriptomics
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: person("Jun", "Inamo",
                   email = "juninamo@keio.jp",
                   role = c("aut", "cre"))
