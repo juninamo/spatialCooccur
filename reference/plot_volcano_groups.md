@@ -1,0 +1,68 @@
+# Volcano plot of a compare_groups result
+
+Volcano plot of a compare_groups result
+
+## Usage
+
+``` r
+plot_volcano_groups(
+  compare_df,
+  effect_col = "effect",
+  p_col = "padj",
+  sig_threshold = 0.05,
+  label_top = 10,
+  pair_keys = c("cluster_i", "cluster_j")
+)
+```
+
+## Arguments
+
+- compare_df:
+
+  Output of \[compare_groups()\].
+
+- effect_col:
+
+  Column for the x axis. Defaults to "effect".
+
+- p_col:
+
+  Column for the y axis (will be -log10 transformed). Defaults to
+  "padj".
+
+- sig_threshold:
+
+  Adjusted p-value threshold for highlighting.
+
+- label_top:
+
+  Integer, number of top pairs to label by p-value. Set to 0 to skip
+  labels.
+
+- pair_keys:
+
+  Columns identifying the cluster pair (used for labels).
+
+## Value
+
+A ggplot object.
+
+## Examples
+
+``` r
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  df <- generate_sim_groups(n_samples_per_group = 3,
+                            group_close_ratio = list(case = 0.8, control = 0.2),
+                            n_types = 4, n_cells = 200, max_loc = 250,
+                            test_type = "distribute", distance_param = 8,
+                            seed = 1)
+  ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+                                    group_key = "group",
+                                    cluster_key = "cell_type",
+                                    patient_key = "patient",
+                                    neighbors.k = 8, n_perms = 20, n_jobs = 1)
+  cmp <- compare_groups(ps, value = "log2_oe", method = "wilcox",
+                        ref_group = "control", symmetric = TRUE)
+  plot_volcano_groups(cmp, label_top = 3)
+}
+```

@@ -1,0 +1,82 @@
+# Per-sample radius-based co-occurrence ratio
+
+Compute the radius-based co-occurrence count and enrichment ratio per
+sample, with cluster dimnames harmonized across samples.
+
+## Usage
+
+``` r
+cooccur_ratio_per_sample(
+  obj,
+  sample_key,
+  group_key,
+  cluster_key,
+  patient_key = NULL,
+  unit = c("image", "patient"),
+  radius = 30,
+  k = 30,
+  cluster_levels = NULL
+)
+```
+
+## Arguments
+
+- obj:
+
+  A Seurat object, list of Seurat objects, or data.frame.
+
+- sample_key, group_key, cluster_key, patient_key:
+
+  See \[build_sample_design()\].
+
+- unit:
+
+  "image" or "patient".
+
+- radius:
+
+  Radius to define local neighborhood.
+
+- k:
+
+  Maximum number of neighbors to consider.
+
+- cluster_levels:
+
+  Optional vector of cluster levels.
+
+## Value
+
+A data.frame with one row per \`sample_id x cluster_i x cluster_j\`,
+columns \`ratio\`, \`count\`, \`group\`, \`patient\`, \`n_cells\`,
+\`n_i\`, \`n_j\`. Note that \`k\` caps the number of neighbours returned
+per cell; in dense tissue choose \`k\` large enough that the radius, not
+\`k\`, is limiting.
+
+## Examples
+
+``` r
+df <- generate_sim_groups(n_samples_per_group = 3,
+                          group_close_ratio = list(case = 0.8, control = 0.2),
+                          n_types = 4, n_cells = 200, max_loc = 250,
+                          test_type = "distribute", distance_param = 8,
+                          seed = 1)
+rs <- cooccur_ratio_per_sample(df, sample_key = "sample_id",
+                               group_key = "group", cluster_key = "cell_type",
+                               patient_key = "patient", radius = 20, k = 30)
+head(rs)
+#>   sample_id   cluster_i   cluster_j     ratio count group patient n_cells n_i
+#> 1    case_1 cell_type_1 cell_type_1 0.8150888    38  case  case_1     200  41
+#> 2    case_1 cell_type_2 cell_type_1 1.2316360    98  case  case_1     200  63
+#> 3    case_1 cell_type_3 cell_type_1 0.8417997    40  case  case_1     200  55
+#> 4    case_1 cell_type_4 cell_type_1 0.9331322    32  case  case_1     200  41
+#> 5    case_1 cell_type_1 cell_type_2 1.2316360    98  case  case_1     200  41
+#> 6    case_1 cell_type_2 cell_type_2 1.0309066   140  case  case_1     200  63
+#>   n_j
+#> 1  41
+#> 2  41
+#> 3  41
+#> 4  41
+#> 5  63
+#> 6  63
+```
