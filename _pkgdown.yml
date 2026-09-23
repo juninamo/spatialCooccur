@@ -57,10 +57,13 @@ articles:
 
 reference:
 - title: Simulation
-  desc: Generate synthetic tissues with a planted cell-cell interaction.
+  desc: >
+    Generate synthetic tissues with a planted cell-cell interaction, and
+    convert them to Seurat objects.
   contents:
   - generate_sim
   - generate_sim_groups
+  - sim_to_seurat
 - title: Single-sample analysis
   desc: >
     Spatial neighborhood analysis (SNA), spatial co-localization score (sCLS),
