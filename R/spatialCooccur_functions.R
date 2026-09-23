@@ -1,14 +1,12 @@
 # ---- Dependencies ----
-#' @import Seurat
-#' @import magrittr
-#' @import dplyr
-#' @import Matrix
-#' @import parallel
-#' @import RANN
-#' @import igraph
-#' @import glue
-#' @import tibble
-#' @import moments
+# Only the functions called without a namespace prefix are imported; all
+# other external calls use `pkg::fun()`. Importing whole namespaces caused
+# "replacing previous import" conflicts (dplyr / igraph / tibble / Matrix).
+#' @importFrom magrittr %>%
+#' @importFrom dplyr n sym
+#' @importFrom Matrix bdiag
+#' @importFrom Seurat FindNeighbors Cells
+NULL
 
 # ---- Main Functions ----
 
@@ -30,6 +28,12 @@ utils::globalVariables(c(".", "cell", "cell_type", "n_all_cells", "rnorm", "runi
 #'
 #' @return A data.frame with simulated spatial coordinates and cell type labels.
 #' @export
+#' @examples
+#' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+#'                    max_loc = 300, test_type = "distribute",
+#'                    distance_param = 10, seed = 1)
+#' head(df)
+#' table(df$cell_type)
 generate_sim <- function(close_ratio = 0.7,
                          n_types = 10,
                          max_loc = 800,
@@ -40,12 +44,12 @@ generate_sim <- function(close_ratio = 0.7,
                          seed = 1234) {
   if(test_type=="distribute"){
 
-    set.seed(seed)
+    .seed_rng(seed)
 
     x_coords <- runif(n_cells, min = 0, max = max_loc)
     y_coords <- runif(n_cells, min = 0, max = max_loc)
 
-    cell_types <- sample(paste0("cell_type_", 1:n_types), n_cells, replace = TRUE)
+    cell_types <- sample(paste0("cell_type_", seq_len(n_types)), n_cells, replace = TRUE)
 
     idx_type_1 <- which(cell_types == "cell_type_1")
     idx_type_2 <- which(cell_types == "cell_type_2")
@@ -59,16 +63,16 @@ generate_sim <- function(close_ratio = 0.7,
     y_coords[idx_close_2] <- y_coords[idx_close_1] + distance_param * sin(angle_shift) + rnorm(n_pairs, mean = 0, sd = distance_param/5)
 
     df <- data.frame(x = x_coords, y = y_coords, cell_type = cell_types) %>%
-      dplyr::mutate(cell_type = factor(cell_type, levels = paste0("cell_type_", 1:n_types)))
+      dplyr::mutate(cell_type = factor(cell_type, levels = paste0("cell_type_", seq_len(n_types))))
 
   } else if(test_type=="circle"){
 
-    set.seed(seed)
+    .seed_rng(seed)
 
-    n1_total = n2_total = ceiling(n_cells/n_types)
+    n1_total <- n2_total <- ceiling(n_cells/n_types)
     n_other <- n_cells-n1_total-n2_total
 
-    close_ratio_1 = close_ratio_2 = close_ratio
+    close_ratio_1 <- close_ratio_2 <- close_ratio
 
     center_x <- ceiling(max_loc/2)
     center_y <- ceiling(max_loc/2)
@@ -113,11 +117,11 @@ generate_sim <- function(close_ratio = 0.7,
                     rep("cell_type_2", n2_random),
                     sample(paste0("cell_type_", 3:n_types), n_other, replace = TRUE))
     ) %>%
-      dplyr::mutate(cell_type = factor(cell_type, levels = paste0("cell_type_", 1:n_types)))
+      dplyr::mutate(cell_type = factor(cell_type, levels = paste0("cell_type_", seq_len(n_types))))
 
   } else if (test_type=="line"){
 
-    set.seed(seed)
+    .seed_rng(seed)
 
     n_cells_per_layer <- ceiling(n_cells/n_types * max(close_ratio,0.01))
     n_layers <- 2
@@ -125,7 +129,7 @@ generate_sim <- function(close_ratio = 0.7,
     x_start <- ceiling(max_loc/2)-ceiling(max_loc/4)
     y_start <- ceiling(max_loc/2)-50
     x_end <- ceiling(max_loc/2)+ceiling(max_loc/4)
-    step = (x_end-x_start)/n_cells_per_layer
+    step <- (x_end-x_start)/n_cells_per_layer
 
     x_1 <- c()
     y_1 <- c()
@@ -147,7 +151,7 @@ generate_sim <- function(close_ratio = 0.7,
         y_layer <- rep(y_pos, n_cells_per_layer) + rnorm(n_cells_per_layer, 0, 2)
 
         n_close <- round(n_cells_per_layer * close_ratio)
-        idx_close <- sample(1:n_cells_per_layer, n_close, replace = TRUE)
+        idx_close <- sample(seq_len(n_cells_per_layer), n_close, replace = TRUE)
         angle_shift <- runif(n_close, 0, 2 * pi)
         x_layer[idx_close] <- x_1[idx_close]
         y_layer[idx_close] <- y_1[idx_close] + distance_param + rnorm(n_close, mean = 0, sd = 1)
@@ -157,7 +161,7 @@ generate_sim <- function(close_ratio = 0.7,
       }
     }
 
-    n1_random = n2_random = ceiling(ceiling(n_cells/n_types) * (1-close_ratio))
+    n1_random <- n2_random <- ceiling(ceiling(n_cells/n_types) * (1-close_ratio))
     x_1_random <- runif(n1_random, min = 0, max = max_loc)
     y_1_random <- runif(n1_random, min = 0, max = max_loc)
     x_2_random <- runif(n2_random, min = 0, max = max_loc)
@@ -173,7 +177,7 @@ generate_sim <- function(close_ratio = 0.7,
                     rep("cell_type_2", sum(length(x_2),length(x_2_random))),
                     sample(paste0("cell_type_", 3:n_types), n_other, replace = TRUE))
     ) %>%
-      dplyr::mutate(cell_type = factor(cell_type, levels = paste0("cell_type_", 1:n_types)))
+      dplyr::mutate(cell_type = factor(cell_type, levels = paste0("cell_type_", seq_len(n_types))))
 
   }
   return(df)
@@ -190,24 +194,26 @@ generate_sim <- function(close_ratio = 0.7,
 #'
 #' @return A co-occurrence count matrix.
 #' @export
+#' @examples
+#' set.seed(1)
+#' adj <- Matrix::rsparsematrix(20, 20, density = 0.2)
+#' cl <- factor(sample(c("a", "b"), 20, replace = TRUE))
+#' lab <- paste0("Cluster", cl)
+#' compute_count(adj, lab, lab, n_cls = 2, cluster_data = cl)
 compute_count <- function(adj, int_clust_row, int_clust_col, n_cls, cluster_data, transformation = TRUE) {
-  counts <- matrix(0, nrow = n_cls, ncol = n_cls,
-                   dimnames = list(paste0("Cluster", levels(cluster_data)), paste0("Cluster", levels(cluster_data))))
-
-  for (i in paste0("Cluster", levels(cluster_data))) {
-    cluster_rows <- which(int_clust_row == i)
-
-    for (j in paste0("Cluster", levels(cluster_data))) {
-      cluster_cols <- which(int_clust_col == j)
-      neighbors <- adj[cluster_rows, cluster_cols, drop = FALSE]
-      if(transformation){
-        counts[i, j] <- sum(neighbors)
-      } else {
-        counts[i, j] <- sum(neighbors == 1)
-      }
-    }
+  lv <- paste0("Cluster", levels(cluster_data))
+  # One-hot cluster indicator matrices: counts = t(M_row) %*% adj %*% M_col,
+  # i.e. counts[i, j] = sum of adj over (row cells in i) x (col cells in j).
+  indicator <- function(lab) {
+    j <- match(lab, lv)
+    keep <- !is.na(j)
+    Matrix::sparseMatrix(i = which(keep), j = j[keep], x = 1,
+                         dims = c(length(lab), length(lv)))
   }
-  return(counts)
+  a <- if (transformation) adj else (adj == 1) * 1
+  counts <- as.matrix(Matrix::t(indicator(int_clust_row)) %*% a %*% indicator(int_clust_col))
+  dimnames(counts) <- list(lv, lv)
+  counts
 }
 
 #' Permute Cluster Assignments and Recompute Counts
@@ -218,12 +224,24 @@ compute_count <- function(adj, int_clust_row, int_clust_col, n_cls, cluster_data
 #' @param cluster_data Original cluster data.
 #' @param transformation Whether to apply adjacency transformation.
 #'
+#' Cluster labels are shuffled once and the same permutation is applied to
+#' rows and columns of the adjacency matrix.
+#'
 #' @return Permuted co-occurrence count matrix.
 #' @export
+#' @examples
+#' set.seed(1)
+#' adj <- Matrix::rsparsematrix(20, 20, density = 0.2)
+#' cl <- factor(sample(c("a", "b"), 20, replace = TRUE))
+#' permute_clusters(adj, paste0("Cluster", cl), n_cls = 2, cluster_data = cl,
+#'                  transformation = TRUE)
 permute_clusters <- function(adj, int_clust, n_cls, cluster_data, transformation) {
-  int_clust_row <- sample(int_clust)
-  int_clust_col <- sample(int_clust)
-  compute_count(adj, int_clust_row = int_clust_row, int_clust_col = int_clust_col, n_cls, cluster_data, transformation)
+  # The same shuffled labels must be used for rows and columns: each cell keeps
+  # a single (random) label, so self-loops and mutual neighbours are handled
+  # identically in the observed and permuted counts. Shuffling rows and
+  # columns independently inflates same-type z-scores under the null.
+  int_clust_perm <- sample(int_clust)
+  compute_count(adj, int_clust_row = int_clust_perm, int_clust_col = int_clust_perm, n_cls, cluster_data, transformation)
 }
 
 #' Calculate Co-occurrence Matrix for a Given Radius
@@ -236,6 +254,16 @@ permute_clusters <- function(adj, int_clust, n_cls, cluster_data, transformation
 #'
 #' @return A list with co-occurrence count and enrichment ratio matrices.
 #' @export
+#' @examples
+#' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+#'                    max_loc = 300, test_type = "distribute",
+#'                    distance_param = 10, seed = 1)
+#' df$sample_id <- "fov1"
+#' seu <- sim_to_seurat(df)
+#' res <- calc_co_occurrence_for_radius(seu, radius = 20,
+#'                                      sample_key = "sample_id",
+#'                                      cluster_key = "cell_type")
+#' round(res$ratio_mat, 2)
 calc_co_occurrence_for_radius <- function(seurat_obj, radius, sample_key, cluster_key, k = 30) {
   all_clusters <- levels(factor(seurat_obj@meta.data[[cluster_key]]))
 
@@ -262,8 +290,8 @@ calc_co_occurrence_for_radius <- function(seurat_obj, radius, sample_key, cluste
       )
 
     res <- RANN::nn2(
-      data       = coords[, 1:2],
-      query      = coords[, 1:2],
+      data       = coords[, c("x", "y")],
+      query      = coords[, c("x", "y")],
       searchtype = "radius",
       radius     = radius,
       k          = k
@@ -302,6 +330,10 @@ calc_co_occurrence_for_radius <- function(seurat_obj, radius, sample_key, cluste
 #'
 #' @return A matrix of normalized enrichment ratios.
 #' @export
+#' @examples
+#' counts <- matrix(c(10, 2, 2, 6), 2,
+#'                  dimnames = list(c("A", "B"), c("A", "B")))
+#' compute_co_occurrence_ratio(counts)
 compute_co_occurrence_ratio <- function(co_occur_count) {
   rn <- rownames(co_occur_count)
   cn <- colnames(co_occur_count)
@@ -339,6 +371,17 @@ compute_co_occurrence_ratio <- function(co_occur_count) {
 #'
 #' @return A data.frame of detected interaction clusters and metadata.
 #' @export
+#' @examples
+#' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+#'                    max_loc = 300, test_type = "distribute",
+#'                    distance_param = 10, seed = 1)
+#' df$sample_id <- "fov1"
+#' seu <- sim_to_seurat(df)
+#' spots <- search_interaction_spot(seu, fov = "fov1", radius = 15, n_min = 3,
+#'                                  cell_id = seu$cell,
+#'                                  cluster_col = "cell_type",
+#'                                  target_cluster = c("cell_type_1", "cell_type_2"))
+#' length(unique(spots$cluster_id))
 search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors.k = 200, cell_id = cell_id, cluster_col = cluster_col, target_cluster = target_cluster) {
   coords <- seurat_object[[fov]]$centroids@coords %>%
     as.data.frame() %>%
@@ -406,6 +449,77 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
   return(coords_df_)
 }
 
+# Internal: permutation null shared by nhood_enrichment() and its Seurat
+# method. Returns observed counts, permutation mean ("expected"), z-score and
+# log2(observed / expected).
+.nhood_permutation_core <- function(adj, cluster_data, transformation, n_perms, seed, n_jobs) {
+  # Keep pre-set factor levels (e.g. harmonized across samples) so that absent
+  # cell types yield NA rather than silently dropping rows / columns.
+  if (!is.factor(cluster_data)) cluster_data <- factor(cluster_data)
+  int_clust <- paste0("Cluster", cluster_data)
+  n_cls <- length(levels(cluster_data))
+
+  count <- compute_count(adj, int_clust_row = int_clust, int_clust_col = int_clust,
+                         n_cls, cluster_data, transformation)
+
+  .local_seed(seed)
+  run_seq <- function() {
+    .seed_rng(seed)
+    lapply(seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation))
+  }
+  perms <- if (n_jobs <= 1L) {
+    run_seq()
+  } else {
+    cl <- parallel::makeCluster(n_jobs)
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    # Seed the worker RNG streams so results are reproducible for a given seed.
+    parallel::clusterSetRNGStream(cl, iseed = seed)
+    # Ship self-contained copies of the workers' functions so that the
+    # workers do not need spatialCooccur itself to be installed.
+    fn_env <- new.env(parent = baseenv())
+    fn_env$compute_count <- compute_count
+    fn_env$permute_clusters <- permute_clusters
+    environment(fn_env$compute_count) <- fn_env
+    environment(fn_env$permute_clusters) <- fn_env
+    worker <- function(x) fn_env$permute_clusters(adj, int_clust, n_cls, cluster_data, transformation)
+    environment(worker) <- list2env(
+      list(fn_env = fn_env, adj = adj, int_clust = int_clust, n_cls = n_cls,
+           cluster_data = cluster_data, transformation = transformation),
+      parent = baseenv()
+    )
+    out <- NULL
+    for (attempt in seq_len(3L)) {
+      out <- tryCatch(
+        parallel::parLapply(cl, seq_len(n_perms), worker),
+        error = function(e) { message("[spatialCooccur] parallel attempt ", attempt, " failed: ", conditionMessage(e)); NULL })
+      if (!is.null(out)) break
+      Sys.sleep(1)
+    }
+    if (is.null(out)) {
+      # bounded retries exhausted -> sequential fallback (avoids infinite hang)
+      message("[spatialCooccur] falling back to sequential permutations.")
+      out <- run_seq()
+    }
+    out
+  }
+
+  arr <- simplify2array(perms)
+  perm_mean <- apply(arr, c(1, 2), mean)
+  perm_sd <- apply(arr, c(1, 2), sd)
+  zscore <- (count - perm_mean) / perm_sd
+  zscore[!is.finite(zscore)] <- NA_real_
+  dimnames(perm_mean) <- dimnames(zscore) <- dimnames(count)
+
+  # log2(observed / expected) with a pseudocount of one average edge weight,
+  # so the effect size is on the same scale with or without transformation.
+  nz <- adj@x[adj@x != 0]
+  pc <- if (length(nz)) mean(nz) else 1
+  log2_oe <- log2((count + pc) / (perm_mean + pc))
+  log2_oe[perm_mean == 0 & count == 0] <- NA_real_
+
+  list(zscore = zscore, count = count, expected = perm_mean, log2_oe = log2_oe)
+}
+
 #' Neighborhood Enrichment (Seurat Method)
 #'
 #' @param seurat_obj A Seurat object with spatial coordinates.
@@ -417,20 +531,28 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
 #' @param seed Random seed for reproducibility.
 #' @param n_jobs Number of cores to use in parallel.
 #'
-#' @return Updated Seurat object with z-scores in misc slot.
+#' @return Updated Seurat object; `misc[[paste0(cluster_key, "_nhood_enrichment")]]`
+#'   holds `zscore`, `count`, `expected` (permutation mean) and `log2_oe`.
 #' @export
+#' @examples
+#' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+#'                    max_loc = 300, test_type = "distribute",
+#'                    distance_param = 10, seed = 1)
+#' df$sample_id <- "fov1"
+#' seu <- sim_to_seurat(df)
+#' seu <- nhood_enrichment.Seurat(seu, cluster_key = "cell_type",
+#'                                neighbors.k = 10, n_perms = 20, n_jobs = 1)
+#' res <- SeuratObject::Misc(seu, slot = "cell_type_nhood_enrichment")
+#' round(res$zscore, 1)
 nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4) {
-  set.seed(seed)
-
   if (!cluster_key %in% colnames(seurat_obj@meta.data)) {
-    stop(paste("Cluster key", cluster_key, "not found in meta.data"))
+    stop("Cluster key ", cluster_key, " not found in meta.data")
   }
   cluster_data <- seurat_obj@meta.data[[cluster_key]]
-  int_clust <- paste0("Cluster", cluster_data)
 
   all_nn <- list()
   all_snn <- list()
-  cell_id = vector()
+  cell_id <- vector()
   for (name in names(seurat_obj@images)) {
     coords <- seurat_obj[[name]]$centroids@coords %>%
       as.data.frame() %>%
@@ -441,7 +563,7 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
     neighbors <- FindNeighbors(coords, k.param = neighbors.k, verbose = FALSE)
     all_nn[[name]] <- neighbors$nn
     all_snn[[name]] <- neighbors$snn
-    cell_id = c(cell_id,cells)
+    cell_id <- c(cell_id, cells)
   }
 
   if(connectivity_key == "nn") {
@@ -449,7 +571,7 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
   } else {
     adj <- bdiag(all_snn)
   }
-  rownames(adj) = colnames(adj) = cell_id
+  rownames(adj) <- colnames(adj) <- cell_id
 
   # --- normalize ---
   if (transformation) {
@@ -457,61 +579,37 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
     adj <- adj / degrees
   }
 
-  cluster_data = factor(cluster_data)
-  n_cls <- length(levels(cluster_data))
+  res <- .nhood_permutation_core(adj, cluster_data, transformation, n_perms, seed, n_jobs)
 
-  count <- compute_count(adj, int_clust_row = int_clust, int_clust_col = int_clust, n_cls, cluster_data, transformation)
-
-  perform_permutations <- function(adj, int_clust, n_cls, cluster_data, n_perms, n_jobs, transformation) {
-
-    cl <- makeCluster(n_jobs)
-    on.exit(stopCluster(cl))
-
-    clusterExport(
-      cl,
-      c("compute_count", "permute_clusters", "adj", "int_clust", "n_cls", "cluster_data", "transformation"),
-      envir = environment()
-    )
-
-    for (attempt in seq_len(3L)) {
-      out <- tryCatch(
-        parLapply(cl, seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation)),
-        error = function(e) { message("[spatialCooccur] parallel attempt ", attempt, " failed: ", conditionMessage(e)); NULL })
-      if (!is.null(out)) return(out)
-      Sys.sleep(1)
-    }
-    # bounded retries exhausted -> sequential fallback (avoids infinite hang)
-    message("[spatialCooccur] falling back to sequential permutations.")
-    lapply(seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation))
-  }
-
-  perms <- perform_permutations(adj, int_clust, n_cls, cluster_data, n_perms, n_jobs, transformation)
-
-  compute_zscore <- function(counts, perms) {
-    n_clusters <- ncol(counts)
-    zscore <- matrix(NA, nrow = n_clusters, ncol = n_clusters,
-                     dimnames = dimnames(counts))
-
-    for (i in seq_len(n_clusters)) {
-      for (j in seq_len(n_clusters)) {
-        perm_values <- sapply(perms, function(perm) perm[i, j])
-        perm_mean <- mean(perm_values)
-        perm_sd <- sd(perm_values)
-
-        zscore[i, j] <- if (is.na(perm_sd) || perm_sd == 0) NA_real_ else (counts[i, j] - perm_mean) / perm_sd
-      }
-    }
-
-    return(zscore)
-  }
-  zscore <- compute_zscore(count, perms)
-
-  seurat_obj@misc[[paste0(cluster_key, "_nhood_enrichment")]] <- list(
-    zscore = zscore,
-    count = count
-  )
+  seurat_obj@misc[[paste0(cluster_key, "_nhood_enrichment")]] <- res
 
   return(seurat_obj)
+}
+
+# Internal: iterative graph diffusion of a per-cell score, shared by
+# cooccur_local() and its Seurat method. Each step computes
+#   s <- (A + I) D^-1 s,   D = diag(colSums(A) + 1),
+# starting from the previous step's result (so total mass is conserved).
+# Diffusion stops early once the kurtosis of the normalized scores drops by
+# less than 3 between consecutive steps (after more than 3 steps), or when
+# the score is identically zero.
+.diffuse_scores <- function(adj, local_score, maxnsteps, verbose = FALSE) {
+  s <- matrix(local_score)
+  if (maxnsteps < 1) return(s)
+  degrees <- Matrix::colSums(adj) + 1
+  prevmedkurt <- Inf
+  for (i in seq_len(maxnsteps)) {
+    s_norm <- s / degrees
+    s <- as.matrix(adj %*% s_norm + s_norm)
+    medkurt <- moments::kurtosis(prop.table(s, 2))
+    if (is.nan(medkurt)) break
+    if (prevmedkurt - medkurt < 3 && i > 3) {
+      if (verbose) message("stopping after ", i, " steps")
+      break
+    }
+    prevmedkurt <- medkurt
+  }
+  s
 }
 
 #' Local Co-occurrence Score (Seurat Method)
@@ -524,14 +622,27 @@ nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, c
 #' @param sample_key Metadata column with sample ID.
 #' @param neighbors.k Number of neighbors to build graph.
 #' @param radius Radius for proximity-based interaction.
-#' @param maxnsteps Maximum diffusion steps.
+#' @param maxnsteps Maximum number of diffusion steps (each step starts from
+#'   the previous one; early stop on the kurtosis criterion, see
+#'   [cooccur_local()]). `0` returns the raw indicator.
 #'
 #' @return A data.frame with local co-occurrence scores.
 #' @export
+#' @examples
+#' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+#'                    max_loc = 300, test_type = "distribute",
+#'                    distance_param = 10, seed = 1)
+#' df$sample_id <- "fov1"
+#' seu <- sim_to_seurat(df)
+#' sc <- cooccur_local.Seurat(seu, cluster_x = "cell_type_1",
+#'                            cluster_y = "cell_type_2",
+#'                            cluster_key = "cell_type", sample_key = "sample_id",
+#'                            neighbors.k = 10, radius = 20, maxnsteps = 1)
+#' summary(sc[[1]])
 cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_key = "nn", cluster_key = "seurat_clusters", sample_key = "sample_id", neighbors.k = 20, radius = 30, maxnsteps = 15) {
   all_nn <- list()
   all_snn <- list()
-  cell_id = vector()
+  cell_id <- vector()
 
   for (name in names(seurat_obj@images)) {
     coords <- seurat_obj[[name]]$centroids@coords %>%
@@ -545,7 +656,7 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
 
     all_nn[[name]] <- neighbors$nn
     all_snn[[name]] <- neighbors$snn
-    cell_id = c(cell_id,cells)
+    cell_id <- c(cell_id, cells)
   }
 
 
@@ -554,9 +665,9 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
   } else {
     adj <- bdiag(all_snn)
   }
-  rownames(adj) = colnames(adj) = cell_id
+  rownames(adj) <- colnames(adj) <- cell_id
 
-  local_score = vector()
+  local_score <- vector()
 
   for (name in names(seurat_obj@images)) {
     if(sample_key=="fov"){
@@ -583,8 +694,8 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
     }
 
     res_nn2 <- RANN::nn2(
-      data       = coords[,1:2],
-      query      = coords[,1:2],
+      data       = coords[, c("x", "y")],
+      query      = coords[, c("x", "y")],
       searchtype = "radius",
       radius     = radius,
       k          = neighbors.k
@@ -615,41 +726,16 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
         local_score_[i] <- 0
       }
     }
-    local_score = c(local_score, local_score_)
+    local_score <- c(local_score, local_score_)
   }
 
 
 
-  diffuse_step <- function(adj, local_score) {
-    a <- adj
-    degrees <- Matrix::colSums(a) + 1
-    s_norm <- matrix(local_score) / degrees
-    res <- (a %*% s_norm) + s_norm
-    return(as.matrix(res))
-  }
+  s <- .diffuse_scores(adj, local_score, maxnsteps, verbose = TRUE)
 
-  nsteps=NULL
-  for (i in seq_len(maxnsteps)) {
-    s <- diffuse_step(adj,
-                      local_score)
-    medkurt <- moments::kurtosis(prop.table(s, 2))
-    if (is.null(nsteps)) {
-      prevmedkurt <- medkurt
-      if(is.nan(medkurt)) {
-        break
-      }
-      if (prevmedkurt - medkurt < 3 & i > 3) {
-        message(glue::glue('stopping after {i} steps'))
-        break
-      }
-    } else if (i == nsteps) {
-      break
-    }
-  }
-
-  df = data.frame(cooccur_local_scores = as.numeric(s)) %>%
+  df <- data.frame(cooccur_local_scores = as.numeric(s)) %>%
     magrittr::set_colnames(paste0("cooccur_local_", cluster_x, "_", cluster_y))
-  rownames(df) = names(local_score)
+  rownames(df) <- names(local_score)
   return(df)
 }
 
@@ -661,10 +747,21 @@ cooccur_local.Seurat <- function(seurat_obj, cluster_x, cluster_y, connectivity_
 #' @param connectivity_key Graph type to use.
 #' @param neighbors.k Number of neighbors.
 #' @param radius Radius for neighborhood.
-#' @param maxnsteps Number of diffusion steps.
+#' @param maxnsteps Maximum number of diffusion steps. Each step computes
+#'   `s <- (A + I) D^-1 s` from the previous step; diffusion stops early once
+#'   the kurtosis of the scores decreases by less than 3 between steps
+#'   (checked after step 3). `0` returns the raw 0/1 indicator. Versions
+#'   <= 0.99.1 always performed a single step regardless of `maxnsteps`.
 #'
 #' @return Data.frame with scores.
 #' @export
+#' @examples
+#' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+#'                    max_loc = 300, test_type = "distribute",
+#'                    distance_param = 10, seed = 1)
+#' sc <- cooccur_local(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2",
+#'                     neighbors.k = 10, radius = 20)
+#' summary(sc[[1]])
 cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", neighbors.k = 20, radius = 30, maxnsteps = 1) {
   #if (inherits(df, "Seurat")){
   #  return(cooccur_local.Seurat(df, cluster_x, cluster_y, connectivity_key, neighbors.k, radius, maxnsteps))
@@ -672,7 +769,7 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
   coords <- df %>%
     dplyr::mutate(cell = rownames(.))
   cell_id <- coords$cell
-  rownames(coords) = coords$cell
+  rownames(coords) <- coords$cell
   coords <- as.matrix(coords[, c("x", "y")])
 
   # transformation: advised for analytic p-value calculation.
@@ -684,15 +781,15 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
   } else {
     adj <- neighbors$snn
   }
-  rownames(adj) = colnames(adj) = cell_id
+  rownames(adj) <- colnames(adj) <- cell_id
 
   coords <- df %>%
     dplyr::mutate(cell = rownames(.)) %>%
     dplyr::rename( cluster = cell_type)
 
   res_nn2 <- RANN::nn2(
-    data       = coords[,1:2],
-    query      = coords[,1:2],
+    data       = coords[, c("x", "y")],
+    query      = coords[, c("x", "y")],
     searchtype = "radius",
     radius     = radius,
     k          = neighbors.k
@@ -721,45 +818,13 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
       local_score_[i] <- 0
     }
   }
-  local_score = local_score_
+  local_score <- local_score_
 
-  if(maxnsteps == 0) {
-    df_ = data.frame(cooccur_local_scores = as.numeric(local_score)) %>%
-      magrittr::set_colnames(paste0("cooccur_local_", cluster_x, "_", cluster_y))
-    rownames(df_) = names(local_score)
-    return(df_)
-  } else {
-    diffuse_step <- function(adj, local_score) {
-      a <- adj
-      degrees <- Matrix::colSums(a) + 1
-      s_norm <- matrix(local_score) / degrees
-      res <- (a %*% s_norm) + s_norm
-      return(as.matrix(res))
-    }
-
-    nsteps=NULL
-    for (i in seq_len(maxnsteps)) {
-      s <- diffuse_step(adj,
-                        local_score)
-      medkurt <- moments::kurtosis(prop.table(s, 2))
-      if (is.null(nsteps)) {
-        prevmedkurt <- medkurt
-        if(is.nan(medkurt)) {
-          break
-        }
-        if (prevmedkurt - medkurt < 3 & i > 3) {
-          #message(glue::glue('stopping after {i} steps'))
-          break
-        }
-      } else if (i == nsteps) {
-        break
-      }
-    }
-    df_ = data.frame(cooccur_local_scores = as.numeric(s)) %>%
-      magrittr::set_colnames(paste0("cooccur_local_", cluster_x, "_", cluster_y))
-    rownames(df_) = names(local_score)
-    return(df_)
-  }
+  s <- .diffuse_scores(adj, local_score, maxnsteps)
+  df_ <- data.frame(cooccur_local_scores = as.numeric(s)) %>%
+    magrittr::set_colnames(paste0("cooccur_local_", cluster_x, "_", cluster_y))
+  rownames(df_) <- names(local_score)
+  return(df_)
 }
 
 #' Neighborhood Enrichment (Generic method)
@@ -771,23 +836,32 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #' @param transformation Whether to normalize adjacency matrix.
 #' @param n_perms Number of permutations.
 #' @param seed Random seed.
-#' @param n_jobs Number of parallel jobs.
+#' @param n_jobs Number of parallel jobs. `1` runs sequentially.
 #'
-#' @return A list with z-score and count matrices.
+#' @return A list with matrices `zscore`, `count` (observed), `expected`
+#'   (mean of the permutation null) and `log2_oe` (log2 observed / expected,
+#'   with a pseudocount of one mean edge weight). Unlike the z-score, which
+#'   grows with the number of cells, `log2_oe` is an effect size that is
+#'   comparable across samples of different size.
 #' @export
+#' @examples
+#' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+#'                    max_loc = 300, test_type = "distribute",
+#'                    distance_param = 10, seed = 1)
+#' res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 10,
+#'                         n_perms = 50, n_jobs = 1)
+#' round(res$zscore, 1)
+#' round(res$log2_oe, 2)
 nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4) {
   #if(inherits(df, "Seurat")){
   #  return(nhood_enrichment.Seurat(df, cluster_key, neighbors.k, connectivity_key, transformation, n_perms, seed, n_jobs))
   #}
-  set.seed(seed)
-
   cluster_data <- df[,cluster_key]
-  int_clust <- paste0("Cluster", cluster_data)
 
   coords <- df %>%
     dplyr::mutate(cell = rownames(.))
   cell_id <- coords$cell
-  rownames(coords) = coords$cell
+  rownames(coords) <- coords$cell
   coords <- as.matrix(coords[, c("x", "y")])
 
   neighbors <- FindNeighbors(coords, k.param = neighbors.k, verbose = FALSE)
@@ -797,7 +871,7 @@ nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key
   } else {
     adj <- neighbors$snn
   }
-  rownames(adj) = colnames(adj) = cell_id
+  rownames(adj) <- colnames(adj) <- cell_id
 
   # --- normalize ---
   if (transformation) {
@@ -805,63 +879,13 @@ nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key
     adj <- adj / degrees
   }
 
-  cluster_data = factor(cluster_data)
-  n_cls <- length(levels(cluster_data))
-
-  count <- compute_count(adj, int_clust_row = int_clust, int_clust_col = int_clust, n_cls, cluster_data, transformation)
-
-  perform_permutations <- function(adj, int_clust, n_cls, cluster_data, n_perms, n_jobs, transformation) {
-
-    cl <- makeCluster(n_jobs)
-    on.exit(stopCluster(cl))
-
-    clusterExport(
-      cl,
-      c("compute_count", "permute_clusters", "adj", "int_clust", "n_cls", "cluster_data", "transformation"),
-      envir = environment()
-    )
-
-    for (attempt in seq_len(3L)) {
-      out <- tryCatch(
-        parLapply(cl, seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation)),
-        error = function(e) { message("[spatialCooccur] parallel attempt ", attempt, " failed: ", conditionMessage(e)); NULL })
-      if (!is.null(out)) return(out)
-      Sys.sleep(1)
-    }
-    # bounded retries exhausted -> sequential fallback (avoids infinite hang)
-    message("[spatialCooccur] falling back to sequential permutations.")
-    lapply(seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation))
-  }
-
-  perms <- perform_permutations(adj, int_clust, n_cls, cluster_data, n_perms, n_jobs, transformation)
-
-  compute_zscore <- function(counts, perms) {
-    n_clusters <- ncol(counts)
-    zscore <- matrix(NA, nrow = n_clusters, ncol = n_clusters,
-                     dimnames = dimnames(counts))
-
-    for (i in seq_len(n_clusters)) {
-      for (j in seq_len(n_clusters)) {
-        perm_values <- sapply(perms, function(perm) perm[i, j])
-        perm_mean <- mean(perm_values)
-        perm_sd <- sd(perm_values)
-        zscore[i, j] <- if (is.na(perm_sd) || perm_sd == 0) NA_real_ else (counts[i, j] - perm_mean) / perm_sd
-      }
-    }
-
-    return(zscore)
-  }
-  zscore <- compute_zscore(count, perms)
-
-  return(list(
-    zscore = zscore,
-    count = count
-  ))
-
+  .nhood_permutation_core(adj, cluster_data, transformation, n_perms, seed, n_jobs)
 }
 
 #' Default Manual Colors for Clusters
 #'
+#' @examples
+#' head(manual_colors)
 #' @export
 manual_colors <- c(
   "0" = "#E41A1C", "1" = "#377EB8", "2" = "#4DAF4A", "3" = "#984EA3", "4" = "#FF7F00",

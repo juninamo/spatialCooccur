@@ -1,0 +1,100 @@
+url: https://juninamo.github.io/spatialCooccur/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#2a78d6"
+    link-color: "#1f5fae"
+    code-color: "#8a3b12"
+    border-radius: 0.4rem
+    btn-border-radius: 0.4rem
+  includes:
+    in_header: |
+      <meta name="description" content="spatialCooccur: neighborhood co-occurrence and spatial interaction analysis for spatial transcriptomics, with multi-sample disease-group comparison.">
+
+home:
+  title: "spatialCooccur: spatial co-occurrence analysis for spatial transcriptomics"
+  sidebar:
+    structure: [links, license, citation, authors, dev]
+
+navbar:
+  structure:
+    left: [reference, tutorials, articles, news]
+    right: [search, github]
+  components:
+    tutorials:
+      text: Tutorials
+      menu:
+      - text: "Single-sample analysis"
+      - text: "Simulation data: SNA & sCLS"
+        href: articles/SNA_tutorial_simulation.html
+      - text: "10x Xenium data: SNA & sCLS"
+        href: articles/SNA_tutorial_10Xdata.html
+      - text: "---------"
+      - text: "Multi-sample analysis"
+      - text: "Case-control comparison"
+        href: articles/case_control_tutorial.html
+    articles:
+      text: Methods
+      menu:
+      - text: "Algorithm reference"
+        href: articles/algorithms.html
+
+articles:
+- title: Tutorials
+  navbar: ~
+  desc: >
+    End-to-end walkthroughs with code, output and figures.
+  contents:
+  - articles/SNA_tutorial_simulation
+  - articles/SNA_tutorial_10Xdata
+  - articles/case_control_tutorial
+- title: Methods
+  desc: >
+    Mathematical description of every core function.
+  contents:
+  - algorithms
+
+reference:
+- title: Simulation
+  desc: Generate synthetic tissues with a planted cell-cell interaction.
+  contents:
+  - generate_sim
+  - generate_sim_groups
+- title: Single-sample analysis
+  desc: >
+    Spatial neighborhood analysis (SNA), spatial co-localization score (sCLS),
+    radius-based co-occurrence and interaction spots for one tissue.
+  contents:
+  - nhood_enrichment
+  - nhood_enrichment.Seurat
+  - cooccur_local
+  - cooccur_local.Seurat
+  - calc_co_occurrence_for_radius
+  - compute_co_occurrence_ratio
+  - search_interaction_spot
+- title: Multi-sample scores
+  desc: >
+    Compute a score per image (or patient) and return a tidy table ready for
+    group comparison.
+  contents:
+  - build_sample_design
+  - nhood_enrichment_per_sample
+  - cooccur_ratio_per_sample
+  - cooccur_local_per_sample
+  - interaction_spot_per_sample
+  - summarize_by_patient
+- title: Group comparison
+  desc: Test every cell-type pair between two groups.
+  contents:
+  - compare_groups
+- title: Visualization
+  contents:
+  - plot_group_delta_heatmap
+  - plot_pair_boxplot
+  - plot_volcano_groups
+  - manual_colors
+- title: Low-level helpers
+  contents:
+  - compute_count
+  - permute_clusters

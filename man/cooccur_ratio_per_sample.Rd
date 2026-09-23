@@ -32,9 +32,22 @@ cooccur_ratio_per_sample(
 }
 \value{
 A data.frame with one row per `sample_id x cluster_i x cluster_j`,
-  columns `ratio`, `count`, `group`, `patient`.
+  columns `ratio`, `count`, `group`, `patient`, `n_cells`, `n_i`, `n_j`.
+  Note that `k` caps the number of neighbours returned per cell; in dense
+  tissue choose `k` large enough that the radius, not `k`, is limiting.
 }
 \description{
 Compute the radius-based co-occurrence count and enrichment ratio per
 sample, with cluster dimnames harmonized across samples.
+}
+\examples{
+df <- generate_sim_groups(n_samples_per_group = 3,
+                          group_close_ratio = list(case = 0.8, control = 0.2),
+                          n_types = 4, n_cells = 200, max_loc = 250,
+                          test_type = "distribute", distance_param = 8,
+                          seed = 1)
+rs <- cooccur_ratio_per_sample(df, sample_key = "sample_id",
+                               group_key = "group", cluster_key = "cell_type",
+                               patient_key = "patient", radius = 20, k = 30)
+head(rs)
 }

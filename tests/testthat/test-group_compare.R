@@ -137,3 +137,87 @@ test_that("compare_groups with method = 'perm' returns finite p-values", {
   expect_s3_class(cmp, "data.frame")
   expect_true(all(cmp$p >= 0 & cmp$p <= 1))
 })
+
+# ---- statistical behaviour of compare_groups ------------------------------
+
+.toy_scores <- function(n_pat = 4, n_img = 1, shift = 0, seed = 1) {
+  set.seed(seed)
+  do.call(rbind, lapply(c("control", "case"), function(g) {
+    do.call(rbind, lapply(seq_len(n_pat), function(p) {
+      pe <- rnorm(1, sd = 1)
+      data.frame(sample_id = paste0(g, p, "_", seq_len(n_img)),
+                 patient = paste0(g, p), group = g,
+                 cluster_i = "A", cluster_j = "B",
+                 value = pe + rnorm(n_img, sd = 0.2) + (g == "case") * shift)
+    }))
+  }))
+}
+
+test_that("wilcox uses exact p-values for small samples", {
+  d <- .toy_scores(n_pat = 3, shift = 10)
+  cmp <- compare_groups(d, value = "value", method = "wilcox", ref_group = "control")
+  expect_equal(cmp$p, 0.1)
+})
+
+test_that("pseudoreplication triggers a warning", {
+  d <- .toy_scores(n_pat = 3, n_img = 3)
+  expect_warning(compare_groups(d, value = "value", method = "wilcox", ref_group = "control"),
+                 "pseudoreplication")
+  expect_silent(compare_groups(d, value = "value", method = "perm", patient_key = "patient",
+                               ref_group = "control", n_perms = 100))
+})
+
+test_that("blocked permutation is exact and respects patient blocks", {
+  d <- .toy_scores(n_pat = 3, n_img = 3, shift = 10)
+  cmp <- compare_groups(d, value = "value", method = "perm", patient_key = "patient",
+                        ref_group = "control", n_perms = 1000)
+  # choose(6, 3) = 20 relabelings, two-sided -> smallest p is 2 / 20
+  expect_equal(cmp$p, 0.1)
+})
+
+test_that("lmm supports covariates and reports an adjusted estimate", {
+  skip_if_not_installed("lme4")
+  d <- .toy_scores(n_pat = 6, n_img = 3, shift = 2, seed = 4)
+  d$batch <- rep(c("b1", "b2"), length.out = nrow(d))
+  cmp <- compare_groups(d, value = "value", method = "lmm", patient_key = "patient",
+                        covariates = "batch", ref_group = "control")
+  expect_true(all(c("estimate", "statistic", "p") %in% colnames(cmp)))
+  expect_gt(cmp$estimate, 0)
+  expect_true(cmp$p > 0 && cmp$p < 1)
+})
+
+test_that("symmetric = TRUE keeps each unordered pair once", {
+  d <- .toy_scores(n_pat = 3)
+  d2 <- d; d2$cluster_i <- "B"; d2$cluster_j <- "A"
+  cmp <- compare_groups(rbind(d, d2), value = "value", method = "t",
+                        ref_group = "control", symmetric = TRUE)
+  expect_equal(nrow(cmp), 1L)
+})
+
+test_that("ref_group = NULL announces the chosen reference", {
+  d <- .toy_scores(n_pat = 3)
+  expect_message(compare_groups(d, value = "value", method = "t"), "reference")
+})
+
+test_that("generate_sim_groups supports several images per patient", {
+  df <- generate_sim_groups(n_samples_per_group = 2, n_images_per_patient = 3,
+                            group_close_ratio = list(case = 0.5, control = 0.1),
+                            n_types = 4, n_cells = 100, max_loc = 200,
+                            test_type = "distribute", distance_param = 10, seed = 2)
+  expect_length(unique(df$sample_id), 12L)
+  expect_length(unique(df$patient), 4L)
+})
+
+test_that("nhood_enrichment_per_sample returns log2_oe and composition", {
+  skip_on_cran()
+  df <- generate_sim_groups(n_samples_per_group = 2,
+                            group_close_ratio = list(case = 0.8, control = 0.1),
+                            n_types = 4, n_cells = 200, max_loc = 300,
+                            test_type = "distribute", distance_param = 8, seed = 3)
+  res <- nhood_enrichment_per_sample(df, sample_key = "sample_id", group_key = "group",
+                                     cluster_key = "cell_type", patient_key = "patient",
+                                     neighbors.k = 8, n_perms = 20, n_jobs = 1)
+  expect_true(all(c("log2_oe", "expected", "n_cells", "n_i", "n_j") %in% colnames(res)))
+  one <- res[res$sample_id == res$sample_id[1] & res$cluster_i == "cell_type_1", ]
+  expect_equal(unique(one$n_i), sum(df$sample_id == res$sample_id[1] & df$cell_type == "cell_type_1"))
+})

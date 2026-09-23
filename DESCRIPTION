@@ -1,34 +1,49 @@
 Package: spatialCooccur
 Type: Package
 Title: Neighborhood Co-Occurrence and Spatial Interaction Analysis for Spatial Transcriptomics
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: person("Jun", "Inamo",
                   email = "juninamo@keio.jp",
                   role = c("aut", "cre"))
-Description: This package provides a set of tools for analyzing neighborhood co-occurrence and spatial interactions in spatial transcriptomics data using Seurat objects. It includes spatial permutation tests, enrichment score calculations, and local diffusion modeling to evaluate cell-cell spatial relationships.
+Description: spatialCooccur quantifies how cell types are arranged relative
+    to each other in spatial transcriptomics data. It provides a
+    permutation-based neighborhood enrichment test (z-score and
+    observed-over-expected effect size), radius-based co-occurrence ratios, a
+    per-cell local co-localization score smoothed over the neighbor graph, and
+    detection of connected interaction spots. Scores can be computed for each
+    image of a multi-sample study and compared between disease groups with
+    Wilcoxon, t, linear mixed model or patient-blocked permutation tests that
+    treat the patient as the unit of analysis. Seurat objects and plain
+    coordinate tables are supported as input, and simulators with a planted
+    cell-cell interaction are included for benchmarking.
 License: MIT + file LICENSE
+URL: https://juninamo.github.io/spatialCooccur/, https://github.com/juninamo/spatialCooccur
+BugReports: https://github.com/juninamo/spatialCooccur/issues
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.3.1
-Depends: R (>= 4.1)
+Depends: R (>= 4.3.0)
 Imports:
     Seurat,
+    SeuratObject,
     dplyr,
     Matrix,
     RANN,
     igraph,
     magrittr,
     parallel,
-    glue,
     tibble,
-    moments
+    moments,
+    stats,
+    utils
 Suggests:
     testthat,
     knitr,
     rmarkdown,
     lme4,
+    lmerTest,
     ggplot2,
     ggrepel,
     viridisLite
 VignetteBuilder: knitr
 biocViews: Software, Transcriptomics, Spatial, GeneExpression, Visualization
+Config/Needs/website: pkgdown

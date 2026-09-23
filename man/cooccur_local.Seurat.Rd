@@ -33,11 +33,25 @@ cooccur_local.Seurat(
 
 \item{radius}{Radius for proximity-based interaction.}
 
-\item{maxnsteps}{Maximum diffusion steps.}
+\item{maxnsteps}{Maximum number of diffusion steps (each step starts from
+the previous one; early stop on the kurtosis criterion, see
+[cooccur_local()]). `0` returns the raw indicator.}
 }
 \value{
 A data.frame with local co-occurrence scores.
 }
 \description{
 Local Co-occurrence Score (Seurat Method)
+}
+\examples{
+df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+                   max_loc = 300, test_type = "distribute",
+                   distance_param = 10, seed = 1)
+df$sample_id <- "fov1"
+seu <- sim_to_seurat(df)
+sc <- cooccur_local.Seurat(seu, cluster_x = "cell_type_1",
+                           cluster_y = "cell_type_2",
+                           cluster_key = "cell_type", sample_key = "sample_id",
+                           neighbors.k = 10, radius = 20, maxnsteps = 1)
+summary(sc[[1]])
 }

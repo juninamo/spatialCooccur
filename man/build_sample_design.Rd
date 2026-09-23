@@ -29,3 +29,12 @@ Construct a data.frame mapping image / sample identifiers to a disease
 group label (and optionally a patient ID). This is the shared metadata
 table consumed by the `*_per_sample` helpers and by `compare_groups()`.
 }
+\examples{
+df <- generate_sim_groups(n_samples_per_group = 3,
+                          group_close_ratio = list(case = 0.8, control = 0.2),
+                          n_types = 4, n_cells = 200, max_loc = 250,
+                          test_type = "distribute", distance_param = 8,
+                          seed = 1)
+build_sample_design(df, sample_key = "sample_id", group_key = "group",
+                    patient_key = "patient")
+}

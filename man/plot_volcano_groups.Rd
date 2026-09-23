@@ -34,3 +34,20 @@ A ggplot object.
 \description{
 Volcano plot of a compare_groups result
 }
+\examples{
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  df <- generate_sim_groups(n_samples_per_group = 3,
+                            group_close_ratio = list(case = 0.8, control = 0.2),
+                            n_types = 4, n_cells = 200, max_loc = 250,
+                            test_type = "distribute", distance_param = 8,
+                            seed = 1)
+  ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+                                    group_key = "group",
+                                    cluster_key = "cell_type",
+                                    patient_key = "patient",
+                                    neighbors.k = 8, n_perms = 20, n_jobs = 1)
+  cmp <- compare_groups(ps, value = "log2_oe", method = "wilcox",
+                        ref_group = "control", symmetric = TRUE)
+  plot_volcano_groups(cmp, label_top = 3)
+}
+}

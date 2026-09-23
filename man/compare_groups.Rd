@@ -14,6 +14,9 @@ compare_groups(
   adjust = "BH",
   pair_keys = c("cluster_i", "cluster_j"),
   ref_group = NULL,
+  covariates = NULL,
+  symmetric = FALSE,
+  min_n_per_group = 2,
   seed = 1234
 )
 }
@@ -22,22 +25,29 @@ compare_groups(
 [nhood_enrichment_per_sample()], [cooccur_ratio_per_sample()],
 [cooccur_local_per_sample()], or [interaction_spot_per_sample()].}
 
-\item{value}{Name of the column to test (e.g. "zscore", "ratio", "mean",
-"n_spots").}
+\item{value}{Name of the column to test (e.g. "log2_oe", "zscore",
+"ratio", "mean", "spots_per_1k_cells").}
 
 \item{group_key}{Name of the group column. Defaults to "group".}
 
 \item{patient_key}{Optional patient column. Required for `method = "lmm"`
 to use as a random effect; used as the permutation block for
-`method = "perm"`.}
+`method = "perm"`. If `NULL` and the data has a `patient` column, that
+column is only used to detect pseudoreplication.}
 
 \item{method}{Statistical test:
-* "wilcox" — Wilcoxon rank-sum (two groups)
+* "wilcox" — Wilcoxon rank-sum (two groups); exact p-values for small
+  samples without ties, normal approximation otherwise.
 * "t" — Welch's t-test (two groups)
-* "lmm" — linear mixed model `value ~ group + (1|patient)` via
-  `lme4::lmer`, with Wald-z p-values. Requires the `lme4` package.
+* "lmm" — linear mixed model `value ~ group + covariates + (1|patient)`
+  via `lme4::lmer`. p-values use Satterthwaite degrees of freedom when
+  the `lmerTest` package is installed, and otherwise a t reference with
+  `n_patients - n_fixed_effects` degrees of freedom (group is a
+  patient-level factor). Falls back to `lm()` when every patient
+  contributes a single row. Requires the `lme4` package.
 * "perm" — group-label permutation test on the mean difference
-  (blocked by patient if `patient_key` is supplied).}
+  (blocked by patient if `patient_key` is supplied). All relabelings
+  are enumerated when there are at most `n_perms` of them (exact test).}
 
 \item{n_perms}{Number of permutations for `method = "perm"`.}
 
@@ -48,20 +58,59 @@ to use as a random effect; used as the permutation block for
 Defaults to `c("cluster_i", "cluster_j")`. Set to a single column name
 for cases like interaction_spot_per_sample (e.g. "target_cluster").}
 
-\item{ref_group}{Optional name of the reference group. If supplied, the
-effect is reported as `mean_other - mean_ref` (positive = higher in
-the non-reference group). When `NULL` (default), groups are sorted
-alphabetically and the second is treated as the test group.}
+\item{ref_group}{Name of the reference group (e.g. "control"). The effect
+is reported as `mean_test - mean_ref`. When `NULL`, groups are sorted
+alphabetically and the first is used as reference (a message says
+which); set it explicitly, because e.g. "case" sorts before "control".}
+
+\item{covariates}{Optional character vector of additional columns (e.g.
+age, sex, batch, `n_cells`) included as fixed effects. Only used with
+`method = "lmm"`.}
+
+\item{symmetric}{If `TRUE`, test each unordered pair once (rows with
+`cluster_i <= cluster_j`). Neighborhood enrichment scores are
+(nearly) symmetric, so testing both (i, j) and (j, i) doubles the
+multiple-testing burden without adding information.}
+
+\item{min_n_per_group}{Minimum number of finite observations required in
+each group; pairs below this are skipped.}
 
 \item{seed}{Random seed for the permutation test.}
 }
 \value{
-A data.frame with the cluster pair columns, group means, effect
-  size (test group minus reference group), test statistic, raw p-value,
-  and adjusted p-value.
+A data.frame with the cluster pair columns, group sizes and
+  means, `effect` (test group mean minus reference group mean), for
+  `method = "lmm"` also `estimate` (the adjusted model coefficient),
+  `statistic`, raw `p`, and `padj`. Attributes `method`, `groups`,
+  `value` and `p_method` describe the test.
 }
 \description{
 Given a tidy per-sample data.frame produced by one of the
 `*_per_sample()` helpers, run a per-cluster-pair statistical test
 between groups and return tidy results with multiple-testing adjustment.
+}
+\section{Unit of analysis}{
+
+In a case-control study the independent unit is the *patient*, not the
+image. With several images per patient either aggregate first
+(`unit = "patient"` in the `*_per_sample()` call) and use
+`"wilcox"` / `"t"`, or keep images and use `"lmm"` or `"perm"` with
+`patient_key`. `compare_groups()` warns when `"wilcox"` / `"t"` (or
+`"perm"` without `patient_key`) are given several rows per patient.
+}
+
+\examples{
+df <- generate_sim_groups(n_samples_per_group = 3,
+                          group_close_ratio = list(case = 0.8, control = 0.2),
+                          n_types = 4, n_cells = 200, max_loc = 250,
+                          test_type = "distribute", distance_param = 8,
+                          seed = 1)
+ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+                                  group_key = "group",
+                                  cluster_key = "cell_type",
+                                  patient_key = "patient",
+                                  neighbors.k = 8, n_perms = 20, n_jobs = 1)
+cmp <- compare_groups(ps, value = "log2_oe", method = "wilcox",
+                      ref_group = "control", symmetric = TRUE)
+head(cmp)
 }

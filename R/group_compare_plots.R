@@ -9,6 +9,9 @@ utils::globalVariables(c(
   "effect", "padj", "neg_log10_p", "sig", "score", ".pair"
 ))
 
+#' @importFrom dplyr .data
+NULL
+
 .require_ggplot2 <- function() {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("This function requires the 'ggplot2' package. Install it with install.packages('ggplot2').")
@@ -33,6 +36,22 @@ utils::globalVariables(c(
 #'
 #' @return A ggplot object.
 #' @export
+#' @examples
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   df <- generate_sim_groups(n_samples_per_group = 3,
+#'                             group_close_ratio = list(case = 0.8, control = 0.2),
+#'                             n_types = 4, n_cells = 200, max_loc = 250,
+#'                             test_type = "distribute", distance_param = 8,
+#'                             seed = 1)
+#'   ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+#'                                     group_key = "group",
+#'                                     cluster_key = "cell_type",
+#'                                     patient_key = "patient",
+#'                                     neighbors.k = 8, n_perms = 20, n_jobs = 1)
+#'   cmp <- compare_groups(ps, value = "log2_oe", method = "wilcox",
+#'                         ref_group = "control", symmetric = TRUE)
+#'   plot_group_delta_heatmap(cmp)
+#' }
 plot_group_delta_heatmap <- function(compare_df,
                                      value = "effect",
                                      significance = "padj",
@@ -112,6 +131,22 @@ plot_group_delta_heatmap <- function(compare_df,
 #'
 #' @return A ggplot object.
 #' @export
+#' @examples
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   df <- generate_sim_groups(n_samples_per_group = 3,
+#'                             group_close_ratio = list(case = 0.8, control = 0.2),
+#'                             n_types = 4, n_cells = 200, max_loc = 250,
+#'                             test_type = "distribute", distance_param = 8,
+#'                             seed = 1)
+#'   ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+#'                                     group_key = "group",
+#'                                     cluster_key = "cell_type",
+#'                                     patient_key = "patient",
+#'                                     neighbors.k = 8, n_perms = 20, n_jobs = 1)
+#'   plot_pair_boxplot(ps, value = "log2_oe",
+#'                     pairs = data.frame(cluster_i = "cell_type_1",
+#'                                        cluster_j = "cell_type_2"))
+#' }
 plot_pair_boxplot <- function(per_sample_df,
                               value = "zscore",
                               group_key = "group",
@@ -198,6 +233,22 @@ plot_pair_boxplot <- function(per_sample_df,
 #'
 #' @return A ggplot object.
 #' @export
+#' @examples
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   df <- generate_sim_groups(n_samples_per_group = 3,
+#'                             group_close_ratio = list(case = 0.8, control = 0.2),
+#'                             n_types = 4, n_cells = 200, max_loc = 250,
+#'                             test_type = "distribute", distance_param = 8,
+#'                             seed = 1)
+#'   ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+#'                                     group_key = "group",
+#'                                     cluster_key = "cell_type",
+#'                                     patient_key = "patient",
+#'                                     neighbors.k = 8, n_perms = 20, n_jobs = 1)
+#'   cmp <- compare_groups(ps, value = "log2_oe", method = "wilcox",
+#'                         ref_group = "control", symmetric = TRUE)
+#'   plot_volcano_groups(cmp, label_top = 3)
+#' }
 plot_volcano_groups <- function(compare_df,
                                 effect_col = "effect",
                                 p_col = "padj",

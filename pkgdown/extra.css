@@ -1,0 +1,39 @@
+/* Notebook-derived articles: stored outputs and provenance note */
+.nb-source {
+  font-size: 0.9rem;
+  color: var(--bs-secondary-color, #6c757d);
+  border-left: 3px solid var(--bs-primary, #2a78d6);
+  padding: 0.4rem 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+pre.output, div.sourceCode + pre.output {
+  background: transparent;
+  border: 1px dashed var(--bs-border-color, #dee2e6);
+  color: var(--bs-body-color);
+  font-size: 0.85rem;
+}
+
+.nb-output {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+.nb-output table {
+  width: auto;
+  margin-bottom: 0.5rem;
+}
+.nb-output table th,
+.nb-output table td {
+  padding: 0.15rem 0.6rem;
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+}
+.nb-output caption {
+  caption-side: top;
+  font-size: 0.8rem;
+}
+
+.contents img {
+  max-width: 100%;
+  height: auto;
+}

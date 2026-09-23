@@ -307,9 +307,15 @@ Concretely, every cell shares an equal portion of its own indicator with
 each of its kNN neighbors plus itself. The output column is named
 `cooccur_local_<cluster_x>_<cluster_y>`.
 
-`maxnsteps` exists for a heuristic early stop (based on the kurtosis of
-the column-normalized scores), but with the default `maxnsteps = 1` only
-the single step shown above is taken.
+With `maxnsteps > 1` the step is iterated, each step starting from the
+previous result: $\mathbf{s}^{(t)} = (A + I) D^{-1} \mathbf{s}^{(t-1)}$.
+The total $\sum_v s_v$ is conserved. Iteration stops early when the
+kurtosis of the scores decreases by less than 3 between consecutive steps
+(checked after step 3). Because $\mathbf{s}^{(0)}$ is a 0/1 indicator, its
+kurtosis usually *increases* under smoothing, so in practice diffusion stops
+after 4 steps whenever `maxnsteps >= 4`. `maxnsteps = 0` returns the raw
+indicator. (Versions <= 0.99.1 recomputed every step from
+$\mathbf{s}^{(0)}$, so any `maxnsteps >= 1` gave the single step above.)
 
 # `search_interaction_spot()` — connected-component spots
 
@@ -370,3 +376,9 @@ sits on top of these by running them per sample and testing the
 resulting per-sample scalars between groups. See the
 [disease comparison vignette](disease_comparison.html) for the
 group-comparison side of the story.
+
+# Session information
+
+```{r session}
+sessionInfo()
+```

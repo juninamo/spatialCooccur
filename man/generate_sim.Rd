@@ -38,3 +38,10 @@ A data.frame with simulated spatial coordinates and cell type labels.
 \description{
 Generate synthetic spatial transcriptomics data for simulation and benchmarking.
 }
+\examples{
+df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+                   max_loc = 300, test_type = "distribute",
+                   distance_param = 10, seed = 1)
+head(df)
+table(df$cell_type)
+}

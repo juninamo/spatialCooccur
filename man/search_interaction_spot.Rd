@@ -38,3 +38,15 @@ A data.frame of detected interaction clusters and metadata.
 \description{
 Search for Spatial Interaction Spots
 }
+\examples{
+df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+                   max_loc = 300, test_type = "distribute",
+                   distance_param = 10, seed = 1)
+df$sample_id <- "fov1"
+seu <- sim_to_seurat(df)
+spots <- search_interaction_spot(seu, fov = "fov1", radius = 15, n_min = 3,
+                                 cell_id = seu$cell,
+                                 cluster_col = "cell_type",
+                                 target_cluster = c("cell_type_1", "cell_type_2"))
+length(unique(spots$cluster_id))
+}

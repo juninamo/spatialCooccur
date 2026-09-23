@@ -53,6 +53,9 @@ devtools::install_github("juninamo/spatialCooccur")
   disease-group comparison workflow with worked example
 - `vignette("algorithms", "spatialCooccur")` — mathematical reference for
   every core function
+- `vignettes/case_control_tutorial.ipynb` — case-control study with several
+  images per patient: choosing the score, patient-level testing (Wilcoxon /
+  LMM / blocked permutation), pseudoreplication, covariates, and power
 
 ### 1. Spatial Neighborhood Analysis (SNA)
 To simulate spatial transcriptomic data and perform neighborhood enrichment analysis:
@@ -100,9 +103,11 @@ per_sample <- nhood_enrichment_per_sample(
 # - "lmm"  uses lme4::lmer(value ~ group + (1 | patient))
 # - "perm" runs a group-label permutation test, blocked by patient
 #          when patient_key is supplied
+# Compare log2(observed / expected) rather than the z-score: z-scores grow
+# with the number of cells per image, log2_oe does not.
 res <- compare_groups(
-  per_sample, value = "zscore",
-  method = "wilcox", ref_group = "control"
+  per_sample, value = "log2_oe",
+  method = "wilcox", ref_group = "control", symmetric = TRUE
 )
 head(res)
 
@@ -110,7 +115,7 @@ head(res)
 plot_group_delta_heatmap(res)
 plot_volcano_groups(res, label_top = 5)
 plot_pair_boxplot(
-  per_sample, value = "zscore",
+  per_sample, value = "log2_oe",
   pairs = data.frame(cluster_i = "cell_type_1",
                      cluster_j = "cell_type_2"),
   add_p = TRUE, ref_group = "control"

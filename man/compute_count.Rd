@@ -32,3 +32,10 @@ A co-occurrence count matrix.
 \description{
 Compute Co-occurrence Count Matrix
 }
+\examples{
+set.seed(1)
+adj <- Matrix::rsparsematrix(20, 20, density = 0.2)
+cl <- factor(sample(c("a", "b"), 20, replace = TRUE))
+lab <- paste0("Cluster", cl)
+compute_count(adj, lab, lab, n_cls = 2, cluster_data = cl)
+}

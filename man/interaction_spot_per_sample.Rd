@@ -36,11 +36,26 @@ interaction_spot_per_sample(
 \item{neighbors.k}{Max neighbors to consider.}
 }
 \value{
-A data.frame with one row per sample carrying `n_spots` and
-  `mean_spot_size` (number of cells).
+A data.frame with one row per sample carrying `n_spots`,
+  `mean_spot_size` (number of cells), `n_cells` and `spots_per_1k_cells`.
+  Raw `n_spots` scales with image size; compare `spots_per_1k_cells`
+  between groups when images differ in size. Samples for which the spot
+  search failed get `NA` (with a warning), not 0.
 }
 \description{
 Apply [search_interaction_spot()] to each image of a Seurat object and
 summarize how many connected interaction spots were detected and their
 mean size, ready for group comparison.
+}
+\examples{
+df <- generate_sim_groups(n_samples_per_group = 3,
+                          group_close_ratio = list(case = 0.8, control = 0.2),
+                          n_types = 4, n_cells = 200, max_loc = 250,
+                          test_type = "distribute", distance_param = 8,
+                          seed = 1)
+seu <- sim_to_seurat(df)
+interaction_spot_per_sample(seu, sample_key = "sample_id",
+                            group_key = "group", cluster_col = "cell_type",
+                            target_cluster = c("cell_type_1", "cell_type_2"),
+                            radius = 15, n_min = 3)
 }

@@ -6,7 +6,7 @@
 # groups using standard or mixed-effects statistics, or a group-label
 # permutation test.
 
-#' @importFrom stats wilcox.test t.test p.adjust sd quantile pnorm aggregate as.formula lm rnorm
+#' @importFrom stats wilcox.test t.test p.adjust sd quantile pnorm pt aggregate as.formula lm rnorm setNames
 #' @importFrom utils head
 NULL
 
@@ -36,6 +36,14 @@ utils::globalVariables(c(
 #' @return A data.frame with columns `sample_id`, `group`, `patient`, and
 #'   `source_index` (which list element of the input the sample came from).
 #' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 3,
+#'                           group_close_ratio = list(case = 0.8, control = 0.2),
+#'                           n_types = 4, n_cells = 200, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 8,
+#'                           seed = 1)
+#' build_sample_design(df, sample_key = "sample_id", group_key = "group",
+#'                     patient_key = "patient")
 build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) {
   if (inherits(obj, "Seurat")) {
     obj_list <- list(obj)
@@ -83,7 +91,7 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
       stop(sprintf("patient_key '%s' not found in meta.data of object %d", patient_key, k))
     }
     for (img in names(seu@images)) {
-      sel <- if (sample_key %in% colnames(md)) md[[sample_key]] == img else rep(TRUE, nrow(md))
+      sel <- .image_cell_selector(seu, img, md, sample_key)
       if (!any(sel)) next
       gv <- unique(as.character(md[[group_key]][sel]))
       if (length(gv) > 1L) {
@@ -112,6 +120,81 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
     stop("No samples were found. Check sample_key and the images slot of your object.")
   }
   do.call(rbind, rows)
+}
+
+# Internal: the package's single entry point to the RNG seed. Seeds are
+# always explicit, user-supplied `seed` arguments.
+.seed_rng <- function(seed) {
+  set.seed(seed)
+}
+
+# Internal: set the RNG seed for the calling function only; the caller's
+# .Random.seed is restored when that function exits.
+.local_seed <- function(seed, envir = parent.frame()) {
+  genv <- globalenv()
+  old <- if (exists(".Random.seed", envir = genv, inherits = FALSE)) {
+    get(".Random.seed", envir = genv, inherits = FALSE)
+  } else NULL
+  do.call(on.exit, list(substitute(
+    if (is.null(OLD)) {
+      if (exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+        rm(".Random.seed", envir = globalenv())
+    } else assign(".Random.seed", OLD, envir = globalenv()),
+    list(OLD = old)), add = TRUE), envir = envir)
+  .seed_rng(seed)
+  invisible()
+}
+
+# Internal: logical selector of the meta.data rows belonging to image `img`.
+# Cell names are the ground truth (they are what links an image to its
+# meta.data rows); the `sample_key` column is only used as a fallback when
+# the image cells cannot be matched by name.
+.image_cell_selector <- function(seu, img, md, sample_key) {
+  sel <- rownames(md) %in% Seurat::Cells(seu[[img]])
+  if (!any(sel) && sample_key %in% colnames(md)) {
+    sel <- as.character(md[[sample_key]]) == img
+  }
+  sel
+}
+
+# Internal: warn once if one value per patient is expected but the input
+# carries several rows (images) of the same patient for a single pair.
+.warn_pseudoreplication <- function(df, pair_keys, patient_col, method) {
+  if (is.null(patient_col) || !patient_col %in% colnames(df)) return(invisible())
+  pat <- as.character(df[[patient_col]])
+  if (all(is.na(pat))) return(invisible())
+  key <- do.call(paste, c(df[pair_keys], list(pat), sep = "\r"))
+  if (anyDuplicated(key[!is.na(pat)])) {
+    warning(
+      "Several rows per patient were found for the same cluster pair; ",
+      "method '", method, "' treats them as independent observations ",
+      "(pseudoreplication), which inflates the false-positive rate. Use ",
+      "unit = \"patient\" in the *_per_sample() call, or method = \"lmm\" / ",
+      "\"perm\" with patient_key.",
+      call. = FALSE)
+  }
+  invisible()
+}
+
+# Internal: per-sample cell counts per cluster, used to annotate pair tables
+# with the abundance of the two cell types (useful for filtering rare pairs
+# and for diagnosing composition effects).
+.add_composition <- function(tidy_df, samples, pair_cols = c("cluster_i", "cluster_j")) {
+  comp <- do.call(rbind, lapply(names(samples), function(sid) {
+    tab <- table(as.character(samples[[sid]]$coords$cluster))
+    data.frame(sample_id = sid, cluster = names(tab), n = as.integer(tab),
+               n_cells = nrow(samples[[sid]]$coords), stringsAsFactors = FALSE)
+  }))
+  lookup <- stats::setNames(comp$n, paste(comp$sample_id, comp$cluster, sep = "\r"))
+  totals <- stats::setNames(comp$n_cells, comp$sample_id)
+  totals <- totals[!duplicated(names(totals))]
+  tidy_df$n_cells <- unname(totals[tidy_df$sample_id])
+  for (k in seq_along(pair_cols)) {
+    n <- lookup[paste(tidy_df$sample_id, tidy_df[[pair_cols[k]]], sep = "\r")]
+    n[is.na(n)] <- 0L
+    tidy_df[[paste0("n_", c("i", "j")[k])]] <- unname(n)
+  }
+  tidy_df
 }
 
 # Internal: normalize any supported input into a per-sample list with
@@ -173,7 +256,7 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
       coords <- as.data.frame(seu[[img]]$centroids@coords)
       cells <- Seurat::Cells(seu[[img]])
       rownames(coords) <- cells
-      sel <- if (sample_key %in% colnames(md)) md[[sample_key]] == img else rep(TRUE, nrow(md))
+      sel <- .image_cell_selector(seu, img, md, sample_key)
       md_sel <- md[sel, , drop = FALSE]
       common <- intersect(cells, rownames(md_sel))
       if (length(common) == 0L) {
@@ -254,6 +337,40 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
   agg
 }
 
+#' Aggregate per-image scores to one row per patient
+#'
+#' Average every numeric column of a `*_per_sample()` result across the
+#' images of each patient (within cluster pair and group). Use this to
+#' obtain patient-level values for `compare_groups(method = "wilcox" / "t")`
+#' from an image-level result without recomputing the permutations
+#' (equivalent to `unit = "patient"`).
+#'
+#' @param per_sample_df Output of a `*_per_sample()` helper with a
+#'   non-missing `patient` column.
+#'
+#' @return A data.frame with one row per `patient x cluster_i x cluster_j`;
+#'   `sample_id` is set to the patient ID.
+#' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 2, n_images_per_patient = 2,
+#'                           group_close_ratio = list(case = 0.8, control = 0.2),
+#'                           n_types = 3, n_cells = 150, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 8)
+#' ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+#'                                   group_key = "group",
+#'                                   cluster_key = "cell_type",
+#'                                   patient_key = "patient",
+#'                                   neighbors.k = 8, n_perms = 20, n_jobs = 1)
+#' pp <- summarize_by_patient(ps)
+#' table(pp$sample_id)
+summarize_by_patient <- function(per_sample_df) {
+  out <- .aggregate_to_patient(as.data.frame(per_sample_df))
+  attr(out, "spatial_design") <- attr(per_sample_df, "spatial_design")
+  attr(out, "value_columns") <- attr(per_sample_df, "value_columns")
+  class(out) <- unique(c("spatialCooccurSample", class(out)))
+  out
+}
+
 # ---- Phase 1a: nhood_enrichment_per_sample -------------------------------
 
 #' Per-sample neighborhood enrichment
@@ -279,8 +396,31 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
 #'
 #' @return A data.frame (also tagged with class `spatialCooccurSample`) with
 #'   columns `sample_id`, `cluster_i`, `cluster_j`, `zscore`, `count`,
-#'   `group`, `patient`.
+#'   `expected`, `log2_oe`, `group`, `patient`, plus `n_cells` (cells in the
+#'   sample) and `n_i` / `n_j` (cells of `cluster_i` / `cluster_j`).
+#'
+#' @section Choosing the value to compare:
+#' The permutation z-score measures *statistical evidence* within one sample
+#' and grows roughly with the square root of the number of cells, so samples
+#' with more cells (larger images, denser tissue) get larger |z| for the same
+#' spatial pattern. For between-group comparison, `log2_oe`
+#' (log2 observed / permutation-expected) is an effect size that does not
+#' scale with sample size and is usually the better choice. `count` is
+#' additionally confounded by cell-type composition and should not be
+#' compared directly.
 #' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 3,
+#'                           group_close_ratio = list(case = 0.8, control = 0.2),
+#'                           n_types = 4, n_cells = 200, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 8,
+#'                           seed = 1)
+#' ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+#'                                   group_key = "group",
+#'                                   cluster_key = "cell_type",
+#'                                   patient_key = "patient",
+#'                                   neighbors.k = 8, n_perms = 20, n_jobs = 1)
+#' head(ps)
 nhood_enrichment_per_sample <- function(obj, sample_key, group_key, cluster_key,
                                         patient_key = NULL,
                                         unit = c("image", "patient"),
@@ -332,13 +472,16 @@ nhood_enrichment_per_sample <- function(obj, sample_key, group_key, cluster_key,
   }
 
   tidy_df <- .stack_pair_results(per_sample, design,
-                                 value_map = c(zscore = "zscore", count = "count"))
+                                 value_map = c(zscore = "zscore", count = "count",
+                                               expected = "expected",
+                                               log2_oe = "log2_oe"))
   if (is.null(tidy_df) || nrow(tidy_df) == 0L) {
     stop("No per-sample results were produced.")
   }
+  tidy_df <- .add_composition(tidy_df, samples)
   if (unit == "patient") tidy_df <- .aggregate_to_patient(tidy_df)
   attr(tidy_df, "spatial_design") <- design
-  attr(tidy_df, "value_columns") <- c("zscore", "count")
+  attr(tidy_df, "value_columns") <- c("zscore", "log2_oe", "count", "expected")
   class(tidy_df) <- c("spatialCooccurSample", class(tidy_df))
   tidy_df
 }
@@ -362,8 +505,27 @@ nhood_enrichment_per_sample <- function(obj, sample_key, group_key, cluster_key,
 #'   cells with score > 0).
 #'
 #' @return A data.frame with one row per sample carrying the requested
-#'   summary statistics.
+#'   summary statistics, plus `n_cells`, `n_i` and `n_j` (cells of
+#'   `cluster_x` / `cluster_y`).
+#'
+#' @section Caution:
+#' The local score has no permutation null, so its sample-level summaries
+#' increase with the abundance of `cluster_x` and `cluster_y`. When the two
+#' groups differ in cell-type composition, check `n_i` / `n_j` (or adjust
+#' for them with `covariates` in [compare_groups()]) before interpreting a
+#' group difference as a change in co-localization.
 #' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 3,
+#'                           group_close_ratio = list(case = 0.8, control = 0.2),
+#'                           n_types = 4, n_cells = 200, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 8,
+#'                           seed = 1)
+#' cooccur_local_per_sample(df, sample_key = "sample_id", group_key = "group",
+#'                          cluster_key = "cell_type",
+#'                          cluster_x = "cell_type_1", cluster_y = "cell_type_2",
+#'                          patient_key = "patient", neighbors.k = 10,
+#'                          radius = 20)
 cooccur_local_per_sample <- function(obj, sample_key, group_key, cluster_key,
                                      cluster_x, cluster_y,
                                      patient_key = NULL,
@@ -408,6 +570,9 @@ cooccur_local_per_sample <- function(obj, sample_key, group_key, cluster_key,
     if ("mean" %in% summarize) row$mean <- mean(sc, na.rm = TRUE)
     if ("q90" %in% summarize) row$q90 <- as.numeric(quantile(sc, 0.9, na.rm = TRUE))
     if ("pos_rate" %in% summarize) row$pos_rate <- mean(sc > 0, na.rm = TRUE)
+    row$n_cells <- nrow(coords)
+    row$n_i <- sum(coords$cluster == cluster_x)
+    row$n_j <- sum(coords$cluster == cluster_y)
     rows[[sid]] <- row
   }
   if (length(rows) == 0L) stop("No per-sample results were produced.")
@@ -429,22 +594,18 @@ cooccur_local_per_sample <- function(obj, sample_key, group_key, cluster_key,
 .radius_count_one <- function(coords_xy, clusters, all_clusters, radius, k = 30) {
   res <- RANN::nn2(data = coords_xy, query = coords_xy,
                    searchtype = "radius", radius = radius, k = k)
-  co_occur_count <- matrix(
-    0,
-    nrow = length(all_clusters), ncol = length(all_clusters),
-    dimnames = list(paste0("Cluster", all_clusters),
-                    paste0("Cluster", all_clusters))
-  )
-  for (i in seq_len(nrow(coords_xy))) {
-    nb <- res$nn.idx[i, ]
-    nb <- nb[nb != i & nb > 0]
-    if (!length(nb)) next
-    ci <- paste0("Cluster", clusters[i])
-    tab <- table(paste0("Cluster", clusters[nb]))
-    for (cn in names(tab)) {
-      co_occur_count[ci, cn] <- co_occur_count[ci, cn] + tab[[cn]]
-    }
-  }
+  n <- nrow(coords_xy)
+  i_idx <- rep(seq_len(n), ncol(res$nn.idx))
+  j_idx <- as.vector(res$nn.idx)
+  keep <- j_idx > 0 & j_idx != i_idx
+  adj <- Matrix::sparseMatrix(i = i_idx[keep], j = j_idx[keep], x = 1, dims = c(n, n))
+  cl_idx <- match(clusters, all_clusters)
+  ok <- !is.na(cl_idx)
+  ind <- Matrix::sparseMatrix(i = which(ok), j = cl_idx[ok], x = 1,
+                              dims = c(n, length(all_clusters)))
+  co_occur_count <- as.matrix(Matrix::t(ind) %*% adj %*% ind)
+  dimnames(co_occur_count) <- list(paste0("Cluster", all_clusters),
+                                   paste0("Cluster", all_clusters))
   ratio_mat <- compute_co_occurrence_ratio(co_occur_count)
   list(co_occur_count = co_occur_count, ratio_mat = ratio_mat)
 }
@@ -462,8 +623,20 @@ cooccur_local_per_sample <- function(obj, sample_key, group_key, cluster_key,
 #' @param cluster_levels Optional vector of cluster levels.
 #'
 #' @return A data.frame with one row per `sample_id x cluster_i x cluster_j`,
-#'   columns `ratio`, `count`, `group`, `patient`.
+#'   columns `ratio`, `count`, `group`, `patient`, `n_cells`, `n_i`, `n_j`.
+#'   Note that `k` caps the number of neighbours returned per cell; in dense
+#'   tissue choose `k` large enough that the radius, not `k`, is limiting.
 #' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 3,
+#'                           group_close_ratio = list(case = 0.8, control = 0.2),
+#'                           n_types = 4, n_cells = 200, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 8,
+#'                           seed = 1)
+#' rs <- cooccur_ratio_per_sample(df, sample_key = "sample_id",
+#'                                group_key = "group", cluster_key = "cell_type",
+#'                                patient_key = "patient", radius = 20, k = 30)
+#' head(rs)
 cooccur_ratio_per_sample <- function(obj, sample_key, group_key, cluster_key,
                                      patient_key = NULL,
                                      unit = c("image", "patient"),
@@ -504,6 +677,7 @@ cooccur_ratio_per_sample <- function(obj, sample_key, group_key, cluster_key,
   if (is.null(tidy_df) || nrow(tidy_df) == 0L) {
     stop("No per-sample results were produced.")
   }
+  tidy_df <- .add_composition(tidy_df, samples)
   if (unit == "patient") tidy_df <- .aggregate_to_patient(tidy_df)
   attr(tidy_df, "spatial_design") <- design
   attr(tidy_df, "value_columns") <- c("ratio", "count")
@@ -529,9 +703,23 @@ cooccur_ratio_per_sample <- function(obj, sample_key, group_key, cluster_key,
 #' @param n_min Minimum number of cells per spot.
 #' @param neighbors.k Max neighbors to consider.
 #'
-#' @return A data.frame with one row per sample carrying `n_spots` and
-#'   `mean_spot_size` (number of cells).
+#' @return A data.frame with one row per sample carrying `n_spots`,
+#'   `mean_spot_size` (number of cells), `n_cells` and `spots_per_1k_cells`.
+#'   Raw `n_spots` scales with image size; compare `spots_per_1k_cells`
+#'   between groups when images differ in size. Samples for which the spot
+#'   search failed get `NA` (with a warning), not 0.
 #' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 3,
+#'                           group_close_ratio = list(case = 0.8, control = 0.2),
+#'                           n_types = 4, n_cells = 200, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 8,
+#'                           seed = 1)
+#' seu <- sim_to_seurat(df)
+#' interaction_spot_per_sample(seu, sample_key = "sample_id",
+#'                             group_key = "group", cluster_col = "cell_type",
+#'                             target_cluster = c("cell_type_1", "cell_type_2"),
+#'                             radius = 15, n_min = 3)
 interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
                                         cluster_col, target_cluster,
                                         cell_id = NULL,
@@ -542,6 +730,10 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
   }
   design <- build_sample_design(seurat_object, sample_key = sample_key,
                                 group_key = group_key, patient_key = patient_key)
+  if (!"cell" %in% colnames(seurat_object@meta.data)) {
+    # search_interaction_spot() joins on a `cell` column.
+    seurat_object@meta.data$cell <- rownames(seurat_object@meta.data)
+  }
   if (is.null(cell_id)) {
     if ("cell" %in% colnames(seurat_object@meta.data)) {
       cell_id <- as.character(seurat_object@meta.data$cell)
@@ -562,11 +754,13 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
         NULL
       }
     )
-    n_spots <- if (!is.null(spots)) length(unique(spots$cluster_id)) else 0L
+    # A failed search is missing data (NA), not "zero spots".
+    n_spots <- if (!is.null(spots)) length(unique(spots$cluster_id)) else NA_integer_
     mean_size <- if (!is.null(spots) && nrow(spots) > 0L) {
       sizes <- unique(spots[, c("cluster_id", "n_all_cells")])
       mean(sizes$n_all_cells, na.rm = TRUE)
     } else NA_real_
+    n_cells_fov <- sum(Seurat::Cells(seurat_object[[fov]]) %in% cell_id)
     d <- design[design$sample_id == fov, , drop = FALSE]
     rows[[fov]] <- data.frame(
       sample_id = fov,
@@ -575,12 +769,14 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
       target_cluster = paste(target_cluster, collapse = ","),
       n_spots = n_spots,
       mean_spot_size = mean_size,
+      n_cells = n_cells_fov,
+      spots_per_1k_cells = if (n_cells_fov > 0) 1000 * n_spots / n_cells_fov else NA_real_,
       stringsAsFactors = FALSE
     )
   }
   out <- do.call(rbind, rows)
   attr(out, "spatial_design") <- design
-  attr(out, "value_columns") <- c("n_spots", "mean_spot_size")
+  attr(out, "value_columns") <- c("spots_per_1k_cells", "n_spots", "mean_spot_size")
   class(out) <- c("spatialCooccurSample", class(out))
   out
 }
@@ -593,38 +789,78 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
 #' `*_per_sample()` helpers, run a per-cluster-pair statistical test
 #' between groups and return tidy results with multiple-testing adjustment.
 #'
+#' @section Unit of analysis:
+#' In a case-control study the independent unit is the *patient*, not the
+#' image. With several images per patient either aggregate first
+#' (`unit = "patient"` in the `*_per_sample()` call) and use
+#' `"wilcox"` / `"t"`, or keep images and use `"lmm"` or `"perm"` with
+#' `patient_key`. `compare_groups()` warns when `"wilcox"` / `"t"` (or
+#' `"perm"` without `patient_key`) are given several rows per patient.
+#'
 #' @param per_sample_df Tidy data.frame, typically the output of
 #'   [nhood_enrichment_per_sample()], [cooccur_ratio_per_sample()],
 #'   [cooccur_local_per_sample()], or [interaction_spot_per_sample()].
-#' @param value Name of the column to test (e.g. "zscore", "ratio", "mean",
-#'   "n_spots").
+#' @param value Name of the column to test (e.g. "log2_oe", "zscore",
+#'   "ratio", "mean", "spots_per_1k_cells").
 #' @param group_key Name of the group column. Defaults to "group".
 #' @param patient_key Optional patient column. Required for `method = "lmm"`
 #'   to use as a random effect; used as the permutation block for
-#'   `method = "perm"`.
+#'   `method = "perm"`. If `NULL` and the data has a `patient` column, that
+#'   column is only used to detect pseudoreplication.
 #' @param method Statistical test:
-#'   * "wilcox" — Wilcoxon rank-sum (two groups)
+#'   * "wilcox" — Wilcoxon rank-sum (two groups); exact p-values for small
+#'     samples without ties, normal approximation otherwise.
 #'   * "t" — Welch's t-test (two groups)
-#'   * "lmm" — linear mixed model `value ~ group + (1|patient)` via
-#'     `lme4::lmer`, with Wald-z p-values. Requires the `lme4` package.
+#'   * "lmm" — linear mixed model `value ~ group + covariates + (1|patient)`
+#'     via `lme4::lmer`. p-values use Satterthwaite degrees of freedom when
+#'     the `lmerTest` package is installed, and otherwise a t reference with
+#'     `n_patients - n_fixed_effects` degrees of freedom (group is a
+#'     patient-level factor). Falls back to `lm()` when every patient
+#'     contributes a single row. Requires the `lme4` package.
 #'   * "perm" — group-label permutation test on the mean difference
-#'     (blocked by patient if `patient_key` is supplied).
+#'     (blocked by patient if `patient_key` is supplied). All relabelings
+#'     are enumerated when there are at most `n_perms` of them (exact test).
 #' @param n_perms Number of permutations for `method = "perm"`.
 #' @param adjust Multiple-testing adjustment method passed to
 #'   [stats::p.adjust()].
 #' @param pair_keys Column names that together identify a cluster pair.
 #'   Defaults to `c("cluster_i", "cluster_j")`. Set to a single column name
 #'   for cases like interaction_spot_per_sample (e.g. "target_cluster").
-#' @param ref_group Optional name of the reference group. If supplied, the
-#'   effect is reported as `mean_other - mean_ref` (positive = higher in
-#'   the non-reference group). When `NULL` (default), groups are sorted
-#'   alphabetically and the second is treated as the test group.
+#' @param ref_group Name of the reference group (e.g. "control"). The effect
+#'   is reported as `mean_test - mean_ref`. When `NULL`, groups are sorted
+#'   alphabetically and the first is used as reference (a message says
+#'   which); set it explicitly, because e.g. "case" sorts before "control".
+#' @param covariates Optional character vector of additional columns (e.g.
+#'   age, sex, batch, `n_cells`) included as fixed effects. Only used with
+#'   `method = "lmm"`.
+#' @param symmetric If `TRUE`, test each unordered pair once (rows with
+#'   `cluster_i <= cluster_j`). Neighborhood enrichment scores are
+#'   (nearly) symmetric, so testing both (i, j) and (j, i) doubles the
+#'   multiple-testing burden without adding information.
+#' @param min_n_per_group Minimum number of finite observations required in
+#'   each group; pairs below this are skipped.
 #' @param seed Random seed for the permutation test.
 #'
-#' @return A data.frame with the cluster pair columns, group means, effect
-#'   size (test group minus reference group), test statistic, raw p-value,
-#'   and adjusted p-value.
+#' @return A data.frame with the cluster pair columns, group sizes and
+#'   means, `effect` (test group mean minus reference group mean), for
+#'   `method = "lmm"` also `estimate` (the adjusted model coefficient),
+#'   `statistic`, raw `p`, and `padj`. Attributes `method`, `groups`,
+#'   `value` and `p_method` describe the test.
 #' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 3,
+#'                           group_close_ratio = list(case = 0.8, control = 0.2),
+#'                           n_types = 4, n_cells = 200, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 8,
+#'                           seed = 1)
+#' ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+#'                                   group_key = "group",
+#'                                   cluster_key = "cell_type",
+#'                                   patient_key = "patient",
+#'                                   neighbors.k = 8, n_perms = 20, n_jobs = 1)
+#' cmp <- compare_groups(ps, value = "log2_oe", method = "wilcox",
+#'                       ref_group = "control", symmetric = TRUE)
+#' head(cmp)
 compare_groups <- function(per_sample_df,
                            value = "zscore",
                            group_key = "group",
@@ -634,6 +870,9 @@ compare_groups <- function(per_sample_df,
                            adjust = "BH",
                            pair_keys = c("cluster_i", "cluster_j"),
                            ref_group = NULL,
+                           covariates = NULL,
+                           symmetric = FALSE,
+                           min_n_per_group = 2,
                            seed = 1234) {
   method <- match.arg(method)
   if (!value %in% colnames(per_sample_df)) {
@@ -646,6 +885,14 @@ compare_groups <- function(per_sample_df,
     missing_keys <- setdiff(pair_keys, colnames(per_sample_df))
     stop(sprintf("pair_keys not all present: %s", paste(missing_keys, collapse = ", ")))
   }
+  if (!is.null(patient_key) && !patient_key %in% colnames(per_sample_df)) {
+    stop(sprintf("patient_key column '%s' not in data.frame", patient_key))
+  }
+  if (!is.null(covariates)) {
+    if (method != "lmm") stop("`covariates` is only supported with method = 'lmm'.")
+    miss <- setdiff(covariates, colnames(per_sample_df))
+    if (length(miss)) stop(sprintf("covariates not in data.frame: %s", paste(miss, collapse = ", ")))
+  }
   if (method == "lmm" && !requireNamespace("lme4", quietly = TRUE)) {
     stop("method = 'lmm' requires the 'lme4' package; install it or choose another method.")
   }
@@ -653,11 +900,13 @@ compare_groups <- function(per_sample_df,
     warning("method = 'lmm' without patient_key is equivalent to OLS; passing patient_key is recommended.")
   }
 
-  set.seed(seed)
+  # Seed locally: do not clobber the caller's RNG stream (e.g. inside a
+  # bootstrap / simulation loop that calls compare_groups() repeatedly).
+  .local_seed(seed)
   df <- as.data.frame(per_sample_df)
+  df <- df[!is.na(df[[group_key]]), , drop = FALSE]
 
   groups_present <- unique(as.character(df[[group_key]]))
-  groups_present <- groups_present[!is.na(groups_present)]
   if (length(groups_present) < 2L) {
     stop("Need at least 2 groups to compare. Found: ", paste(groups_present, collapse = ", "))
   }
@@ -668,119 +917,166 @@ compare_groups <- function(per_sample_df,
                    ref_group, group_key, paste(groups_present, collapse = ", ")))
     }
     g1 <- ref_group
-    other <- setdiff(groups_present, ref_group)
-    if (length(other) > 1L && method %in% c("wilcox", "t", "perm")) {
+    other <- sort(setdiff(groups_present, ref_group))
+    if (length(other) > 1L) {
       warning(sprintf(
-        "Method '%s' is for 2-group comparison; using ref '%s' vs '%s'.",
-        method, g1, other[1]
+        "compare_groups() compares two groups; using ref '%s' vs '%s'. Subset the data for other contrasts.",
+        g1, other[1]
       ))
     }
     g2 <- other[1]
   } else {
     groups_sorted <- sort(groups_present)
-    if (length(groups_sorted) > 2L && method %in% c("wilcox", "t", "perm")) {
+    if (length(groups_sorted) > 2L) {
       warning(sprintf(
-        "Method '%s' is for 2-group comparison; using first 2 sorted levels (%s vs %s). Pass ref_group to control this.",
-        method, groups_sorted[1], groups_sorted[2]
+        "compare_groups() compares two groups; using first 2 sorted levels (%s vs %s). Pass ref_group to control this.",
+        groups_sorted[1], groups_sorted[2]
       ))
     }
     g1 <- groups_sorted[1]
     g2 <- groups_sorted[2]
+    message(sprintf("ref_group not set: using '%s' as reference (effect = %s - %s).", g1, g2, g1))
+  }
+  df <- df[as.character(df[[group_key]]) %in% c(g1, g2), , drop = FALSE]
+
+  if (symmetric && length(pair_keys) == 2L) {
+    df <- df[as.character(df[[pair_keys[1]]]) <= as.character(df[[pair_keys[2]]]), , drop = FALSE]
   }
 
-  # Unique pairs
-  pair_ids <- unique(df[, pair_keys, drop = FALSE])
-  rownames(pair_ids) <- NULL
+  # Pseudoreplication check for tests that assume one row per unit.
+  pat_col <- if (!is.null(patient_key)) patient_key else if ("patient" %in% colnames(df)) "patient" else NULL
+  if (method %in% c("wilcox", "t") || (method == "perm" && is.null(patient_key))) {
+    .warn_pseudoreplication(df, pair_keys, pat_col, method)
+  }
 
-  results <- vector("list", nrow(pair_ids))
-  for (i in seq_len(nrow(pair_ids))) {
-    pi <- pair_ids[i, , drop = FALSE]
-    sub <- merge(df, pi, by = pair_keys)
+  p_method <- switch(method,
+    wilcox = "Wilcoxon rank-sum",
+    t = "Welch t-test",
+    perm = "permutation",
+    lmm = if (requireNamespace("lmerTest", quietly = TRUE)) {
+      "LMM, Satterthwaite df (lmerTest)"
+    } else {
+      "LMM, t with df = n_patients - n_fixed"
+    }
+  )
+
+  pair_id <- do.call(paste, c(df[pair_keys], sep = "\r"))
+  chunks <- split(df, factor(pair_id, levels = unique(pair_id)))
+
+  perm_null <- function(v, unit, unit_group) {
+    # unit: per-row unit index; unit_group: group label per unit.
+    n_u <- length(unit_group)
+    n2 <- sum(unit_group == g2)
+    stat <- function(lab) {
+      rg <- lab[unit]
+      mean(v[rg == g2]) - mean(v[rg == g1])
+    }
+    if (choose(n_u, n2) <= n_perms) {
+      combs <- utils::combn(n_u, n2)
+      vals <- apply(combs, 2, function(idx) {
+        lab <- rep(g1, n_u); lab[idx] <- g2; stat(lab)
+      })
+      list(null = vals, exact = TRUE)
+    } else {
+      list(null = replicate(n_perms, stat(sample(unit_group))), exact = FALSE)
+    }
+  }
+
+  fixed_terms <- paste(c(".g", if (length(covariates)) sprintf("`%s`", covariates)), collapse = " + ")
+
+  results <- vector("list", length(chunks))
+  for (i in seq_along(chunks)) {
+    sub <- chunks[[i]]
     sub <- sub[is.finite(sub[[value]]), , drop = FALSE]
-    sub <- sub[as.character(sub[[group_key]]) %in% c(g1, g2), , drop = FALSE]
-    if (nrow(sub) < 2L) next
     g <- as.character(sub[[group_key]])
-    if (length(unique(g)) < 2L) next
+    if (sum(g == g1) < min_n_per_group || sum(g == g2) < min_n_per_group) next
 
-    res_row <- as.list(pi)
+    res_row <- as.list(sub[1, pair_keys, drop = FALSE])
     res_row$n_total <- nrow(sub)
     res_row[[paste0("n_", g1)]] <- sum(g == g1)
     res_row[[paste0("n_", g2)]] <- sum(g == g2)
     v <- sub[[value]]
-    m1 <- mean(v[g == g1], na.rm = TRUE)
-    m2 <- mean(v[g == g2], na.rm = TRUE)
+    m1 <- mean(v[g == g1])
+    m2 <- mean(v[g == g2])
     res_row[[paste0("mean_", g1)]] <- m1
     res_row[[paste0("mean_", g2)]] <- m2
     res_row$effect <- m2 - m1
 
-    test <- list(stat = NA_real_, p = NA_real_)
+    test <- list(stat = NA_real_, p = NA_real_, est = NA_real_)
+    fac <- factor(g, levels = c(g1, g2))
     if (method == "wilcox") {
-      tt <- tryCatch(
-        wilcox.test(v ~ factor(g, levels = c(g1, g2)), exact = FALSE),
-        error = function(e) NULL
-      )
+      # exact = NULL lets wilcox.test use the exact distribution for small
+      # samples without ties (the normal approximation is anti-conservative
+      # there, e.g. 3 vs 3: 0.081 vs exact 0.10).
+      tt <- tryCatch(suppressWarnings(wilcox.test(v ~ fac)), error = function(e) NULL)
       if (!is.null(tt)) { test$stat <- unname(tt$statistic); test$p <- tt$p.value }
     } else if (method == "t") {
-      tt <- tryCatch(t.test(v ~ factor(g, levels = c(g1, g2))), error = function(e) NULL)
+      tt <- tryCatch(t.test(v ~ fac), error = function(e) NULL)
       if (!is.null(tt)) { test$stat <- unname(tt$statistic); test$p <- tt$p.value }
     } else if (method == "lmm") {
-      sub$.g <- factor(g, levels = c(g1, g2))
-      use_lmm <- !is.null(patient_key) && patient_key %in% colnames(sub) &&
-        length(unique(sub[[patient_key]])) < nrow(sub)
+      sub$.v <- v
+      sub$.g <- fac
+      coef_name <- paste0(".g", g2)
+      use_lmm <- !is.null(patient_key) && length(unique(sub[[patient_key]])) < nrow(sub)
       if (use_lmm) {
-        sub$.p <- sub[[patient_key]]
-        fit <- tryCatch(
-          lme4::lmer(as.formula(sprintf("%s ~ .g + (1 | .p)", value)),
-                     data = sub, REML = TRUE),
-          error = function(e) NULL
-        )
+        sub$.p <- as.character(sub[[patient_key]])
+        form <- as.formula(sprintf(".v ~ %s + (1 | .p)", fixed_terms))
+        has_lmertest <- requireNamespace("lmerTest", quietly = TRUE)
+        fit <- tryCatch(suppressMessages(suppressWarnings(
+          if (has_lmertest) lmerTest::lmer(form, data = sub, REML = TRUE)
+          else lme4::lmer(form, data = sub, REML = TRUE)
+        )), error = function(e) NULL)
         if (!is.null(fit)) {
           cf <- summary(fit)$coefficients
-          if (nrow(cf) >= 2L) {
-            zval <- cf[2, "t value"]
-            test$stat <- zval
-            test$p <- 2 * pnorm(-abs(zval))
+          if (coef_name %in% rownames(cf)) {
+            test$est <- cf[coef_name, "Estimate"]
+            test$stat <- cf[coef_name, "t value"]
+            if (has_lmertest && "Pr(>|t|)" %in% colnames(cf)) {
+              test$p <- cf[coef_name, "Pr(>|t|)"]
+            } else {
+              df_resid <- max(1, length(unique(sub$.p)) - nrow(cf))
+              test$p <- 2 * stats::pt(-abs(test$stat), df = df_resid)
+            }
           }
         }
       } else {
-        fit <- tryCatch(lm(as.formula(sprintf("%s ~ .g", value)), data = sub),
+        fit <- tryCatch(lm(as.formula(sprintf(".v ~ %s", fixed_terms)), data = sub),
                         error = function(e) NULL)
         if (!is.null(fit)) {
           cf <- summary(fit)$coefficients
-          if (nrow(cf) >= 2L) {
-            test$stat <- cf[2, "t value"]
-            test$p <- cf[2, "Pr(>|t|)"]
+          if (coef_name %in% rownames(cf)) {
+            test$est <- cf[coef_name, "Estimate"]
+            test$stat <- cf[coef_name, "t value"]
+            test$p <- cf[coef_name, "Pr(>|t|)"]
           }
         }
       }
     } else if (method == "perm") {
       observed <- m2 - m1
-      if (!is.null(patient_key) && patient_key %in% colnames(sub)) {
+      if (!is.null(patient_key)) {
         pat <- as.character(sub[[patient_key]])
-        # Map each patient to its group, shuffle group labels at patient level
         pat_levels <- unique(pat)
-        pat_to_group <- vapply(pat_levels, function(p) g[which(pat == p)[1]], character(1))
-        names(pat_to_group) <- pat_levels
-        null_diffs <- replicate(n_perms, {
-          shuffled <- sample(pat_to_group)
-          names(shuffled) <- pat_levels
-          new_g <- shuffled[pat]
-          mean(v[new_g == g2], na.rm = TRUE) - mean(v[new_g == g1], na.rm = TRUE)
-        })
+        unit <- match(pat, pat_levels)
+        unit_group <- g[match(pat_levels, pat)]
       } else {
-        null_diffs <- replicate(n_perms, {
-          new_g <- sample(g)
-          mean(v[new_g == g2], na.rm = TRUE) - mean(v[new_g == g1], na.rm = TRUE)
-        })
+        unit <- seq_along(g)
+        unit_group <- g
       }
+      pn <- perm_null(v, unit, unit_group)
+      tol <- sqrt(.Machine$double.eps)
       test$stat <- observed
-      test$p <- (sum(abs(null_diffs) >= abs(observed), na.rm = TRUE) + 1) /
-        (sum(!is.na(null_diffs)) + 1)
+      test$p <- if (pn$exact) {
+        mean(abs(pn$null) >= abs(observed) - tol)
+      } else {
+        (sum(abs(pn$null) >= abs(observed) - tol, na.rm = TRUE) + 1) /
+          (sum(!is.na(pn$null)) + 1)
+      }
     }
 
+    if (method == "lmm") res_row$estimate <- test$est
     res_row$statistic <- test$stat
     res_row$p <- test$p
-    results[[i]] <- as.data.frame(res_row, stringsAsFactors = FALSE)
+    results[[i]] <- as.data.frame(res_row, stringsAsFactors = FALSE, check.names = FALSE)
   }
   results <- results[!vapply(results, is.null, logical(1))]
   if (length(results) == 0L) {
@@ -794,6 +1090,7 @@ compare_groups <- function(per_sample_df,
   attr(out, "method") <- method
   attr(out, "groups") <- c(g1, g2)
   attr(out, "value") <- value
+  attr(out, "p_method") <- p_method
   out
 }
 
@@ -801,25 +1098,44 @@ compare_groups <- function(per_sample_df,
 
 #' Generate multi-sample simulated data with disease-group structure
 #'
-#' Wraps [generate_sim()] to produce N samples per group, each with a
-#' (possibly noised) group-specific `close_ratio`. Returns a single tidy
-#' data.frame with `x`, `y`, `cell_type`, `sample_id`, `group`, `patient`
-#' columns — directly consumable by [nhood_enrichment_per_sample()] and the
-#' other `*_per_sample` helpers.
+#' Wraps [generate_sim()] to produce N patients per group, each with a
+#' (possibly noised) group-specific `close_ratio`, and optionally several
+#' images (fields of view) per patient. Returns a single tidy data.frame
+#' with `x`, `y`, `cell_type`, `sample_id`, `group`, `patient` columns —
+#' directly consumable by [nhood_enrichment_per_sample()] and the other
+#' `*_per_sample` helpers.
 #'
-#' @param n_samples_per_group Integer, number of samples to generate per
+#' @param n_samples_per_group Integer, number of patients to generate per
 #'   group.
 #' @param group_close_ratio Named list of base `close_ratio` values, one
 #'   entry per group, e.g. `list(disease = 0.8, control = 0.2)`.
-#' @param n_types,max_loc,n_cells,test_type,distance_param Passed through
+#' @param n_types,max_loc,test_type,distance_param Passed through
 #'   to [generate_sim()].
+#' @param n_cells Number of cells per image; either a single number or a
+#'   named list with one entry per group (e.g. to simulate groups whose
+#'   images differ in size). When a group-specific value is given and
+#'   `max_loc` is a single number, `max_loc` is scaled by
+#'   `sqrt(n_cells / n_cells_of_first_group)` so that cell density is kept
+#'   constant.
 #' @param between_sample_noise SD of Gaussian noise added to the
-#'   per-sample `close_ratio` around the group baseline (clipped to [0,1]).
+#'   per-patient `close_ratio` around the group baseline (clipped to [0,1]).
+#' @param n_images_per_patient Number of images per patient.
+#' @param within_patient_noise SD of Gaussian noise added to the per-image
+#'   `close_ratio` around the patient value (only used when
+#'   `n_images_per_patient > 1`).
 #' @param seed Random seed (controls both the noise and the per-sample
 #'   seeds passed to `generate_sim`).
 #'
-#' @return A data.frame.
+#' @return A data.frame. `sample_id` identifies an image; `patient`
+#'   identifies the patient (equal to `sample_id` when
+#'   `n_images_per_patient = 1`).
 #' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 2, n_images_per_patient = 2,
+#'                           group_close_ratio = list(case = 0.8, control = 0.2),
+#'                           n_types = 4, n_cells = 150, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 8)
+#' unique(df[, c("sample_id", "patient", "group")])
 generate_sim_groups <- function(n_samples_per_group = 3,
                                 group_close_ratio = list(disease = 0.8, control = 0.2),
                                 n_types = 10,
@@ -828,34 +1144,104 @@ generate_sim_groups <- function(n_samples_per_group = 3,
                                 test_type = "circle",
                                 distance_param = 50,
                                 between_sample_noise = 0.05,
+                                n_images_per_patient = 1,
+                                within_patient_noise = 0.05,
                                 seed = 1234) {
-  set.seed(seed)
+  .seed_rng(seed)
   groups <- names(group_close_ratio)
   if (is.null(groups) || any(groups == "")) {
     stop("group_close_ratio must be a named list, e.g. list(disease = 0.8, control = 0.2)")
   }
+  if (is.list(n_cells)) {
+    if (!all(groups %in% names(n_cells))) stop("n_cells list must have one entry per group.")
+    n_cells_g <- n_cells[groups]
+  } else {
+    n_cells_g <- stats::setNames(as.list(rep(n_cells, length(groups))), groups)
+  }
+  base_n <- n_cells_g[[1]]
+  clip01 <- function(x) max(0, min(1, x))
   out <- list()
   for (g in groups) {
     base_ratio <- group_close_ratio[[g]]
+    nc <- n_cells_g[[g]]
+    ml <- if (is.list(n_cells)) max_loc * sqrt(nc / base_n) else max_loc
     for (s in seq_len(n_samples_per_group)) {
-      sid <- paste0(g, "_", s)
-      ratio_s <- base_ratio + rnorm(1, mean = 0, sd = between_sample_noise)
-      ratio_s <- max(0, min(1, ratio_s))
-      df <- generate_sim(close_ratio = ratio_s,
-                         n_types = n_types,
-                         max_loc = max_loc,
-                         n_cells = n_cells,
-                         test_type = test_type,
-                         distance_param = distance_param,
-                         seed = sample.int(.Machine$integer.max, 1))
-      df$sample_id <- sid
-      df$group <- g
-      df$patient <- sid
-      rownames(df) <- paste0(sid, "_cell", seq_len(nrow(df)))
-      out[[sid]] <- df
+      pid <- paste0(g, "_", s)
+      ratio_p <- clip01(base_ratio + rnorm(1, mean = 0, sd = between_sample_noise))
+      for (m in seq_len(n_images_per_patient)) {
+        if (n_images_per_patient == 1L) {
+          sid <- pid
+          ratio_s <- ratio_p
+        } else {
+          sid <- paste0(pid, "_img", m)
+          ratio_s <- clip01(ratio_p + rnorm(1, mean = 0, sd = within_patient_noise))
+        }
+        df <- generate_sim(close_ratio = ratio_s,
+                           n_types = n_types,
+                           max_loc = ml,
+                           n_cells = nc,
+                           test_type = test_type,
+                           distance_param = distance_param,
+                           seed = sample.int(.Machine$integer.max, 1))
+        df$sample_id <- sid
+        df$group <- g
+        df$patient <- pid
+        rownames(df) <- paste0(sid, "_cell", seq_len(nrow(df)))
+        out[[sid]] <- df
+      }
     }
   }
   df_all <- do.call(rbind, out)
   rownames(df_all) <- unlist(lapply(out, rownames))
   df_all
 }
+
+#' Convert simulated cells to a Seurat object with one FOV per sample
+#'
+#' Build a minimal Seurat object from a coordinate table such as the output
+#' of [generate_sim()] or [generate_sim_groups()]: every sample becomes a
+#' centroid-based FOV named after it, and all other columns are stored in
+#' `meta.data`. The expression matrix is a small placeholder, so the object
+#' is meant for exercising the Seurat input path of the spatial functions,
+#' not for expression analysis.
+#'
+#' @param df A data.frame with `x`, `y` and one row per cell.
+#' @param sample_key Column identifying the sample (image). If absent, all
+#'   cells are put in a single FOV named `"fov"`.
+#' @param n_features Number of placeholder features in the count matrix.
+#'
+#' @return A Seurat object with a `cell` column in `meta.data` and one image
+#'   per sample in `@images`.
+#' @export
+#' @examples
+#' df <- generate_sim_groups(n_samples_per_group = 2, n_types = 4,
+#'                           n_cells = 150, max_loc = 250,
+#'                           test_type = "distribute", distance_param = 10)
+#' seu <- sim_to_seurat(df)
+#' SeuratObject::Images(seu)
+sim_to_seurat <- function(df, sample_key = "sample_id", n_features = 5) {
+  if (!all(c("x", "y") %in% colnames(df))) stop("`df` must contain 'x' and 'y' columns.")
+  if (is.null(rownames(df)) || anyDuplicated(rownames(df))) {
+    rownames(df) <- paste0("cell", seq_len(nrow(df)))
+  }
+  samples <- if (sample_key %in% colnames(df)) as.character(df[[sample_key]]) else rep("fov", nrow(df))
+  counts <- Matrix::sparseMatrix(
+    i = rep(seq_len(n_features), length.out = nrow(df)), j = seq_len(nrow(df)), x = 1,
+    dims = c(n_features, nrow(df)),
+    dimnames = list(paste0("feature", seq_len(n_features)), rownames(df))
+  )
+  md <- df[, setdiff(colnames(df), c("x", "y")), drop = FALSE]
+  md$cell <- rownames(df)
+  seu <- suppressWarnings(Seurat::CreateSeuratObject(counts, meta.data = md))
+  for (s in unique(samples)) {
+    sel <- samples == s
+    cen <- SeuratObject::CreateCentroids(
+      data.frame(x = df$x[sel], y = df$y[sel], cell = rownames(df)[sel])
+    )
+    fov <- SeuratObject::CreateFOV(list(centroids = cen), type = "centroids",
+                                   assay = "RNA", key = paste0("fov", gsub("[^A-Za-z0-9]", "", s), "_"))
+    seu[[s]] <- fov
+  }
+  seu
+}
+

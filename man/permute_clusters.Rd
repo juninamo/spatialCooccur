@@ -15,11 +15,21 @@ permute_clusters(adj, int_clust, n_cls, cluster_data, transformation)
 
 \item{cluster_data}{Original cluster data.}
 
-\item{transformation}{Whether to apply adjacency transformation.}
+\item{transformation}{Whether to apply adjacency transformation.
+
+Cluster labels are shuffled once and the same permutation is applied to
+rows and columns of the adjacency matrix.}
 }
 \value{
 Permuted co-occurrence count matrix.
 }
 \description{
 Permute Cluster Assignments and Recompute Counts
+}
+\examples{
+set.seed(1)
+adj <- Matrix::rsparsematrix(20, 20, density = 0.2)
+cl <- factor(sample(c("a", "b"), 20, replace = TRUE))
+permute_clusters(adj, paste0("Cluster", cl), n_cls = 2, cluster_data = cl,
+                 transformation = TRUE)
 }

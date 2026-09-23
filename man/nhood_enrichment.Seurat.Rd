@@ -33,8 +33,20 @@ nhood_enrichment.Seurat(
 \item{n_jobs}{Number of cores to use in parallel.}
 }
 \value{
-Updated Seurat object with z-scores in misc slot.
+Updated Seurat object; `misc[[paste0(cluster_key, "_nhood_enrichment")]]`
+  holds `zscore`, `count`, `expected` (permutation mean) and `log2_oe`.
 }
 \description{
 Neighborhood Enrichment (Seurat Method)
+}
+\examples{
+df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+                   max_loc = 300, test_type = "distribute",
+                   distance_param = 10, seed = 1)
+df$sample_id <- "fov1"
+seu <- sim_to_seurat(df)
+seu <- nhood_enrichment.Seurat(seu, cluster_key = "cell_type",
+                               neighbors.k = 10, n_perms = 20, n_jobs = 1)
+res <- SeuratObject::Misc(seu, slot = "cell_type_nhood_enrichment")
+round(res$zscore, 1)
 }

@@ -29,3 +29,14 @@ A list with co-occurrence count and enrichment ratio matrices.
 \description{
 Calculate Co-occurrence Matrix for a Given Radius
 }
+\examples{
+df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+                   max_loc = 300, test_type = "distribute",
+                   distance_param = 10, seed = 1)
+df$sample_id <- "fov1"
+seu <- sim_to_seurat(df)
+res <- calc_co_occurrence_for_radius(seu, radius = 20,
+                                     sample_key = "sample_id",
+                                     cluster_key = "cell_type")
+round(res$ratio_mat, 2)
+}

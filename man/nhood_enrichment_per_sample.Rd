@@ -50,12 +50,13 @@ samples.}
 
 \item{seed}{Random seed.}
 
-\item{n_jobs}{Number of parallel jobs.}
+\item{n_jobs}{Number of parallel jobs. `1` runs sequentially.}
 }
 \value{
 A data.frame (also tagged with class `spatialCooccurSample`) with
   columns `sample_id`, `cluster_i`, `cluster_j`, `zscore`, `count`,
-  `group`, `patient`.
+  `expected`, `log2_oe`, `group`, `patient`, plus `n_cells` (cells in the
+  sample) and `n_i` / `n_j` (cells of `cluster_i` / `cluster_j`).
 }
 \description{
 Run [nhood_enrichment()] independently for each sample (image) in the
@@ -63,4 +64,29 @@ input, returning a tidy long data.frame with one row per
 `sample_id x cluster_i x cluster_j`. The cluster factor levels are
 harmonized across samples so the resulting table is suitable for
 downstream group comparison with [compare_groups()].
+}
+\section{Choosing the value to compare}{
+
+The permutation z-score measures *statistical evidence* within one sample
+and grows roughly with the square root of the number of cells, so samples
+with more cells (larger images, denser tissue) get larger |z| for the same
+spatial pattern. For between-group comparison, `log2_oe`
+(log2 observed / permutation-expected) is an effect size that does not
+scale with sample size and is usually the better choice. `count` is
+additionally confounded by cell-type composition and should not be
+compared directly.
+}
+
+\examples{
+df <- generate_sim_groups(n_samples_per_group = 3,
+                          group_close_ratio = list(case = 0.8, control = 0.2),
+                          n_types = 4, n_cells = 200, max_loc = 250,
+                          test_type = "distribute", distance_param = 8,
+                          seed = 1)
+ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
+                                  group_key = "group",
+                                  cluster_key = "cell_type",
+                                  patient_key = "patient",
+                                  neighbors.k = 8, n_perms = 20, n_jobs = 1)
+head(ps)
 }

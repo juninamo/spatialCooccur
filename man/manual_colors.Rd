@@ -13,4 +13,7 @@ manual_colors
 \description{
 Default Manual Colors for Clusters
 }
+\examples{
+head(manual_colors)
+}
 \keyword{datasets}

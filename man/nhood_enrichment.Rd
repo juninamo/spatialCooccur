@@ -30,11 +30,24 @@ nhood_enrichment(
 
 \item{seed}{Random seed.}
 
-\item{n_jobs}{Number of parallel jobs.}
+\item{n_jobs}{Number of parallel jobs. `1` runs sequentially.}
 }
 \value{
-A list with z-score and count matrices.
+A list with matrices `zscore`, `count` (observed), `expected`
+  (mean of the permutation null) and `log2_oe` (log2 observed / expected,
+  with a pseudocount of one mean edge weight). Unlike the z-score, which
+  grows with the number of cells, `log2_oe` is an effect size that is
+  comparable across samples of different size.
 }
 \description{
 Neighborhood Enrichment (Generic method)
+}
+\examples{
+df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
+                   max_loc = 300, test_type = "distribute",
+                   distance_param = 10, seed = 1)
+res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 10,
+                        n_perms = 50, n_jobs = 1)
+round(res$zscore, 1)
+round(res$log2_oe, 2)
 }

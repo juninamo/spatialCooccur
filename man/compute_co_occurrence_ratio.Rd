@@ -15,3 +15,8 @@ A matrix of normalized enrichment ratios.
 \description{
 Compute Enrichment Ratios from Count Matrix
 }
+\examples{
+counts <- matrix(c(10, 2, 2, 6), 2,
+                 dimnames = list(c("A", "B"), c("A", "B")))
+compute_co_occurrence_ratio(counts)
+}

@@ -36,7 +36,11 @@ patient).}
 
 \item{radius}{Radius for neighborhood.}
 
-\item{maxnsteps}{Number of diffusion steps.}
+\item{maxnsteps}{Maximum number of diffusion steps. Each step computes
+`s <- (A + I) D^-1 s` from the previous step; diffusion stops early once
+the kurtosis of the scores decreases by less than 3 between steps
+(checked after step 3). `0` returns the raw 0/1 indicator. Versions
+<= 0.99.1 always performed a single step regardless of `maxnsteps`.}
 
 \item{summarize}{Character vector of summary statistics to compute:
 "mean", "q90" (90th percentile), and / or "pos_rate" (fraction of
@@ -44,10 +48,32 @@ cells with score > 0).}
 }
 \value{
 A data.frame with one row per sample carrying the requested
-  summary statistics.
+  summary statistics, plus `n_cells`, `n_i` and `n_j` (cells of
+  `cluster_x` / `cluster_y`).
 }
 \description{
 Run [cooccur_local()] for one (cluster_x, cluster_y) pair on each sample
 and summarize the per-cell scores at the sample level. Output is a tidy
 data.frame suitable for group comparison.
+}
+\section{Caution}{
+
+The local score has no permutation null, so its sample-level summaries
+increase with the abundance of `cluster_x` and `cluster_y`. When the two
+groups differ in cell-type composition, check `n_i` / `n_j` (or adjust
+for them with `covariates` in [compare_groups()]) before interpreting a
+group difference as a change in co-localization.
+}
+
+\examples{
+df <- generate_sim_groups(n_samples_per_group = 3,
+                          group_close_ratio = list(case = 0.8, control = 0.2),
+                          n_types = 4, n_cells = 200, max_loc = 250,
+                          test_type = "distribute", distance_param = 8,
+                          seed = 1)
+cooccur_local_per_sample(df, sample_key = "sample_id", group_key = "group",
+                         cluster_key = "cell_type",
+                         cluster_x = "cell_type_1", cluster_y = "cell_type_2",
+                         patient_key = "patient", neighbors.k = 10,
+                         radius = 20)
 }
