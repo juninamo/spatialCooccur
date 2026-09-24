@@ -189,96 +189,72 @@ plot_nhood_heatmap(nhood_res)
 
 ![](figures/SNA_tutorial_simulation/fig-03.png){width="100%"}
 
-Run the same analysis with different distance parameters
+Run the same analysis for different planted distances (20 new tissues each). Compare the effect size `log2_oe` and count how often the planted pair passes `padj < 0.05`; the unrelated pair should stay at 0 and never pass. In this *circle* design, type-2 cells form a ring at the planted distance around a disc of type-1 cells. Up to about 50 um the ring lies within the k-neighbourhood and the pair is enriched; at 75-100 um the ring keeps the two types apart, so the pair becomes significantly *depleted* (negative log2 O/E).
 
 ```r
 set.seed(seed)
 random_seeds <- sample(1000:9999, 20)
 n_types_sim <- n_types
 
+# For each planted distance: 20 new tissues; keep the effect size (log2_oe) and the
+# max-T adjusted p-value (padj) of the planted pair and of an unrelated pair
 accuracy_df_all <- do.call(rbind, lapply(c(5, 10, 20, 30, 40, 50, 75, 100), function(distance_param) {
   do.call(rbind, lapply(random_seeds, function(seed_) {
-    # a new tissue for every seed
     df <- generate_sim(close_ratio = close_ratio, n_types = n_types_sim, max_loc = max_loc,
                        n_cells = n_cells, test_type = "circle",
                        distance_param = distance_param, seed = seed_)
-    z <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = neighbors.k_,
+    r <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = neighbors.k_,
                           connectivity_key = "nn", transformation = TRUE,
-                          n_perms = n_perm, seed = seed_, n_jobs = 1)$zscore
-    dimnames(z) <- lapply(dimnames(z), function(v) gsub("^Cluster", "", v))
+                          n_perms = n_perm, seed = seed_, n_jobs = 1)
+    L <- r$log2_oe; P <- r$padj
+    dimnames(L) <- dimnames(P) <- lapply(dimnames(L), function(v) gsub("^Cluster", "", v))
     data.frame(test_type = "circle", seed = seed_, distance_param = distance_param,
-               zscore = z["cell_type_1", "cell_type_2"],        # planted pair
-               zscore_false = z["cell_type_3", "cell_type_4"])  # unrelated pair
+               pair = c("planted (1-2)", "unrelated (3-4)"),
+               log2_oe = c(L["cell_type_1", "cell_type_2"], L["cell_type_3", "cell_type_4"]),
+               padj = c(P["cell_type_1", "cell_type_2"], P["cell_type_3", "cell_type_4"]))
   }))
 }))
-accuracy_df_all$n_types <- n_types_sim
-accuracy_df_all$neighbors.k_ <- neighbors.k_
 head(accuracy_df_all)
 ```
 
 <div class="nb-output">
 <table class="dataframe">
-<caption>A data.frame: 6 × 7</caption>
+<caption>A data.frame: 6 × 6</caption>
 <thead>
-	<tr><th></th><th scope=col>test_type</th><th scope=col>seed</th><th scope=col>distance_param</th><th scope=col>zscore</th><th scope=col>zscore_false</th><th scope=col>n_types</th><th scope=col>neighbors.k_</th></tr>
-	<tr><th></th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
+	<tr><th></th><th scope=col>test_type</th><th scope=col>seed</th><th scope=col>distance_param</th><th scope=col>pair</th><th scope=col>log2_oe</th><th scope=col>padj</th></tr>
+	<tr><th></th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
 </thead>
 <tbody>
-	<tr><th scope=row>1</th><td>circle</td><td>8451</td><td>5</td><td>14.520796</td><td>-1.76518826</td><td>15</td><td>30</td></tr>
-	<tr><th scope=row>2</th><td>circle</td><td>9015</td><td>5</td><td>13.357590</td><td> 1.39006821</td><td>15</td><td>30</td></tr>
-	<tr><th scope=row>3</th><td>circle</td><td>8161</td><td>5</td><td> 8.586912</td><td> 0.60730654</td><td>15</td><td>30</td></tr>
-	<tr><th scope=row>4</th><td>circle</td><td>9085</td><td>5</td><td>14.766955</td><td> 1.51380353</td><td>15</td><td>30</td></tr>
-	<tr><th scope=row>5</th><td>circle</td><td>8268</td><td>5</td><td>14.253751</td><td> 0.06186447</td><td>15</td><td>30</td></tr>
-	<tr><th scope=row>6</th><td>circle</td><td>1622</td><td>5</td><td>15.785288</td><td>-0.42544077</td><td>15</td><td>30</td></tr>
+	<tr><th scope=row>1</th><td>circle</td><td>8451</td><td>5</td><td>planted (1-2)  </td><td> 1.4170049</td><td>0.004975124</td></tr>
+	<tr><th scope=row>2</th><td>circle</td><td>8451</td><td>5</td><td>unrelated (3-4)</td><td>-0.3660417</td><td>1.000000000</td></tr>
+	<tr><th scope=row>3</th><td>circle</td><td>9015</td><td>5</td><td>planted (1-2)  </td><td> 1.4777119</td><td>0.004975124</td></tr>
+	<tr><th scope=row>4</th><td>circle</td><td>9015</td><td>5</td><td>unrelated (3-4)</td><td> 0.2595118</td><td>1.000000000</td></tr>
+	<tr><th scope=row>5</th><td>circle</td><td>8161</td><td>5</td><td>planted (1-2)  </td><td> 1.0198249</td><td>0.004975124</td></tr>
+	<tr><th scope=row>6</th><td>circle</td><td>8161</td><td>5</td><td>unrelated (3-4)</td><td> 0.1369396</td><td>1.000000000</td></tr>
 </tbody>
 </table>
 </div>
 
 ```r
 summary_df <- accuracy_df_all %>%
-  dplyr::mutate(zscore_false = abs(zscore_false)) %>%
-  tidyr::pivot_longer(cols = c(zscore, zscore_false), names_to = "zscore_type", values_to = "zscore") %>%
-  dplyr::group_by(zscore_type, test_type, distance_param) %>%
-  dplyr::summarise(
-    median_zscore = median(zscore),
-    lower_ci = quantile(zscore, 0.025),
-    upper_ci = quantile(zscore, 0.975)
-  ) %>%
-  dplyr::ungroup()
+  dplyr::group_by(pair, distance_param) %>%
+  dplyr::summarise(median = median(log2_oe),
+                   lower_ci = quantile(log2_oe, 0.025), upper_ci = quantile(log2_oe, 0.975),
+                   detected = mean(padj < 0.05), .groups = "drop")
 
-options(repr.plot.width=6, repr.plot.height=6)
-ggplot(summary_df, aes(x = distance_param, y = median_zscore, color = zscore_type)) +
-  geom_line(size = 1) + 
-  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.1) + 
-  geom_point(size = 2) + 
-  facet_wrap(test_type ~ .) + 
-  labs(
-    x = "Distance Parameter",
-    y = "Z-score",
-    title = "Z-score Median and Confidence Interval by Distance Parameter",
-    subtitle = paste("n_types:", n_types, "| neighbors.k_:", neighbors.k_, "| close_ratio:", close_ratio, "| max_loc:", max_loc, "| n_cells:", n_cells)
-  ) +
-  scale_x_log10(breaks = c(unique(summary_df$distance_param))) + 
-  scale_color_manual(values = c("zscore" = "red", "zscore_false" = "grey40")) +  
-  geom_hline(yintercept = 0, linetype = "dashed") +  
-  #geom_hline(yintercept = 1.96, linetype = "dashed", color = "grey70") +  
-  geom_hline(yintercept = abs(qnorm((0.05/2/n_types),F)), linetype = "dashed", color = "grey70") + 
-  theme_classic() +
-  theme(
-    strip.text = element_text(size = 14, face = "bold"), 
-    axis.title = element_text(size = 14),
-    axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
-  )
-```
-
-```{.output}
-`summarise()` has grouped output by 'zscore_type', 'test_type'. You can
-override using the `.groups` argument.
-```
-
-```{.output}
-“Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-ℹ Please use `linewidth` instead.”
+options(repr.plot.width = 7, repr.plot.height = 5.5)
+ggplot(summary_df, aes(distance_param, median, color = pair)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_line(linewidth = 1) + geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.05) + geom_point(size = 2) +
+  geom_text(data = subset(summary_df, pair == "planted (1-2)"),
+            aes(label = scales::percent(detected, accuracy = 1)), vjust = -1.2, size = 3.5, show.legend = FALSE) +
+  scale_x_log10(breaks = unique(summary_df$distance_param)) +
+  scale_color_manual(values = c("planted (1-2)" = "red", "unrelated (3-4)" = "grey40"), name = NULL) +
+  labs(x = "Planted distance (um)", y = "log2 O/E (median and 95% range of 20 tissues)",
+       title = "Planted pair (circle design) at different distances",
+       subtitle = paste0("labels: tissues with padj < 0.05 (max-T), enriched or depleted\nn_types: ", n_types,
+                         " | neighbors.k: ", neighbors.k_, " | n_cells: ", n_cells)) +
+  theme_classic(base_size = 12) + theme(legend.position = "bottom")
 ```
 
 ![](figures/SNA_tutorial_simulation/fig-04.png){width="100%"}

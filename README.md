@@ -238,7 +238,7 @@ mods <- colocalization_modules(M, n_modules = 15)
 module_enrichment(mods, my_pathways)      # named list of gene sets
 ```
 
-## Figures from the paper
+## How the methods work
 
 <!-- 
 ## Citation 
@@ -253,21 +253,27 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 &nbsp;&nbsp;
 -->
 
-- Spatial Neighborhood Analysis
+- Neighbourhood enrichment (`nhood_enrichment()`)
 
 <kbd>
-<img src="man/figures/Figure2.png" width="800" align="center">
+<img src="man/figures/method_nhood.png" width="800" align="center">
 </kbd>
 
 &nbsp;&nbsp;
 
-- Spatial Co-localization Score
+- Local co-localization and hotspots (`cooccur_local_oe()`)
 
 <kbd>
-<img src="man/figures/Figure3.png" width="800" align="center">
+<img src="man/figures/method_local.png" width="800" align="center">
 </kbd>
 
 &nbsp;&nbsp;
+
+The JCI Insight paper below used an earlier version of these methods
+(neighbourhood enrichment reported as z-scores, and a random-walk
+co-localization score). Since 0.99.3 the package reports log2 O/E with
+permutation-based multiple-testing correction and the local O/E; see
+[NEWS](https://juninamo.github.io/spatialCooccur/news/index.html).
 
 ## 📝 Citation 
 Jun Inamo, Roselyn Fierkens, Michael R. Clay, Anna Helena Jonsson, Clara Lin, Kari Hayes, Nathan Rogers, Heather Leach, Kentaro Yomogida. Spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*JCI Insight* 2026;11(1):e198074](https://doi.org/10.1172/jci.insight.198074). doi:[10.1172/jci.insight.198074](https://doi.org/10.1172/jci.insight.198074)
