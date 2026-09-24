@@ -62,7 +62,7 @@ between groups and return tidy results with multiple-testing adjustment.</p>
 <span>  value <span class="op">=</span> <span class="st">"zscore"</span>,</span>
 <span>  group_key <span class="op">=</span> <span class="st">"group"</span>,</span>
 <span>  patient_key <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wilcox"</span>, <span class="st">"t"</span>, <span class="st">"lmm"</span>, <span class="st">"perm"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wilcox"</span>, <span class="st">"t"</span>, <span class="st">"lmm"</span>, <span class="st">"perm"</span>, <span class="st">"signrank"</span><span class="op">)</span>,</span>
 <span>  n_perms <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  adjust <span class="op">=</span> <span class="st">"BH"</span>,</span>
 <span>  pair_keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster_i"</span>, <span class="st">"cluster_j"</span><span class="op">)</span>,</span>
@@ -112,8 +112,15 @@ column is only used to detect pseudoreplication.</p></dd>
   patient-level factor). Falls back to `lm()` when every patient
   contributes a single row. Requires the `lme4` package.
 * "perm" — group-label permutation test on the mean difference
-  (blocked by patient if `patient_key` is supplied). All relabelings
-  are enumerated when there are at most `n_perms` of them (exact test).</p></dd>
+  (blocked by patient if `patient_key` is supplied). If patients
+  appear in both groups (paired / repeated-measures designs such as
+  pre- vs post-treatment), labels are instead swapped *within*
+  patients. All relabelings are enumerated when there are at most
+  `n_perms` of them (exact test).
+* "signrank" — paired design: values are averaged per patient and
+  group, and the per-patient differences (test minus reference) are
+  tested with the Wilcoxon signed-rank test. Requires `patient_key`;
+  patients observed in only one group are dropped.</p></dd>
 
 
 <dt id="arg-n-perms">n_perms<a class="anchor" aria-label="anchor" href="#arg-n-perms"></a></dt>

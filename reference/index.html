@@ -183,6 +183,78 @@
         </dt>
         <dd>Aggregate per-image scores to one row per patient</dd>
       </dl></div><div class="section level2">
+      <h2 id="segmentation-free-analysis-experimental-">Segmentation-free analysis (experimental)<a class="anchor" aria-label="anchor" href="#segmentation-free-analysis-experimental-"></a></h2>
+
+      <div class="section-desc"><p>Work directly on transcript coordinates: bin transcripts, estimate the cross pair correlation of gene sets model-free, or fit a random-feature log-Gaussian Cox process factor model (after Gundersen et al. 2021).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="read_xenium_transcripts.html">read_xenium_transcripts()</a></code>
+
+        </dt>
+        <dd>Read a Xenium transcript table</dd>
+
+        <dt>
+
+          <code><a href="bin_transcripts.html">bin_transcripts()</a></code>
+
+        </dt>
+        <dd>Bin transcript coordinates on a square grid</dd>
+
+        <dt>
+
+          <code><a href="pcf_cross.html">pcf_cross()</a></code>
+
+        </dt>
+        <dd>Empirical cross pair correlation of two gene sets (segmentation-free)</dd>
+
+        <dt>
+
+          <code><a href="fit_spatial_rff.html">fit_spatial_rff()</a></code>
+
+        </dt>
+        <dd>Fit a random-feature spatial factor model to binned transcripts</dd>
+
+        <dt>
+
+          <code><a href="rff_pair_correlation.html">rff_pair_correlation()</a></code>
+
+        </dt>
+        <dd>Model-based cross pair correlation from a fitted random-feature LGCP</dd>
+
+        <dt>
+
+          <code><a href="colocalization_per_sample.html">colocalization_per_sample()</a></code>
+
+        </dt>
+        <dd>Per-sample segmentation-free co-localization of gene sets</dd>
+
+        <dt>
+
+          <code><a href="simulate_transcripts.html">simulate_transcripts()</a></code>
+
+        </dt>
+        <dd>Simulate transcript coordinates from a multivariate log-Gaussian Cox process</dd>
+
+        <dt>
+
+          <code><a href="simulate_transcripts_groups.html">simulate_transcripts_groups()</a></code>
+
+        </dt>
+        <dd>Simulate a multi-sample case-control transcript dataset</dd>
+
+        <dt>
+
+          <code><a href="lgcp_true_pair_correlation.html">lgcp_true_pair_correlation()</a></code>
+
+        </dt>
+        <dd>True cross pair correlation of a simulated LGCP</dd>
+      </dl></div><div class="section level2">
       <h2 id="group-comparison">Group comparison<a class="anchor" aria-label="anchor" href="#group-comparison"></a></h2>
 
       <div class="section-desc"><p>Test every cell-type pair between two groups.</p></div>

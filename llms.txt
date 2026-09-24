@@ -242,6 +242,33 @@ group comparison.
 - [`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
   : Aggregate per-image scores to one row per patient
 
+## Segmentation-free analysis (experimental)
+
+Work directly on transcript coordinates: bin transcripts, estimate the
+cross pair correlation of gene sets model-free, or fit a random-feature
+log-Gaussian Cox process factor model (after Gundersen et al. 2021).
+
+- [`read_xenium_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/read_xenium_transcripts.md)
+  : Read a Xenium transcript table
+- [`bin_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/bin_transcripts.md)
+  : Bin transcript coordinates on a square grid
+- [`pcf_cross()`](https://juninamo.github.io/spatialCooccur/reference/pcf_cross.md)
+  : Empirical cross pair correlation of two gene sets
+  (segmentation-free)
+- [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+  : Fit a random-feature spatial factor model to binned transcripts
+- [`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md)
+  : Model-based cross pair correlation from a fitted random-feature LGCP
+- [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
+  : Per-sample segmentation-free co-localization of gene sets
+- [`simulate_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/simulate_transcripts.md)
+  : Simulate transcript coordinates from a multivariate log-Gaussian Cox
+  process
+- [`simulate_transcripts_groups()`](https://juninamo.github.io/spatialCooccur/reference/simulate_transcripts_groups.md)
+  : Simulate a multi-sample case-control transcript dataset
+- [`lgcp_true_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/lgcp_true_pair_correlation.md)
+  : True cross pair correlation of a simulated LGCP
+
 ## Group comparison
 
 Test every cell-type pair between two groups.

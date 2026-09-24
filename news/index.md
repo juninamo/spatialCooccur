@@ -39,22 +39,51 @@
 
 ### New features
 
+- **Experimental segmentation-free analysis** of transcript coordinates
+  (e.g. Xenium `transcripts.parquet`):
+  [`bin_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/bin_transcripts.md),
+  model-free cross pair correlation of gene sets
+  [`pcf_cross()`](https://juninamo.github.io/spatialCooccur/reference/pcf_cross.md)
+  (the relative version is the label-permutation O/E, the continuous
+  analogue of `log2_oe`), a random-feature log-Gaussian Cox process
+  factor model
+  [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+  after Gundersen, Zhang & Engelhardt (AISTATS 2021) with model-based
+  [`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md),
+  and
+  [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
+  whose output goes into
+  [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
+  with `pair_keys = c("cluster_i", "cluster_j", "r")`. Simulators
+  [`simulate_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/simulate_transcripts.md)
+  /
+  [`simulate_transcripts_groups()`](https://juninamo.github.io/spatialCooccur/reference/simulate_transcripts_groups.md)
+  and
+  [`lgcp_true_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/lgcp_true_pair_correlation.md)
+  support validation.
+
 - [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
   also returns `expected` (permutation mean) and `log2_oe` (log2
   observed / expected), an effect size that does not grow with the
   number of cells. Recommended for between-group comparison.
+
 - `*_per_sample()` outputs gain `n_cells`, `n_i`, `n_j` (abundance of
   the two cell types).
+
 - [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md):
   exact Wilcoxon p-values for small samples; LMM p-values with
   Satterthwaite df (via lmerTest) instead of Wald z; `covariates`;
   `symmetric`; `min_n_per_group`; exact enumeration for small
   permutation tests; a warning on pseudoreplication.
+
 - [`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
   aggregates image-level results to patients.
+
 - [`generate_sim_groups()`](https://juninamo.github.io/spatialCooccur/reference/generate_sim_groups.md)
   supports several images per patient (`n_images_per_patient`,
   `within_patient_noise`) and group-specific `n_cells`.
+
 - New tutorial: case-control comparison
   (`vignettes/case_control_tutorial.ipynb`).
+
 - Faster counting with sparse matrix products.
