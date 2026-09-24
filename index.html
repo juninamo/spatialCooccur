@@ -79,113 +79,154 @@
 <img src="logo.png" class="logo" alt=""><h1 id="spatialcooccur-">spatialCooccur <a class="anchor" aria-label="anchor" href="#spatialcooccur-"></a>
 </h1>
 </div>
-<p><a href="https://doi.org/10.5281/zenodo.17498341" class="external-link"><img src="https://zenodo.org/badge/960705353.svg" alt="DOI"></a></p>
-<p><code>spatialCooccur</code> is an R package for analyzing spatial co-occurrence and neighborhood interactions in spatial transcriptomics data. It is built around Seurat objects and provides tools to compute co-occurrence enrichment, perform permutation-based tests, visualize local interaction scores, and <strong>compare scores between disease groups</strong> across multiple samples.</p>
+<p><a href="https://doi.org/10.5281/zenodo.17498341" class="external-link"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17498341.svg" alt="DOI"></a> <a href="https://juninamo.github.io/spatialCooccur/"><img src="https://img.shields.io/badge/docs-juninamo.github.io%2FspatialCooccur-4a3aa7" alt="Website"></a></p>
+<p><code>spatialCooccur</code> is an R package for analyzing spatial co-occurrence and neighborhood interactions in spatial transcriptomics data. It quantifies whether cell types sit together more (or less) often than expected by chance, maps where they meet, <strong>compares these scores between patient groups</strong> with statistics that treat the patient as the unit of analysis, and (experimentally) measures co-localization <strong>directly from transcript coordinates</strong> without cell segmentation.</p>
+<p><strong>Documentation, tutorials and function reference (searchable): <a href="https://juninamo.github.io/spatialCooccur/" class="uri">https://juninamo.github.io/spatialCooccur/</a></strong></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version from GitHub using:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"juninamo/spatialCooccur"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="tutorials">Tutorials<a class="anchor" aria-label="anchor" href="#tutorials"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Tutorial</th>
+<th>What it covers</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><a href="https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_simulation.html">Simulation data: SNA &amp; sCLS</a></td>
+<td>Neighborhood enrichment and the local co-localization score on simulated tissue</td>
+</tr>
+<tr>
+<td><a href="https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_10Xdata.html">10x Xenium data: SNA &amp; sCLS</a></td>
+<td>The same analyses on public Xenium human breast and mouse brain data</td>
+</tr>
+<tr>
+<td><a href="https://juninamo.github.io/spatialCooccur/articles/case_control_tutorial.html">Case-control comparison</a></td>
+<td>Several images per patient: choosing the score, patient-level tests (Wilcoxon / LMM / blocked permutation), pseudoreplication, covariates, power</td>
+</tr>
+<tr>
+<td>
+<a href="https://juninamo.github.io/spatialCooccur/articles/segmentation_free_tutorial.html">Segmentation-free co-localization</a> (experimental)</td>
+<td>Cross pair correlation of marker transcripts, a random-feature log-Gaussian Cox process model, case-control testing, Xenium mouse brain</td>
+</tr>
+<tr>
+<td><a href="https://juninamo.github.io/spatialCooccur/articles/algorithms.html">Algorithm reference</a></td>
+<td>The mathematics behind every core function</td>
+</tr>
+</tbody>
+</table>
+<p>The notebooks behind these pages are in <a href="vignettes/"><code>vignettes/</code></a>.</p>
 </div>
 <div class="section level2">
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h2>
 <p><strong>Single-sample analysis</strong></p>
 <ul>
-<li>Simulate spatial transcriptomic layouts with <code><a href="reference/generate_sim.html">generate_sim()</a></code>
+<li>Simulate spatial layouts with a planted interaction: <code><a href="reference/generate_sim.html">generate_sim()</a></code>
 </li>
-<li>Calculate neighborhood co-occurrence enrichment with <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> (permutation-based z-score)</li>
-<li>Compute radius-based co-occurrence ratio with <code><a href="reference/calc_co_occurrence_for_radius.html">calc_co_occurrence_for_radius()</a></code> / <code><a href="reference/compute_co_occurrence_ratio.html">compute_co_occurrence_ratio()</a></code>
+<li>Neighborhood enrichment with a label-permutation null: <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> returns the z-score (evidence) and <code>log2_oe</code> = log2(observed / expected) (effect size)</li>
+<li>Radius-based co-occurrence ratio: <code><a href="reference/calc_co_occurrence_for_radius.html">calc_co_occurrence_for_radius()</a></code> / <code><a href="reference/compute_co_occurrence_ratio.html">compute_co_occurrence_ratio()</a></code>
 </li>
-<li>Identify local interaction zones using <code><a href="reference/cooccur_local.html">cooccur_local()</a></code>
+<li>Local co-localization score (sCLS) with graph diffusion: <code><a href="reference/cooccur_local.html">cooccur_local()</a></code>
 </li>
-<li>Detect connected interaction spots with <code><a href="reference/search_interaction_spot.html">search_interaction_spot()</a></code>
+<li>Connected interaction spots: <code><a href="reference/search_interaction_spot.html">search_interaction_spot()</a></code>
 </li>
 </ul>
 <p><strong>Multi-sample / disease-group comparison</strong></p>
 <ul>
-<li>Generate multi-sample group-structured simulations with <code><a href="reference/generate_sim_groups.html">generate_sim_groups()</a></code>
-</li>
-<li>Compute per-sample scores with <code><a href="reference/nhood_enrichment_per_sample.html">nhood_enrichment_per_sample()</a></code>, <code><a href="reference/cooccur_ratio_per_sample.html">cooccur_ratio_per_sample()</a></code>, <code><a href="reference/cooccur_local_per_sample.html">cooccur_local_per_sample()</a></code>, or <code><a href="reference/interaction_spot_per_sample.html">interaction_spot_per_sample()</a></code> (supports Seurat / list of Seurat / data.frame input, image- or patient-level aggregation)</li>
-<li>Test cluster pairs between groups with <code><a href="reference/compare_groups.html">compare_groups()</a></code> — Wilcoxon / Welch’s <em>t</em> / linear mixed model (<code>lme4</code>) / patient-blocked permutation</li>
-<li>Visualize with <code><a href="reference/plot_group_delta_heatmap.html">plot_group_delta_heatmap()</a></code>, <code><a href="reference/plot_pair_boxplot.html">plot_pair_boxplot()</a></code>, <code><a href="reference/plot_volcano_groups.html">plot_volcano_groups()</a></code>
+<li>Per-image scores for Seurat objects, lists of Seurat objects or plain tables: <code><a href="reference/nhood_enrichment_per_sample.html">nhood_enrichment_per_sample()</a></code>, <code><a href="reference/cooccur_ratio_per_sample.html">cooccur_ratio_per_sample()</a></code>, <code><a href="reference/cooccur_local_per_sample.html">cooccur_local_per_sample()</a></code>, <code><a href="reference/interaction_spot_per_sample.html">interaction_spot_per_sample()</a></code>; <code><a href="reference/summarize_by_patient.html">summarize_by_patient()</a></code> averages images within patients</li>
+<li>
+<code><a href="reference/compare_groups.html">compare_groups()</a></code>: Wilcoxon (exact for small samples), Welch’s <em>t</em>, linear mixed model (<code>lme4</code>, Satterthwaite df via <code>lmerTest</code>, covariates), patient-blocked permutation, and paired designs such as pre- vs post-treatment (<code>method = "signrank"</code>, within-patient permutation); warns on pseudoreplication</li>
+<li>Plots: <code><a href="reference/plot_group_delta_heatmap.html">plot_group_delta_heatmap()</a></code>, <code><a href="reference/plot_pair_boxplot.html">plot_pair_boxplot()</a></code>, <code><a href="reference/plot_volcano_groups.html">plot_volcano_groups()</a></code>
 </li>
 </ul>
-<p><strong>Works with Seurat spatial objects out of the box.</strong></p>
-<p><strong>Vignettes</strong></p>
+<p><strong>Segmentation-free analysis of transcript coordinates (experimental)</strong></p>
 <ul>
 <li>
-<code>vignette("disease_comparison", "spatialCooccur")</code> — end-to-end disease-group comparison workflow with worked example</li>
+<code><a href="reference/read_xenium_transcripts.html">read_xenium_transcripts()</a></code>, <code><a href="reference/bin_transcripts.html">bin_transcripts()</a></code>
+</li>
+<li>Model-free cross pair correlation of gene sets: <code><a href="reference/pcf_cross.html">pcf_cross()</a></code>, <code><a href="reference/pcf_matrix.html">pcf_matrix()</a></code>; the relative version is the transcript-level counterpart of <code>log2_oe</code>
+</li>
+<li>Random-feature log-Gaussian Cox process factor model after Gundersen, Zhang &amp; Engelhardt (AISTATS 2021): <code><a href="reference/fit_spatial_rff.html">fit_spatial_rff()</a></code>, <code><a href="reference/rff_pair_correlation.html">rff_pair_correlation()</a></code>
+</li>
 <li>
-<code><a href="articles/algorithms.html">vignette("algorithms", "spatialCooccur")</a></code> — mathematical reference for every core function</li>
-<li>
-<code>vignettes/case_control_tutorial.ipynb</code> — case-control study with several images per patient: choosing the score, patient-level testing (Wilcoxon / LMM / blocked permutation), pseudoreplication, covariates, and power</li>
-<li>
-<code>vignettes/segmentation_free_tutorial.ipynb</code> — experimental segmentation-free analysis of transcript coordinates: cross pair correlation of marker gene sets, a random-feature log-Gaussian Cox process model (after Gundersen et al. 2021), case-control testing, and a worked Xenium mouse-brain example</li>
+<code><a href="reference/colocalization_per_sample.html">colocalization_per_sample()</a></code> feeds <code><a href="reference/compare_groups.html">compare_groups()</a></code>
+</li>
 </ul>
+<blockquote>
+<p><strong>Note for users of versions &lt;= 0.99.1.</strong> Version 0.99.2 fixes the permutation null of <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> (same-type z-scores were inflated) and the diffusion of <code><a href="reference/cooccur_local.html">cooccur_local()</a></code> for <code>maxnsteps &gt; 1</code>. Results from earlier versions are not directly comparable; see <a href="NEWS.html">NEWS</a>.</p>
+</blockquote>
+</div>
+<div class="section level2">
+<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+</h2>
 <div class="section level3">
 <h3 id="id_1-spatial-neighborhood-analysis-sna">1. Spatial Neighborhood Analysis (SNA)<a class="anchor" aria-label="anchor" href="#id_1-spatial-neighborhood-analysis-sna"></a>
 </h3>
-<p>To simulate spatial transcriptomic data and perform neighborhood enrichment analysis:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">df</span> <span class="op">=</span> <span class="fu"><a href="reference/generate_sim.html">generate_sim</a></span><span class="op">(</span>close_ratio <span class="op">=</span> <span class="fl">1</span>, n_types <span class="op">=</span> <span class="fl">15</span>, max_loc <span class="op">=</span> <span class="fl">800</span>, n_cells <span class="op">=</span> <span class="fl">500</span>, test_type <span class="op">=</span> <span class="st">"circle"</span>, distance_param <span class="op">=</span> <span class="fl">20</span>, seed<span class="op">=</span><span class="fl">1234</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/spatialCooccur/">spatialCooccur</a></span><span class="op">)</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_sim.html">generate_sim</a></span><span class="op">(</span>close_ratio <span class="op">=</span> <span class="fl">1</span>, n_types <span class="op">=</span> <span class="fl">15</span>, max_loc <span class="op">=</span> <span class="fl">800</span>, n_cells <span class="op">=</span> <span class="fl">500</span>,</span>
+<span>                   test_type <span class="op">=</span> <span class="st">"circle"</span>, distance_param <span class="op">=</span> <span class="fl">20</span>, seed <span class="op">=</span> <span class="fl">1234</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Run neighborhood enrichment analysis</span></span>
-<span><span class="va">nhood_enrichment_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span><span class="va">df</span>, cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, neighbors.k <span class="op">=</span> <span class="fl">30</span>, n_perms <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="fl">1234</span>, n_jobs <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">nhood_enrichment_res</span><span class="op">$</span><span class="va">zscore</span></span></code></pre></div>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span><span class="va">df</span>, cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, neighbors.k <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>                        n_perms <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="fl">1234</span>, n_jobs <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">zscore</span>    <span class="co"># evidence: grows with the number of cells</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>   <span class="co"># effect size: use this to compare samples</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="id_2-spatial-co-localization-score-scls">2. Spatial Co-localization Score (sCLS)<a class="anchor" aria-label="anchor" href="#id_2-spatial-co-localization-score-scls"></a>
 </h3>
-<p>To compute co-localization scores for cell interactions:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cooccur_local_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cooccur_local.html">cooccur_local</a></span><span class="op">(</span><span class="va">df</span>, cluster_x <span class="op">=</span> <span class="st">"cell_type_1"</span>, cluster_y <span class="op">=</span> <span class="st">"cell_type_2"</span>, neighbors.k <span class="op">=</span> <span class="fl">30</span>, radius <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">cooccur_local_df</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cooccur_local.html">cooccur_local</a></span><span class="op">(</span><span class="va">df</span>, cluster_x <span class="op">=</span> <span class="st">"cell_type_1"</span>, cluster_y <span class="op">=</span> <span class="st">"cell_type_2"</span>,</span>
+<span>                    neighbors.k <span class="op">=</span> <span class="fl">30</span>, radius <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sc</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="id_3-disease-group-comparison">3. Disease-group comparison<a class="anchor" aria-label="anchor" href="#id_3-disease-group-comparison"></a>
+<h3 id="id_3-comparing-patient-groups">3. Comparing patient groups<a class="anchor" aria-label="anchor" href="#id_3-comparing-patient-groups"></a>
 </h3>
-<p>To compare a spatial co-occurrence score between disease groups across multiple samples, compute per-sample scores and then test each cluster pair. The same <code>*_per_sample()</code> + <code><a href="reference/compare_groups.html">compare_groups()</a></code> pattern works for neighborhood enrichment z-score, radius-based ratio, local co-occurrence score, and interaction-spot counts.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Simulate two groups, 3 samples each</span></span>
-<span><span class="va">df_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_sim_groups.html">generate_sim_groups</a></span><span class="op">(</span></span>
-<span>  n_samples_per_group <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  group_close_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>disease <span class="op">=</span> <span class="fl">0.8</span>, control <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>,</span>
-<span>  n_types <span class="op">=</span> <span class="fl">5</span>, n_cells <span class="op">=</span> <span class="fl">400</span>, test_type <span class="op">=</span> <span class="st">"distribute"</span>,</span>
-<span>  distance_param <span class="op">=</span> <span class="fl">15</span></span>
+<code class="sourceCode R"><span><span class="va">df_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_sim_groups.html">generate_sim_groups</a></span><span class="op">(</span></span>
+<span>  n_samples_per_group <span class="op">=</span> <span class="fl">6</span>, n_images_per_patient <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  group_close_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>case <span class="op">=</span> <span class="fl">0.8</span>, control <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>,</span>
+<span>  n_types <span class="op">=</span> <span class="fl">5</span>, n_cells <span class="op">=</span> <span class="fl">400</span>, test_type <span class="op">=</span> <span class="st">"distribute"</span>, distance_param <span class="op">=</span> <span class="fl">15</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Per-sample z-scores (one row per sample x cluster_i x cluster_j)</span></span>
-<span><span class="va">per_sample</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nhood_enrichment_per_sample.html">nhood_enrichment_per_sample</a></span><span class="op">(</span></span>
+<span><span class="va">per_image</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nhood_enrichment_per_sample.html">nhood_enrichment_per_sample</a></span><span class="op">(</span></span>
 <span>  <span class="va">df_groups</span>, sample_key <span class="op">=</span> <span class="st">"sample_id"</span>, group_key <span class="op">=</span> <span class="st">"group"</span>,</span>
 <span>  cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, patient_key <span class="op">=</span> <span class="st">"patient"</span>,</span>
-<span>  neighbors.k <span class="op">=</span> <span class="fl">20</span>, n_perms <span class="op">=</span> <span class="fl">100</span></span>
+<span>  neighbors.k <span class="op">=</span> <span class="fl">20</span>, n_perms <span class="op">=</span> <span class="fl">100</span>, n_jobs <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Group comparison: method = "wilcox" (default) | "t" | "lmm" | "perm"</span></span>
-<span><span class="co"># - "lmm"  uses lme4::lmer(value ~ group + (1 | patient))</span></span>
-<span><span class="co"># - "perm" runs a group-label permutation test, blocked by patient</span></span>
-<span><span class="co">#          when patient_key is supplied</span></span>
-<span><span class="co"># Compare log2(observed / expected) rather than the z-score: z-scores grow</span></span>
-<span><span class="co"># with the number of cells per image, log2_oe does not.</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compare_groups.html">compare_groups</a></span><span class="op">(</span></span>
-<span>  <span class="va">per_sample</span>, value <span class="op">=</span> <span class="st">"log2_oe"</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"wilcox"</span>, ref_group <span class="op">=</span> <span class="st">"control"</span>, symmetric <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
+<span><span class="co"># images are nested in patients: use a mixed model (or aggregate first</span></span>
+<span><span class="co"># with summarize_by_patient() and use method = "wilcox")</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compare_groups.html">compare_groups</a></span><span class="op">(</span><span class="va">per_image</span>, value <span class="op">=</span> <span class="st">"log2_oe"</span>, method <span class="op">=</span> <span class="st">"lmm"</span>,</span>
+<span>                      patient_key <span class="op">=</span> <span class="st">"patient"</span>, ref_group <span class="op">=</span> <span class="st">"control"</span>,</span>
+<span>                      symmetric <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualize: per-pair effect heatmap, volcano, and per-sample boxplot</span></span>
-<span><span class="fu"><a href="reference/plot_group_delta_heatmap.html">plot_group_delta_heatmap</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/plot_volcano_groups.html">plot_volcano_groups</a></span><span class="op">(</span><span class="va">res</span>, label_top <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/plot_pair_boxplot.html">plot_pair_boxplot</a></span><span class="op">(</span></span>
-<span>  <span class="va">per_sample</span>, value <span class="op">=</span> <span class="st">"log2_oe"</span>,</span>
-<span>  pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>cluster_i <span class="op">=</span> <span class="st">"cell_type_1"</span>,</span>
-<span>                     cluster_j <span class="op">=</span> <span class="st">"cell_type_2"</span><span class="op">)</span>,</span>
-<span>  add_p <span class="op">=</span> <span class="cn">TRUE</span>, ref_group <span class="op">=</span> <span class="st">"control"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>See <code>vignette("disease_comparison", "spatialCooccur")</code> for the full workflow, sanity-check heatmaps, and the algorithm description (math) for each <code><a href="reference/compare_groups.html">compare_groups()</a></code> method. <!--
+<span><span class="fu"><a href="reference/plot_volcano_groups.html">plot_volcano_groups</a></span><span class="op">(</span><span class="va">res</span>, label_top <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="id_4-segmentation-free-co-localization-experimental">4. Segmentation-free co-localization (experimental)<a class="anchor" aria-label="anchor" href="#id_4-segmentation-free-co-localization-experimental"></a>
+</h3>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tx</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_xenium_transcripts.html">read_xenium_transcripts</a></span><span class="op">(</span><span class="st">"path/to/xenium_outs"</span>, genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">marker_sets</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">b</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/bin_transcripts.html">bin_transcripts</a></span><span class="op">(</span><span class="va">tx</span>, bin_size <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/pcf_matrix.html">pcf_matrix</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">marker_sets</span>, r_max <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>   <span class="co"># log_g and log_g_rel for every pair</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="figures-from-the-paper">Figures from the paper<a class="anchor" aria-label="anchor" href="#figures-from-the-paper"></a>
+</h2>
+<!--
 ## Citation
 Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kari Hayes, Nathan Rogers, Heather Leach, Kentaro Yomogida. Subcellular spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*bioRxiv*](https://www.biorxiv.org/XX), doi:[https://doi.org/XX](https://doi.org/XX)
 
@@ -196,7 +237,7 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 </kbd>
 
 &nbsp;&nbsp;
---></p>
+-->
 <ul>
 <li>Spatial Neighborhood Analysis</li>
 </ul>
@@ -208,7 +249,6 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 <p><kbd> <img src="reference/figures/Figure3.png" width="800" align="center"></kbd></p>
 <p>  </p>
 </div>
-</div>
 <div class="section level2">
 <h2 id="pencil-citation">📝 Citation<a class="anchor" aria-label="anchor" href="#pencil-citation"></a>
 </h2>
@@ -217,9 +257,8 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 <div class="section level2">
 <h2 id="contact">Contact<a class="anchor" aria-label="anchor" href="#contact"></a>
 </h2>
-<p>For questions or issues related to this tutorial, please contact;</p>
+<p>For questions or issues, please open a GitHub issue or contact:</p>
 <p><strong>Name:</strong> Jun Inamo<br><strong>Email:</strong> <a href="mailto:juninamo@keio.jp" class="email">juninamo@keio.jp</a><br><strong>Affiliation:</strong> Department of Microbiology and Immunology, Keio University School of Medicine</p>
-<p>The data presented in the paper (spatial transcriptome data from JIA-synovoum) was generated by the <a href="https://www.yomogidalab.com/" class="external-link">Yomogida lab</a>.</p>
 <!--
 ## Acknowledgments
 This work was supported by the Uehara Memorial Foundation Postdoctoral Fellowship, a Grant-in-Aid for Japan Society for the Promotion of Science Overseas Research Fellows, the Mochida Memorial Foundation for Medical and Pharmaceutical Research (to J.I.), K08DK128544 (K.Y.).

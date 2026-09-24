@@ -63,6 +63,8 @@ log-Gaussian Cox process factor model (after Gundersen et al. 2021).
 - [`pcf_cross()`](https://juninamo.github.io/spatialCooccur/reference/pcf_cross.md)
   : Empirical cross pair correlation of two gene sets
   (segmentation-free)
+- [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md)
+  : Cross pair correlation for every pair of gene sets
 - [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
   : Fit a random-feature spatial factor model to binned transcripts
 - [`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md)

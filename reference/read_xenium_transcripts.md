@@ -11,7 +11,14 @@ is stored as a binary column, filters on the Phred-scaled quality
 ## Usage
 
 ``` r
-read_xenium_transcripts(path, qv_min = 20, drop_controls = TRUE, bbox = NULL)
+read_xenium_transcripts(
+  path,
+  qv_min = 20,
+  drop_controls = TRUE,
+  bbox = NULL,
+  genes = NULL,
+  extra_columns = TRUE
+)
 ```
 
 ## Arguments
@@ -32,6 +39,17 @@ read_xenium_transcripts(path, qv_min = 20, drop_controls = TRUE, bbox = NULL)
 - bbox:
 
   Optional \`c(xmin, xmax, ymin, ymax)\` crop, applied while reading.
+
+- genes:
+
+  Optional character vector of genes to keep. Filtering happens in Arrow
+  before the data reach R, which keeps memory use low for 5K-panel
+  sections with 10^8 transcripts.
+
+- extra_columns:
+
+  Also return \`z\`, \`cell_id\` and \`overlaps_nucleus\` when present
+  (default \`TRUE\`; set \`FALSE\` to save memory).
 
 ## Value
 
