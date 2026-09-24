@@ -443,28 +443,6 @@ ggplot(data = coords_df, aes(x = dist_nearest, y = score)) +
   )
 ```
 
-``` output
-Warning message in cor.test.default(na.omit(coords_df)$score, na.omit(coords_df)$dist_nearest, :
-“Cannot compute exact p-value with ties”
-```
-
-``` output
-Warning message in cor.test.default(na.omit(coords_df)$score, na.omit(coords_df)$dist_nearest, :
-“Cannot compute exact p-value with ties”
-```
-
-``` output
-`geom_smooth()` using formula = 'y ~ x'
-```
-
-``` output
-“Removed 400 rows containing non-finite values (`stat_smooth()`).”
-```
-
-``` output
-“Removed 400 rows containing missing values (`geom_point()`).”
-```
-
 ![](figures/SNA_tutorial_simulation/fig-07.png)
 
 Check the ROC curve and AUC value to evaluate the performance of the

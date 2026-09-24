@@ -150,13 +150,6 @@ download it to run the code yourself.</p>
 <span><span class="va">xenium.obj</span><span class="op">[[</span><span class="st">"ControlProbe"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/CreateAssayObject.html" class="external-link">CreateAssayObject</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">matrix</span><span class="op">[[</span><span class="st">"Negative Control Probe"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">xenium.obj</span><span class="op">[[</span><span class="st">"fov"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">coords</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<pre class="output"><code>Genome matrix has multiple modalities, returning a list of matrices for this genome</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
 <div class="nb-output">
 <table class="table dataframe">
 <caption>
@@ -329,7 +322,7 @@ Vcells
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">xenium.obj</span>, subset <span class="op">=</span> <span class="va">nCount_Spatial</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">@</span><span class="va">assays</span><span class="op">$</span><span class="va">Spatial</span><span class="op">$</span><span class="va">counts</span><span class="op">)</span><span class="op">)</span></span>
@@ -618,10 +611,9 @@ SeuratProject
     1.0    54.0   109.0   123.3   174.0   673.0 </code></pre>
 <pre class="output"><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
    1.00   31.00   46.00   44.66   59.00  112.00 </code></pre>
-<pre class="output"><code>“Default search for "data" layer in "Spatial" assay yielded no results; utilizing "counts" layer instead.”</code></pre>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-01.png" style="width:100.0%"></p>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-02.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SCTransform.html" class="external-link">SCTransform</a></span><span class="op">(</span><span class="va">xenium.obj</span>, assay <span class="op">=</span> <span class="st">"Spatial"</span>,</span>
 <span>                          conserve.memory <span class="op">=</span> <span class="cn">TRUE</span>, vst.flavor<span class="op">=</span><span class="st">"v2"</span><span class="op">)</span></span>
 <span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunPCA.html" class="external-link">RunPCA</a></span><span class="op">(</span><span class="va">xenium.obj</span>, assay <span class="op">=</span> <span class="st">"SCT"</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -669,53 +661,12 @@ SeuratProject
 <span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">)</span> <span class="op">=</span> <span class="va">xenium.obj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"res_"</span>,<span class="va">resolution</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">cluster_col</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"res_"</span>,<span class="va">resolution</span><span class="op">)</span></span></code></pre></div>
-<pre class="output"><code>Running SCTransform on assay: Spatial</code></pre>
-<pre class="output"><code>Running SCTransform on layer: counts</code></pre>
-<pre class="output"><code>vst.flavor='v2' set. Using model with fixed slope and excluding poisson genes.</code></pre>
-<pre class="output"><code>Variance stabilizing transformation of count matrix of size 280 by 7273</code></pre>
-<pre class="output"><code>Model formula is y ~ log_umi</code></pre>
-<pre class="output"><code>Get Negative Binomial regression parameters per gene</code></pre>
-<pre class="output"><code>Using 268 genes, 5000 cells</code></pre>
-<pre class="output"><code>Found 12 outliers - those will be ignored in fitting/regularization step</code></pre>
-<pre class="output"><code>Skip calculation of full residual matrix</code></pre>
-<pre class="output"><code>Will not return corrected UMI because residual type is not set to 'pearson'</code></pre>
-<pre class="output"><code>Calculating gene attributes</code></pre>
-<pre class="output"><code>Wall clock passed: Time difference of 1.779582 secs</code></pre>
-<pre class="output"><code>Setting min_variance based on median UMI:  0.04</code></pre>
-<pre class="output"><code>Calculating variance for residuals of type pearson for 280 genes</code></pre>
-<pre class="output"><code>Determine variable features</code></pre>
-<pre class="output"><code>Setting min_variance based on median UMI:  0.04</code></pre>
-<pre class="output"><code>Calculating residuals of type pearson for 280 genes</code></pre>
 <pre class="output"><code>
   |                                                                            </code></pre>
 <pre class="output"><code>
   |                                                                            </code></pre>
 <pre class="output"><code>
   |                                                                            </code></pre>
-<pre class="output"><code>Computing corrected UMI count matrix</code></pre>
-<pre class="output"><code>Centering data matrix</code></pre>
-<pre class="output"><code>Getting residuals for block 1(of 2) for counts dataset</code></pre>
-<pre class="output"><code>Getting residuals for block 2(of 2) for counts dataset</code></pre>
-<pre class="output"><code>Centering data matrix</code></pre>
-<pre class="output"><code>Finished calculating residuals for counts</code></pre>
-<pre class="output"><code>Set default assay to SCT</code></pre>
-<pre class="output"><code>Computing nearest neighbor graph</code></pre>
-<pre class="output"><code>Computing SNN</code></pre>
-<pre class="output"><code>“The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
-To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
-This message will be shown once per session”</code></pre>
-<pre class="output"><code>15:37:28 UMAP embedding parameters a = 0.9922 b = 1.112</code></pre>
-<pre class="output"><code>15:37:28 Read 7273 rows and found 30 numeric columns</code></pre>
-<pre class="output"><code>15:37:28 Using Annoy for neighbor search, n_neighbors = 30</code></pre>
-<pre class="output"><code>15:37:28 Building Annoy index with metric = cosine, n_trees = 50</code></pre>
-<pre class="output"><code>15:37:29 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpHMu1Jl/file99c35e8beded</code></pre>
-<pre class="output"><code>15:37:29 Searching Annoy index using 1 thread, search_k = 3000</code></pre>
-<pre class="output"><code>15:37:30 Annoy recall = 100%</code></pre>
-<pre class="output"><code>15:37:31 Commencing smooth kNN distance calibration using 1 thread</code></pre>
-<pre class="output"><code> with target n_neighbors = 30</code></pre>
-<pre class="output"><code>15:37:33 Initializing from normalized Laplacian + noise (using RSpectra)</code></pre>
-<pre class="output"><code>15:37:33 Commencing optimization for 500 epochs, with 319794 positive edges</code></pre>
-<pre class="output"><code>15:37:40 Optimization finished</code></pre>
 <pre class="output"><code>[1] "Clustering..."</code></pre>
 <div class="nb-output">
 <table class="table dataframe">
@@ -1150,7 +1101,7 @@ SeuratProject
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g</span> <span class="op">=</span> <span class="fu">CellDimPlot</span><span class="op">(</span></span>
 <span>  srt <span class="op">=</span> <span class="va">xenium.obj</span>, </span>
 <span>  group.by <span class="op">=</span> <span class="va">cluster_col</span>, </span>
@@ -1160,21 +1111,12 @@ SeuratProject
 <span><span class="op">)</span> </span>
 <span><span class="va">g</span> </span></code></pre></div>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-03.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xenium.obj.markers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/FindAllMarkers.html" class="external-link">FindAllMarkers</a></span><span class="op">(</span><span class="va">xenium.obj</span>, only.pos <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">xenium.obj.markers</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_max</a></span><span class="op">(</span><span class="va">avg_log2FC</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> </span></code></pre></div>
-<pre class="output"><code>Calculating cluster 0</code></pre>
-<pre class="output"><code>Calculating cluster 1</code></pre>
-<pre class="output"><code>Calculating cluster 2</code></pre>
-<pre class="output"><code>Calculating cluster 3</code></pre>
-<pre class="output"><code>Calculating cluster 4</code></pre>
-<pre class="output"><code>Calculating cluster 5</code></pre>
-<pre class="output"><code>Calculating cluster 6</code></pre>
-<pre class="output"><code>Calculating cluster 7</code></pre>
-<pre class="output"><code>Calculating cluster 8</code></pre>
 <div class="nb-output">
 <table class="table dataframe">
 <caption>
@@ -2643,7 +2585,7 @@ cells / monocytes) 5 Cancer-associated fibroblasts (CAFs) 6 Macrophages
 <p>Clusters are named by marker-gene signatures (the signature with the
 highest average scaled expression), so the names do not depend on the
 arbitrary cluster numbering.</p>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">[</span>,<span class="va">cluster_col</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co"># Annotate clusters with marker signatures rather than fixed cluster numbers,</span></span>
 <span><span class="co"># so the labels stay correct if clustering changes between package versions.</span></span>
@@ -2675,10 +2617,6 @@ arbitrary cluster numbering.</p>
 <pre class="output"><code>
    0    1    2    3    4    5    6    7    8 
 2389 1079  956  854  700  575  529  122   69 </code></pre>
-<pre class="output"><code>As of Seurat v5, we recommend using AggregateExpression to perform pseudo-bulk analysis.
-This message is displayed once per session.</code></pre>
-<pre class="output"><code>First group.by variable `res_0.60` starts with a number, appending `g` to ensure valid variable names
-This message is displayed once every 8 hours.</code></pre>
 <div class="nb-output">
 <table class="table dataframe">
 <caption>
@@ -3110,7 +3048,7 @@ Mast_cells
                             69                            956 
 Proliferating_epithelial_cells   Tumor-associated_macrophages 
                           1079                            575 </code></pre>
-<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_COLORS</span> <span class="op">=</span> <span class="va">manual_colors</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cluster_COLORS</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">cluster_COLORS</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">cluster_COLORS</span><span class="op">)</span></span>
@@ -3127,10 +3065,8 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
 <span>                             title <span class="op">=</span> <span class="st">"cluster"</span>,</span>
 <span>                             ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g</span> </span></code></pre></div>
-<pre class="output"><code>Scale for colour is already present.
-Adding another scale for colour, which will replace the existing scale.</code></pre>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-04.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g</span> <span class="op">=</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/ImageDimPlot.html" class="external-link">ImageDimPlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>,</span>
 <span>             fov <span class="op">=</span> <span class="st">"fov"</span>, </span>
 <span>             size <span class="op">=</span> <span class="fl">1.2</span>,</span>
@@ -3147,7 +3083,7 @@ Adding another scale for colour, which will replace the existing scale.</code></
 <div class="section level3">
 <h3 id="spatial-neighborhood-analysis-sna-cell-type-level-analysis">Spatial neighborhood analysis (SNA, cell type level analysis)<a class="anchor" aria-label="anchor" href="#spatial-neighborhood-analysis-sna-cell-type-level-analysis"></a>
 </h3>
-<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_perm</span> <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="va">neighbors.k_</span> <span class="op">=</span> <span class="fl">30</span> <span class="co"># Number of neighbors to search</span></span>
 <span><span class="va">seed</span> <span class="op">=</span> <span class="fl">1234</span></span>
@@ -3166,7 +3102,7 @@ Adding another scale for colour, which will replace the existing scale.</code></
 <span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">end_time</span>, <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>[1] "Elapsed time:"</code></pre>
 <pre class="output"><code>Time difference of 3.642823 secs</code></pre>
-<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="va">xenium.obj</span><span class="op">@</span><span class="va">misc</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">cluster_col</span>, <span class="st">"_nhood_enrichment"</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">L</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>; <span class="va">P</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">padj</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">L</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">P</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">L</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"^Cluster"</span>, <span class="st">""</span>, <span class="va">v</span><span class="op">)</span><span class="op">)</span></span>
@@ -3189,7 +3125,7 @@ Adding another scale for colour, which will replace the existing scale.</code></
 <div class="section level3">
 <h3 id="spatial-co-localization-score-scla-cell-cell-level-analysis">Spatial co-localization score (sCLA, cell-cell level analysis)<a class="anchor" aria-label="anchor" href="#spatial-co-localization-score-scla-cell-cell-level-analysis"></a>
 </h3>
-<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xenium.obj</span><span class="op">[[</span><span class="st">"fov"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">centroids</span><span class="op">@</span><span class="va">coords</span></span></code></pre></div>
 <div class="nb-output">
 <table class="table dataframe">
@@ -3696,7 +3632,7 @@ y
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_x</span> <span class="op">&lt;-</span> <span class="st">"Cytotoxic_T"</span></span>
 <span><span class="va">cluster_y</span> <span class="op">&lt;-</span> <span class="st">"Cancer-associated_fibroblasts"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">)</span><span class="op">)</span></span>
@@ -3727,7 +3663,6 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
                            122                            700 
              Endothelial_cells           BasalMyo_tumor_cells 
                             69                            854 </code></pre>
-<pre class="output"><code>stopping after 4 steps</code></pre>
 <pre class="output"><code>[1] "Elapsed time:"</code></pre>
 <pre class="output"><code>Time difference of 2.079798 secs</code></pre>
 <pre class="output"><code> cooccur_local_Cytotoxic_T_Cancer-associated_fibroblasts
@@ -3737,7 +3672,7 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
  Mean   :0.1106833                                      
  3rd Qu.:0.0646834                                      
  Max.   :1.1785277                                      </code></pre>
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xenium.obj</span> <span class="op">=</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/AddMetaData.html" class="external-link">AddMetaData</a></span><span class="op">(</span><span class="va">xenium.obj</span>, <span class="va">cooccur_local_df</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">g</span> <span class="op">=</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/ImageFeaturePlot.html" class="external-link">ImageFeaturePlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>, </span>
@@ -3745,7 +3680,6 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
 <span>                     <span class="co">#dark.background = F,</span></span>
 <span>                     cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"white"</span>, <span class="st">"red"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g</span></span></code></pre></div>
-<pre class="output"><code>“No FOV associated with assay 'SCT', using global default FOV”</code></pre>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-07.png" style="width:100.0%"></p>
 </div>
 </div>
@@ -3755,7 +3689,7 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
 <div class="section level3">
 <h3 id="preprocessing-cell-annotation-1">Preprocessing &amp; Cell annotation<a class="anchor" aria-label="anchor" href="#preprocessing-cell-annotation-1"></a>
 </h3>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"/Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_outs/"</span><span class="op">)</span></span>
 <span><span class="va">data_name</span> <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_split.html" class="external-link">str_split</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">"/"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_split.html" class="external-link">str_split</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">"/"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span></span>
 <span></span>
@@ -3764,81 +3698,19 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
 <span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">xenium.obj</span>, subset <span class="op">=</span> <span class="va">nCount_Xenium</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://satijalab.org/seurat/reference/VlnPlot.html" class="external-link">VlnPlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nFeature_Xenium"</span>, <span class="st">"nCount_Xenium"</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span>, pt.size <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<pre class="output"><code>“cells did not contain a segmentation_method column. Skipping...”</code></pre>
-<pre class="output"><code>Genome matrix has multiple modalities, returning a list of matrices for this genome</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Feature names cannot have underscores ('_'), replacing with dashes ('-')”</code></pre>
-<pre class="output"><code>“Default search for "data" layer in "Xenium" assay yielded no results; utilizing "counts" layer instead.”</code></pre>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-08.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/ImageDimPlot.html" class="external-link">ImageDimPlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>, </span>
 <span>             fov <span class="op">=</span> <span class="st">"fov"</span>, </span>
 <span>             size <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>             molecules <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gad1"</span>, <span class="st">"Sst"</span>, <span class="st">"Pvalb"</span>, <span class="st">"Gfap"</span><span class="op">)</span>, nmols <span class="op">=</span> <span class="fl">20000</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-09.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SCTransform.html" class="external-link">SCTransform</a></span><span class="op">(</span><span class="va">xenium.obj</span>, assay <span class="op">=</span> <span class="st">"Xenium"</span><span class="op">)</span></span>
 <span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunPCA.html" class="external-link">RunPCA</a></span><span class="op">(</span><span class="va">xenium.obj</span>, npcs <span class="op">=</span> <span class="fl">30</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunUMAP.html" class="external-link">RunUMAP</a></span><span class="op">(</span><span class="va">xenium.obj</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span></span>
 <span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/FindNeighbors.html" class="external-link">FindNeighbors</a></span><span class="op">(</span><span class="va">xenium.obj</span>, reduction <span class="op">=</span> <span class="st">"pca"</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span></span>
 <span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/FindClusters.html" class="external-link">FindClusters</a></span><span class="op">(</span><span class="va">xenium.obj</span>, resolution <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span></code></pre></div>
-<pre class="output"><code>Running SCTransform on assay: Xenium</code></pre>
-<pre class="output"><code>Running SCTransform on layer: counts</code></pre>
-<pre class="output"><code>vst.flavor='v2' set. Using model with fixed slope and excluding poisson genes.</code></pre>
-<pre class="output"><code>Variance stabilizing transformation of count matrix of size 248 by 36553</code></pre>
-<pre class="output"><code>Model formula is y ~ log_umi</code></pre>
-<pre class="output"><code>Get Negative Binomial regression parameters per gene</code></pre>
-<pre class="output"><code>Using 248 genes, 5000 cells</code></pre>
-<pre class="output"><code>Second step: Get residuals using fitted parameters for 248 genes</code></pre>
-<pre class="output"><code>Computing corrected count matrix for 248 genes</code></pre>
-<pre class="output"><code>Calculating gene attributes</code></pre>
-<pre class="output"><code>Wall clock passed: Time difference of 9.253556 secs</code></pre>
-<pre class="output"><code>Determine variable features</code></pre>
-<pre class="output"><code>Centering data matrix</code></pre>
-<pre class="output"><code>Getting residuals for block 1(of 8) for counts dataset</code></pre>
-<pre class="output"><code>Getting residuals for block 2(of 8) for counts dataset</code></pre>
-<pre class="output"><code>Getting residuals for block 3(of 8) for counts dataset</code></pre>
-<pre class="output"><code>Getting residuals for block 4(of 8) for counts dataset</code></pre>
-<pre class="output"><code>Getting residuals for block 5(of 8) for counts dataset</code></pre>
-<pre class="output"><code>Getting residuals for block 6(of 8) for counts dataset</code></pre>
-<pre class="output"><code>Getting residuals for block 7(of 8) for counts dataset</code></pre>
-<pre class="output"><code>Getting residuals for block 8(of 8) for counts dataset</code></pre>
-<pre class="output"><code>Centering data matrix</code></pre>
-<pre class="output"><code>Finished calculating residuals for counts</code></pre>
-<pre class="output"><code>Set default assay to SCT</code></pre>
-<pre class="output"><code>PC_ 1 
-Positive:  Slc17a7, Nrn1, Epha4, Neurod6, Nwd2, Gad1, Cpne4, Rasgrf2, Rims3, Lamp5 
-Negative:  Igf2, Dcn, Fmod, Slc13a4, Fn1, Aldh1a2, Col1a1, Ly6a, Cldn5, Spp1 
-PC_ 2 
-Positive:  Slc17a7, Fn1, Igf2, Nrn1, Cldn5, Epha4, Neurod6, Ly6a, Dcn, Rasgrf2 
-Negative:  Gjc3, Opalin, Sox10, Gfap, Clmn, Vwc2l, Zfp536, Sema6a, Gpr17, Gng12 
-PC_ 3 
-Positive:  Slc13a4, Igf2, Dcn, Fmod, Aldh1a2, Nwd2, Col1a1, Vat1l, Calb2, Spp1 
-Negative:  Cldn5, Ly6a, Adgrl4, Fn1, Pecam1, Acvrl1, Kdr, Cd93, Pglyrp1, Sox17 
-PC_ 4 
-Positive:  Slc17a7, Dkk3, Cabp7, Neurod6, 2010300C02Rik, Arc, Epha4, Igfbp4, Bcl11b, Fmod 
-Negative:  Nwd2, Calb2, Slc17a6, Necab2, Syt6, Vat1l, Nrp2, Sncg, Cpne4, Cldn5 
-PC_ 5 
-Positive:  Gad1, Pvalb, Gad2, Rab3b, Opalin, Gjc3, Dpy19l1, Cdh13, Sox10, Garnl3 
-Negative:  Cabp7, Gfap, Aqp4, Laptm5, Ntsr2, Trem2, Siglech, Acsbg1, Cd53, Slc39a12 </code></pre>
-<pre class="output"><code>15:41:29 UMAP embedding parameters a = 0.9922 b = 1.112</code></pre>
-<pre class="output"><code>15:41:29 Read 36553 rows and found 30 numeric columns</code></pre>
-<pre class="output"><code>15:41:29 Using Annoy for neighbor search, n_neighbors = 30</code></pre>
-<pre class="output"><code>15:41:29 Building Annoy index with metric = cosine, n_trees = 50</code></pre>
-<pre class="output"><code>15:41:33 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpHMu1Jl/file99c33a21767e</code></pre>
-<pre class="output"><code>15:41:33 Searching Annoy index using 1 thread, search_k = 3000</code></pre>
-<pre class="output"><code>15:41:42 Annoy recall = 100%</code></pre>
-<pre class="output"><code>15:41:44 Commencing smooth kNN distance calibration using 1 thread</code></pre>
-<pre class="output"><code> with target n_neighbors = 30</code></pre>
-<pre class="output"><code>15:41:46 Initializing from normalized Laplacian + noise (using RSpectra)</code></pre>
-<pre class="output"><code>15:41:47 Commencing optimization for 200 epochs, with 1669102 positive edges</code></pre>
-<pre class="output"><code>15:42:01 Optimization finished</code></pre>
-<pre class="output"><code>Computing nearest neighbor graph</code></pre>
-<pre class="output"><code>Computing SNN</code></pre>
 <pre class="output"><code>Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
 
 Number of nodes: 36553
@@ -3848,7 +3720,7 @@ Running Louvain algorithm...
 Maximum modularity in 10 random starts: 0.9585
 Number of communities: 27
 Elapsed time: 7 seconds</code></pre>
-<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_col</span><span class="op">=</span><span class="st">"seurat_clusters"</span></span>
 <span><span class="va">g</span> <span class="op">=</span> <span class="fu">CellDimPlot</span><span class="op">(</span></span>
 <span>  srt <span class="op">=</span> <span class="va">xenium.obj</span>, </span>
@@ -3859,15 +3731,14 @@ Elapsed time: 7 seconds</code></pre>
 <span><span class="op">)</span> </span>
 <span><span class="va">g</span> </span></code></pre></div>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-10.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/FeaturePlot.html" class="external-link">FeaturePlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Cux2"</span>, <span class="st">"Bcl11b"</span>, <span class="st">"Foxp2"</span>, <span class="st">"Gad1"</span>, <span class="st">"Sst"</span>, <span class="st">"Gfap"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-11.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/ImageDimPlot.html" class="external-link">ImageDimPlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>, cols <span class="op">=</span> <span class="st">"polychrome"</span>, </span>
 <span>             size <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span></span></code></pre></div>
-<pre class="output"><code>“No FOV associated with assay 'SCT', using global default FOV”</code></pre>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-12.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">spacexr</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">query.counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/AssayData.html" class="external-link">GetAssayData</a></span><span class="op">(</span><span class="va">xenium.obj</span>, assay <span class="op">=</span> <span class="st">"Xenium"</span>, slot <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span></span>
@@ -3875,9 +3746,7 @@ Elapsed time: 7 seconds</code></pre>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">coords</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">coords</span><span class="op">$</span><span class="va">cell</span></span>
 <span><span class="va">coords</span><span class="op">$</span><span class="va">cell</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
 <span><span class="va">query</span> <span class="op">&lt;-</span> <span class="fu">SpatialRNA</span><span class="op">(</span><span class="va">coords</span>, <span class="va">query.counts</span>, <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">query.counts</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre class="output"><code>“The `slot` argument of `GetAssayData()` is deprecated as of SeuratObject 5.0.0.
-ℹ Please use the `layer` argument instead.”</code></pre>
-<div class="sourceCode" id="cb151"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># allen.corted.ref can be downloaded here:</span></span>
 <span><span class="co"># https://www.dropbox.com/s/cuowvm4vrf65pvq/allen_cortex.rds?dl=1</span></span>
 <span><span class="va">allen.cortex.ref</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"/allen_cortex.rds"</span><span class="op">)</span><span class="op">)</span></span>
@@ -3894,22 +3763,10 @@ Elapsed time: 7 seconds</code></pre>
 <span><span class="va">nUMI</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"/"</span>, <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu">Reference</span><span class="op">(</span><span class="va">counts</span>, <span class="va">cluster</span>, <span class="va">nUMI</span><span class="op">)</span></span></code></pre></div>
-<pre class="output"><code>Validating object structure</code></pre>
-<pre class="output"><code>Updating object slots</code></pre>
-<pre class="output"><code>Ensuring keys are in the proper structure</code></pre>
-<pre class="output"><code>“Assay RNA changing from Assay to Assay”</code></pre>
-<pre class="output"><code>Ensuring keys are in the proper structure</code></pre>
-<pre class="output"><code>Ensuring feature names don't have underscores or pipes</code></pre>
-<pre class="output"><code>Updating slots in RNA</code></pre>
-<pre class="output"><code>Validating object structure for Assay ‘RNA’</code></pre>
-<pre class="output"><code>Object representation is consistent with the most current Seurat version</code></pre>
-<div class="sourceCode" id="cb161"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># run RCTD with many cores</span></span>
 <span><span class="va">RCTD</span> <span class="op">&lt;-</span> <span class="fu">create.RCTD</span><span class="op">(</span><span class="va">query</span>, <span class="va">reference</span>, max_cores <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">RCTD</span> <span class="op">&lt;-</span> <span class="fu">run.RCTD</span><span class="op">(</span><span class="va">RCTD</span>, doublet_mode <span class="op">=</span> <span class="st">"doublet"</span><span class="op">)</span></span></code></pre></div>
-<pre class="output"><code><span><span class="va">Begin</span><span class="op">:</span> <span class="va">process_cell_type_info</span></span></code></pre>
-<pre class="output"><code>process_cell_type_info: number of cells in reference: 14242</code></pre>
-<pre class="output"><code>process_cell_type_info: number of genes in reference: 34617</code></pre>
 <pre class="output"><code>
      Astro       Endo    L2-3 IT         L4      L5 IT      L5 PT      L6 CT 
        368         94        982       1401        880        544        960 
@@ -3919,63 +3776,6 @@ Elapsed time: 7 seconds</code></pre>
         32       1337         27         55        125       1741       1728 
       VLMC 
         67 </code></pre>
-<pre class="output"><code><span><span class="va">End</span><span class="op">:</span> <span class="va">process_cell_type_info</span></span></code></pre>
-<pre class="output"><code>create.RCTD: getting regression differentially expressed genes: </code></pre>
-<pre class="output"><code>get_de_genes: Astro found DE genes: 9</code></pre>
-<pre class="output"><code>get_de_genes: Endo found DE genes: 15</code></pre>
-<pre class="output"><code>get_de_genes: L2-3 IT found DE genes: 7</code></pre>
-<pre class="output"><code>get_de_genes: L4 found DE genes: 13</code></pre>
-<pre class="output"><code>get_de_genes: L5 IT found DE genes: 8</code></pre>
-<pre class="output"><code>get_de_genes: L5 PT found DE genes: 4</code></pre>
-<pre class="output"><code>get_de_genes: L6 CT found DE genes: 11</code></pre>
-<pre class="output"><code>get_de_genes: L6 IT found DE genes: 8</code></pre>
-<pre class="output"><code>get_de_genes: L6b found DE genes: 11</code></pre>
-<pre class="output"><code>get_de_genes: Lamp5 found DE genes: 9</code></pre>
-<pre class="output"><code>get_de_genes: Macrophage found DE genes: 11</code></pre>
-<pre class="output"><code>get_de_genes: Meis2 found DE genes: 12</code></pre>
-<pre class="output"><code>get_de_genes: NP found DE genes: 10</code></pre>
-<pre class="output"><code>get_de_genes: Oligo found DE genes: 7</code></pre>
-<pre class="output"><code>get_de_genes: Peri found DE genes: 10</code></pre>
-<pre class="output"><code>get_de_genes: Pvalb found DE genes: 7</code></pre>
-<pre class="output"><code>get_de_genes: Serpinf1 found DE genes: 9</code></pre>
-<pre class="output"><code>get_de_genes: SMC found DE genes: 13</code></pre>
-<pre class="output"><code>get_de_genes: Sncg found DE genes: 12</code></pre>
-<pre class="output"><code>get_de_genes: Sst found DE genes: 10</code></pre>
-<pre class="output"><code>get_de_genes: Vip found DE genes: 10</code></pre>
-<pre class="output"><code>get_de_genes: VLMC found DE genes: 13</code></pre>
-<pre class="output"><code>get_de_genes: total DE genes: 122</code></pre>
-<pre class="output"><code>create.RCTD: getting platform effect normalization differentially expressed genes: </code></pre>
-<pre class="output"><code>get_de_genes: Astro found DE genes: 16</code></pre>
-<pre class="output"><code>get_de_genes: Endo found DE genes: 20</code></pre>
-<pre class="output"><code>get_de_genes: L2-3 IT found DE genes: 15</code></pre>
-<pre class="output"><code>get_de_genes: L4 found DE genes: 23</code></pre>
-<pre class="output"><code>get_de_genes: L5 IT found DE genes: 16</code></pre>
-<pre class="output"><code>get_de_genes: L5 PT found DE genes: 11</code></pre>
-<pre class="output"><code>get_de_genes: L6 CT found DE genes: 19</code></pre>
-<pre class="output"><code>get_de_genes: L6 IT found DE genes: 17</code></pre>
-<pre class="output"><code>get_de_genes: L6b found DE genes: 14</code></pre>
-<pre class="output"><code>get_de_genes: Lamp5 found DE genes: 15</code></pre>
-<pre class="output"><code>get_de_genes: Macrophage found DE genes: 11</code></pre>
-<pre class="output"><code>get_de_genes: Meis2 found DE genes: 16</code></pre>
-<pre class="output"><code>get_de_genes: NP found DE genes: 17</code></pre>
-<pre class="output"><code>get_de_genes: Oligo found DE genes: 12</code></pre>
-<pre class="output"><code>get_de_genes: Peri found DE genes: 13</code></pre>
-<pre class="output"><code>get_de_genes: Pvalb found DE genes: 12</code></pre>
-<pre class="output"><code>get_de_genes: Serpinf1 found DE genes: 16</code></pre>
-<pre class="output"><code>get_de_genes: SMC found DE genes: 17</code></pre>
-<pre class="output"><code>get_de_genes: Sncg found DE genes: 19</code></pre>
-<pre class="output"><code>get_de_genes: Sst found DE genes: 13</code></pre>
-<pre class="output"><code>get_de_genes: Vip found DE genes: 17</code></pre>
-<pre class="output"><code>get_de_genes: VLMC found DE genes: 16</code></pre>
-<pre class="output"><code>get_de_genes: total DE genes: 154</code></pre>
-<pre class="output"><code>fitBulk: decomposing bulk</code></pre>
-<pre class="output"><code>chooseSigma: using initial Q_mat with sigma =  1</code></pre>
-<pre class="output"><code>Likelihood value: 149571.609725169</code></pre>
-<pre class="output"><code>Sigma value:  0.84</code></pre>
-<pre class="output"><code>Likelihood value: 148159.897969503</code></pre>
-<pre class="output"><code>Sigma value:  0.7</code></pre>
-<pre class="output"><code>Likelihood value: 147678.589123498</code></pre>
-<pre class="output"><code>Sigma value:  0.7</code></pre>
 <pre class="output"><code>[1] "gather_results: finished 1000"
 [1] "gather_results: finished 2000"
 [1] "gather_results: finished 3000"
@@ -4007,17 +3807,17 @@ Elapsed time: 7 seconds</code></pre>
 [1] "gather_results: finished 29000"
 [1] "gather_results: finished 30000"
 [1] "gather_results: finished 31000"</code></pre>
-<div class="sourceCode" id="cb224"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">annotations.df</span> <span class="op">&lt;-</span> <span class="va">RCTD</span><span class="op">@</span><span class="va">results</span><span class="op">$</span><span class="va">results_df</span></span>
 <span><span class="va">annotations</span> <span class="op">&lt;-</span> <span class="va">annotations.df</span><span class="op">$</span><span class="va">first_type</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">annotations</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">annotations.df</span><span class="op">)</span></span>
 <span><span class="va">xenium.obj</span><span class="op">$</span><span class="va">predicted.celltype</span> <span class="op">&lt;-</span> <span class="va">annotations</span></span>
 <span><span class="va">keep.cells</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Cells.html" class="external-link">Cells</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">)</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">$</span><span class="va">predicted.celltype</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">xenium.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">xenium.obj</span>, cells <span class="op">=</span> <span class="va">keep.cells</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb225"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_col</span><span class="op">=</span><span class="st">"predicted.celltype"</span></span>
 <span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">)</span> <span class="op">=</span> <span class="va">xenium.obj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">[</span>,<span class="va">cluster_col</span><span class="op">]</span></span></code></pre></div>
-<div class="sourceCode" id="cb226"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">=</span> <span class="va">xenium.obj.markers</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_max</a></span><span class="op">(</span><span class="va">avg_log2FC</span>, n <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -4030,7 +3830,7 @@ Elapsed time: 7 seconds</code></pre>
 <span><span class="fu"><a href="https://satijalab.org/seurat/reference/ImageDimPlot.html" class="external-link">ImageDimPlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>, fov <span class="op">=</span> <span class="st">"fov"</span>, molecules <span class="op">=</span> <span class="va">markers</span>, nmols <span class="op">=</span> <span class="fl">20000</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">marker_COLORS</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-13.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb227"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_COLORS</span> <span class="op">=</span> <span class="va">manual_colors</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cluster_COLORS</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">cluster_COLORS</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">cluster_COLORS</span><span class="op">)</span></span>
@@ -4047,10 +3847,8 @@ Elapsed time: 7 seconds</code></pre>
 <span>                             title <span class="op">=</span> <span class="st">"cluster"</span>,</span>
 <span>                             ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g</span> </span></code></pre></div>
-<pre class="output"><code>Scale for colour is already present.
-Adding another scale for colour, which will replace the existing scale.</code></pre>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-14.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb229"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g</span> <span class="op">=</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/ImageDimPlot.html" class="external-link">ImageDimPlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>,</span>
 <span>             fov <span class="op">=</span> <span class="st">"fov"</span>, </span>
 <span>             size <span class="op">=</span> <span class="fl">0.5</span>,</span>
@@ -4062,7 +3860,7 @@ Adding another scale for colour, which will replace the existing scale.</code></
 <div class="section level3">
 <h3 id="spatial-neighborhood-analysis-sna-cell-type-level-analysis-1">Spatial neighborhood analysis (SNA, cell type level analysis)<a class="anchor" aria-label="anchor" href="#spatial-neighborhood-analysis-sna-cell-type-level-analysis-1"></a>
 </h3>
-<div class="sourceCode" id="cb230"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_perm</span> <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="va">neighbors.k_</span> <span class="op">=</span> <span class="fl">30</span> <span class="co"># Number of neighbors to search</span></span>
 <span><span class="va">seed</span> <span class="op">=</span> <span class="fl">1234</span></span>
@@ -4081,7 +3879,7 @@ Adding another scale for colour, which will replace the existing scale.</code></
 <span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">end_time</span>, <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>[1] "Elapsed time:"</code></pre>
 <pre class="output"><code>Time difference of 7.805199 secs</code></pre>
-<div class="sourceCode" id="cb233"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="va">xenium.obj</span><span class="op">@</span><span class="va">misc</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">cluster_col</span>, <span class="st">"_nhood_enrichment"</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">L</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>; <span class="va">P</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">padj</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">L</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">P</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">L</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"^Cluster"</span>, <span class="st">""</span>, <span class="va">v</span><span class="op">)</span><span class="op">)</span></span>
@@ -4104,7 +3902,7 @@ Adding another scale for colour, which will replace the existing scale.</code></
 <div class="section level3">
 <h3 id="spatial-co-localization-score-scla-cell-cell-level-analysis-1">Spatial co-localization score (sCLA, cell-cell level analysis)<a class="anchor" aria-label="anchor" href="#spatial-co-localization-score-scla-cell-cell-level-analysis-1"></a>
 </h3>
-<div class="sourceCode" id="cb234"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_x</span> <span class="op">&lt;-</span> <span class="st">"L6 IT"</span></span>
 <span><span class="va">cluster_y</span> <span class="op">&lt;-</span> <span class="st">"L6 CT"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span><span class="va">xenium.obj</span><span class="op">)</span><span class="op">)</span></span>
@@ -4138,7 +3936,6 @@ Adding another scale for colour, which will replace the existing scale.</code></
        239        604         56         24        351        223        114 
       VLMC 
       1417 </code></pre>
-<pre class="output"><code>stopping after 4 steps</code></pre>
 <pre class="output"><code>[1] "Elapsed time:"</code></pre>
 <pre class="output"><code>Time difference of 7.06738 secs</code></pre>
 <pre class="output"><code> cooccur_local_L6_IT_L6_CT
@@ -4148,7 +3945,7 @@ Adding another scale for colour, which will replace the existing scale.</code></
  Mean   :0.09290          
  3rd Qu.:0.03948          
  Max.   :1.20254          </code></pre>
-<div class="sourceCode" id="cb240"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xenium.obj</span> <span class="op">=</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/AddMetaData.html" class="external-link">AddMetaData</a></span><span class="op">(</span><span class="va">xenium.obj</span>, <span class="va">cooccur_local_df</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">g</span> <span class="op">=</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/ImageFeaturePlot.html" class="external-link">ImageFeaturePlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>, </span>
@@ -4156,9 +3953,8 @@ Adding another scale for colour, which will replace the existing scale.</code></
 <span>                     <span class="co">#dark.background = F,</span></span>
 <span>                     cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"white"</span>, <span class="st">"red"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g</span></span></code></pre></div>
-<pre class="output"><code>“No FOV associated with assay 'SCT', using global default FOV”</code></pre>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-17.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb242"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_COLORS_</span> <span class="op">=</span> <span class="va">cluster_COLORS</span><span class="op">[</span><span class="va">cluster_x</span><span class="op">]</span></span>
 <span><span class="va">g_x</span> <span class="op">=</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/ImageDimPlot.html" class="external-link">ImageDimPlot</a></span><span class="op">(</span><span class="va">xenium.obj</span>,</span>
 <span>             fov <span class="op">=</span> <span class="st">"fov"</span>, </span>
@@ -4181,7 +3977,7 @@ Adding another scale for colour, which will replace the existing scale.</code></
 <span>                             ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g_x</span> <span class="op">+</span> <span class="va">g_y</span></span></code></pre></div>
 <p><img src="figures/SNA_tutorial_10Xdata/fig-18.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb243"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>R version 4.3.2 (2023-10-31)
 Platform: aarch64-apple-darwin20 (64-bit)

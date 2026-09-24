@@ -76,34 +76,6 @@ xenium.obj[["fov"]] <- coords
 rm(data); gc(); gc()
 ```
 
-``` output
-Genome matrix has multiple modalities, returning a list of matrices for this genome
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
 |        | used     | (Mb)  | gc trigger | (Mb)   | limit (Mb) | max used | (Mb)   |
 |--------|----------|-------|------------|--------|------------|----------|--------|
 | Ncells | 12945208 | 691.4 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
@@ -169,10 +141,6 @@ A data.frame: 6 × 9 {.table .dataframe}
    1.00   31.00   46.00   44.66   59.00  112.00 
 ```
 
-``` output
-“Default search for "data" layer in "Spatial" assay yielded no results; utilizing "counts" layer instead.”
-```
-
 ![](figures/SNA_tutorial_10Xdata/fig-01.png)
 
 ![](figures/SNA_tutorial_10Xdata/fig-02.png)
@@ -229,74 +197,6 @@ cluster_col = paste0("res_",resolution)
 ```
 
 ``` output
-Running SCTransform on assay: Spatial
-```
-
-``` output
-Running SCTransform on layer: counts
-```
-
-``` output
-vst.flavor='v2' set. Using model with fixed slope and excluding poisson genes.
-```
-
-``` output
-Variance stabilizing transformation of count matrix of size 280 by 7273
-```
-
-``` output
-Model formula is y ~ log_umi
-```
-
-``` output
-Get Negative Binomial regression parameters per gene
-```
-
-``` output
-Using 268 genes, 5000 cells
-```
-
-``` output
-Found 12 outliers - those will be ignored in fitting/regularization step
-```
-
-``` output
-Skip calculation of full residual matrix
-```
-
-``` output
-Will not return corrected UMI because residual type is not set to 'pearson'
-```
-
-``` output
-Calculating gene attributes
-```
-
-``` output
-Wall clock passed: Time difference of 1.779582 secs
-```
-
-``` output
-Setting min_variance based on median UMI:  0.04
-```
-
-``` output
-Calculating variance for residuals of type pearson for 280 genes
-```
-
-``` output
-Determine variable features
-```
-
-``` output
-Setting min_variance based on median UMI:  0.04
-```
-
-``` output
-Calculating residuals of type pearson for 280 genes
-```
-
-``` output
 
   |                                                                            
 ```
@@ -309,96 +209,6 @@ Calculating residuals of type pearson for 280 genes
 ``` output
 
   |                                                                            
-```
-
-``` output
-Computing corrected UMI count matrix
-```
-
-``` output
-Centering data matrix
-```
-
-``` output
-Getting residuals for block 1(of 2) for counts dataset
-```
-
-``` output
-Getting residuals for block 2(of 2) for counts dataset
-```
-
-``` output
-Centering data matrix
-```
-
-``` output
-Finished calculating residuals for counts
-```
-
-``` output
-Set default assay to SCT
-```
-
-``` output
-Computing nearest neighbor graph
-```
-
-``` output
-Computing SNN
-```
-
-``` output
-“The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
-To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
-This message will be shown once per session”
-```
-
-``` output
-15:37:28 UMAP embedding parameters a = 0.9922 b = 1.112
-```
-
-``` output
-15:37:28 Read 7273 rows and found 30 numeric columns
-```
-
-``` output
-15:37:28 Using Annoy for neighbor search, n_neighbors = 30
-```
-
-``` output
-15:37:28 Building Annoy index with metric = cosine, n_trees = 50
-```
-
-``` output
-15:37:29 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpHMu1Jl/file99c35e8beded
-```
-
-``` output
-15:37:29 Searching Annoy index using 1 thread, search_k = 3000
-```
-
-``` output
-15:37:30 Annoy recall = 100%
-```
-
-``` output
-15:37:31 Commencing smooth kNN distance calibration using 1 thread
-```
-
-``` output
- with target n_neighbors = 30
-```
-
-``` output
-15:37:33 Initializing from normalized Laplacian + noise (using RSpectra)
-```
-
-``` output
-15:37:33 Commencing optimization for 500 epochs, with 319794 positive edges
-```
-
-``` output
-15:37:40 Optimization finished
 ```
 
 ``` output
@@ -438,42 +248,6 @@ xenium.obj.markers %>%
   group_by(cluster) %>%
   dplyr::slice_max(avg_log2FC, n = 10) %>%
   as.data.frame() 
-```
-
-``` output
-Calculating cluster 0
-```
-
-``` output
-Calculating cluster 1
-```
-
-``` output
-Calculating cluster 2
-```
-
-``` output
-Calculating cluster 3
-```
-
-``` output
-Calculating cluster 4
-```
-
-``` output
-Calculating cluster 5
-```
-
-``` output
-Calculating cluster 6
-```
-
-``` output
-Calculating cluster 7
-```
-
-``` output
-Calculating cluster 8
 ```
 
 | p_val         | avg_log2FC | pct.1   | pct.2   | p_val_adj     | cluster | gene     |
@@ -591,16 +365,6 @@ Idents(xenium.obj) = xenium.obj@meta.data$new_cluster
 2389 1079  956  854  700  575  529  122   69 
 ```
 
-``` output
-As of Seurat v5, we recommend using AggregateExpression to perform pseudo-bulk analysis.
-This message is displayed once per session.
-```
-
-``` output
-First group.by variable `res_0.60` starts with a number, appending `g` to ensure valid variable names
-This message is displayed once every 8 hours.
-```
-
 |  | BasalMyo_epithelial_cells | Proliferating_epithelial_cells | BasalMyo_tumor_cells | Luminal_tumor_cells | Cytotoxic_T | B_and_plasma_cells | Tumor-associated_macrophages | Cancer-associated_fibroblasts | Endothelial_cells | Mast_cells |
 |----|----|----|----|----|----|----|----|----|----|----|
 | 0 | 1.46 | -0.09 | -0.25 | -0.03 | -0.37 | -0.28 | -0.48 | -0.62 | -0.34 | 0.04 |
@@ -655,11 +419,6 @@ g = CellDimPlot(
                              title = "cluster",
                              ncol = 1))
 g 
-```
-
-``` output
-Scale for colour is already present.
-Adding another scale for colour, which will replace the existing scale.
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-04.png)
@@ -845,10 +604,6 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
 ```
 
 ``` output
-stopping after 4 steps
-```
-
-``` output
 [1] "Elapsed time:"
 ```
 
@@ -877,10 +632,6 @@ g = ImageFeaturePlot(xenium.obj,
 g
 ```
 
-``` output
-“No FOV associated with assay 'SCT', using global default FOV”
-```
-
 ![](figures/SNA_tutorial_10Xdata/fig-07.png)
 
 ## Xenium Mouse Brain
@@ -897,42 +648,6 @@ xenium.obj <- LoadXenium(path, fov = "fov")
 xenium.obj <- subset(xenium.obj, subset = nCount_Xenium > 0)
 
 VlnPlot(xenium.obj, features = c("nFeature_Xenium", "nCount_Xenium"), ncol = 2, pt.size = 0)
-```
-
-``` output
-“cells did not contain a segmentation_method column. Skipping...”
-```
-
-``` output
-Genome matrix has multiple modalities, returning a list of matrices for this genome
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
-```
-
-``` output
-“Default search for "data" layer in "Xenium" assay yielded no results; utilizing "counts" layer instead.”
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-08.png)
@@ -954,176 +669,6 @@ xenium.obj <- RunPCA(xenium.obj, npcs = 30, features = rownames(xenium.obj))
 xenium.obj <- RunUMAP(xenium.obj, dims = 1:30)
 xenium.obj <- FindNeighbors(xenium.obj, reduction = "pca", dims = 1:30)
 xenium.obj <- FindClusters(xenium.obj, resolution = 0.3)
-```
-
-``` output
-Running SCTransform on assay: Xenium
-```
-
-``` output
-Running SCTransform on layer: counts
-```
-
-``` output
-vst.flavor='v2' set. Using model with fixed slope and excluding poisson genes.
-```
-
-``` output
-Variance stabilizing transformation of count matrix of size 248 by 36553
-```
-
-``` output
-Model formula is y ~ log_umi
-```
-
-``` output
-Get Negative Binomial regression parameters per gene
-```
-
-``` output
-Using 248 genes, 5000 cells
-```
-
-``` output
-Second step: Get residuals using fitted parameters for 248 genes
-```
-
-``` output
-Computing corrected count matrix for 248 genes
-```
-
-``` output
-Calculating gene attributes
-```
-
-``` output
-Wall clock passed: Time difference of 9.253556 secs
-```
-
-``` output
-Determine variable features
-```
-
-``` output
-Centering data matrix
-```
-
-``` output
-Getting residuals for block 1(of 8) for counts dataset
-```
-
-``` output
-Getting residuals for block 2(of 8) for counts dataset
-```
-
-``` output
-Getting residuals for block 3(of 8) for counts dataset
-```
-
-``` output
-Getting residuals for block 4(of 8) for counts dataset
-```
-
-``` output
-Getting residuals for block 5(of 8) for counts dataset
-```
-
-``` output
-Getting residuals for block 6(of 8) for counts dataset
-```
-
-``` output
-Getting residuals for block 7(of 8) for counts dataset
-```
-
-``` output
-Getting residuals for block 8(of 8) for counts dataset
-```
-
-``` output
-Centering data matrix
-```
-
-``` output
-Finished calculating residuals for counts
-```
-
-``` output
-Set default assay to SCT
-```
-
-``` output
-PC_ 1 
-Positive:  Slc17a7, Nrn1, Epha4, Neurod6, Nwd2, Gad1, Cpne4, Rasgrf2, Rims3, Lamp5 
-Negative:  Igf2, Dcn, Fmod, Slc13a4, Fn1, Aldh1a2, Col1a1, Ly6a, Cldn5, Spp1 
-PC_ 2 
-Positive:  Slc17a7, Fn1, Igf2, Nrn1, Cldn5, Epha4, Neurod6, Ly6a, Dcn, Rasgrf2 
-Negative:  Gjc3, Opalin, Sox10, Gfap, Clmn, Vwc2l, Zfp536, Sema6a, Gpr17, Gng12 
-PC_ 3 
-Positive:  Slc13a4, Igf2, Dcn, Fmod, Aldh1a2, Nwd2, Col1a1, Vat1l, Calb2, Spp1 
-Negative:  Cldn5, Ly6a, Adgrl4, Fn1, Pecam1, Acvrl1, Kdr, Cd93, Pglyrp1, Sox17 
-PC_ 4 
-Positive:  Slc17a7, Dkk3, Cabp7, Neurod6, 2010300C02Rik, Arc, Epha4, Igfbp4, Bcl11b, Fmod 
-Negative:  Nwd2, Calb2, Slc17a6, Necab2, Syt6, Vat1l, Nrp2, Sncg, Cpne4, Cldn5 
-PC_ 5 
-Positive:  Gad1, Pvalb, Gad2, Rab3b, Opalin, Gjc3, Dpy19l1, Cdh13, Sox10, Garnl3 
-Negative:  Cabp7, Gfap, Aqp4, Laptm5, Ntsr2, Trem2, Siglech, Acsbg1, Cd53, Slc39a12 
-```
-
-``` output
-15:41:29 UMAP embedding parameters a = 0.9922 b = 1.112
-```
-
-``` output
-15:41:29 Read 36553 rows and found 30 numeric columns
-```
-
-``` output
-15:41:29 Using Annoy for neighbor search, n_neighbors = 30
-```
-
-``` output
-15:41:29 Building Annoy index with metric = cosine, n_trees = 50
-```
-
-``` output
-15:41:33 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpHMu1Jl/file99c33a21767e
-```
-
-``` output
-15:41:33 Searching Annoy index using 1 thread, search_k = 3000
-```
-
-``` output
-15:41:42 Annoy recall = 100%
-```
-
-``` output
-15:41:44 Commencing smooth kNN distance calibration using 1 thread
-```
-
-``` output
- with target n_neighbors = 30
-```
-
-``` output
-15:41:46 Initializing from normalized Laplacian + noise (using RSpectra)
-```
-
-``` output
-15:41:47 Commencing optimization for 200 epochs, with 1669102 positive edges
-```
-
-``` output
-15:42:01 Optimization finished
-```
-
-``` output
-Computing nearest neighbor graph
-```
-
-``` output
-Computing SNN
 ```
 
 ``` output
@@ -1166,10 +711,6 @@ ImageDimPlot(xenium.obj, cols = "polychrome",
              size = 0.75)
 ```
 
-``` output
-“No FOV associated with assay 'SCT', using global default FOV”
-```
-
 ![](figures/SNA_tutorial_10Xdata/fig-12.png)
 
 ``` r
@@ -1181,11 +722,6 @@ coords <- GetTissueCoordinates(xenium.obj[["fov"]], which = "centroids")
 rownames(coords) <- coords$cell
 coords$cell <- NULL
 query <- SpatialRNA(coords, query.counts, colSums(query.counts))
-```
-
-``` output
-“The `slot` argument of `GetAssayData()` is deprecated as of SeuratObject 5.0.0.
-ℹ Please use the `layer` argument instead.”
 ```
 
 ``` r
@@ -1208,59 +744,11 @@ levels(cluster) <- gsub("/", "-", levels(cluster))
 reference <- Reference(counts, cluster, nUMI)
 ```
 
-``` output
-Validating object structure
-```
-
-``` output
-Updating object slots
-```
-
-``` output
-Ensuring keys are in the proper structure
-```
-
-``` output
-“Assay RNA changing from Assay to Assay”
-```
-
-``` output
-Ensuring keys are in the proper structure
-```
-
-``` output
-Ensuring feature names don't have underscores or pipes
-```
-
-``` output
-Updating slots in RNA
-```
-
-``` output
-Validating object structure for Assay ‘RNA’
-```
-
-``` output
-Object representation is consistent with the most current Seurat version
-```
-
 ``` r
 
 # run RCTD with many cores
 RCTD <- create.RCTD(query, reference, max_cores = 8)
 RCTD <- run.RCTD(RCTD, doublet_mode = "doublet")
-```
-
-``` output
-Begin: process_cell_type_info
-```
-
-``` output
-process_cell_type_info: number of cells in reference: 14242
-```
-
-``` output
-process_cell_type_info: number of genes in reference: 34617
 ```
 
 ``` output
@@ -1273,234 +761,6 @@ process_cell_type_info: number of genes in reference: 34617
         32       1337         27         55        125       1741       1728 
       VLMC 
         67 
-```
-
-``` output
-End: process_cell_type_info
-```
-
-``` output
-create.RCTD: getting regression differentially expressed genes: 
-```
-
-``` output
-get_de_genes: Astro found DE genes: 9
-```
-
-``` output
-get_de_genes: Endo found DE genes: 15
-```
-
-``` output
-get_de_genes: L2-3 IT found DE genes: 7
-```
-
-``` output
-get_de_genes: L4 found DE genes: 13
-```
-
-``` output
-get_de_genes: L5 IT found DE genes: 8
-```
-
-``` output
-get_de_genes: L5 PT found DE genes: 4
-```
-
-``` output
-get_de_genes: L6 CT found DE genes: 11
-```
-
-``` output
-get_de_genes: L6 IT found DE genes: 8
-```
-
-``` output
-get_de_genes: L6b found DE genes: 11
-```
-
-``` output
-get_de_genes: Lamp5 found DE genes: 9
-```
-
-``` output
-get_de_genes: Macrophage found DE genes: 11
-```
-
-``` output
-get_de_genes: Meis2 found DE genes: 12
-```
-
-``` output
-get_de_genes: NP found DE genes: 10
-```
-
-``` output
-get_de_genes: Oligo found DE genes: 7
-```
-
-``` output
-get_de_genes: Peri found DE genes: 10
-```
-
-``` output
-get_de_genes: Pvalb found DE genes: 7
-```
-
-``` output
-get_de_genes: Serpinf1 found DE genes: 9
-```
-
-``` output
-get_de_genes: SMC found DE genes: 13
-```
-
-``` output
-get_de_genes: Sncg found DE genes: 12
-```
-
-``` output
-get_de_genes: Sst found DE genes: 10
-```
-
-``` output
-get_de_genes: Vip found DE genes: 10
-```
-
-``` output
-get_de_genes: VLMC found DE genes: 13
-```
-
-``` output
-get_de_genes: total DE genes: 122
-```
-
-``` output
-create.RCTD: getting platform effect normalization differentially expressed genes: 
-```
-
-``` output
-get_de_genes: Astro found DE genes: 16
-```
-
-``` output
-get_de_genes: Endo found DE genes: 20
-```
-
-``` output
-get_de_genes: L2-3 IT found DE genes: 15
-```
-
-``` output
-get_de_genes: L4 found DE genes: 23
-```
-
-``` output
-get_de_genes: L5 IT found DE genes: 16
-```
-
-``` output
-get_de_genes: L5 PT found DE genes: 11
-```
-
-``` output
-get_de_genes: L6 CT found DE genes: 19
-```
-
-``` output
-get_de_genes: L6 IT found DE genes: 17
-```
-
-``` output
-get_de_genes: L6b found DE genes: 14
-```
-
-``` output
-get_de_genes: Lamp5 found DE genes: 15
-```
-
-``` output
-get_de_genes: Macrophage found DE genes: 11
-```
-
-``` output
-get_de_genes: Meis2 found DE genes: 16
-```
-
-``` output
-get_de_genes: NP found DE genes: 17
-```
-
-``` output
-get_de_genes: Oligo found DE genes: 12
-```
-
-``` output
-get_de_genes: Peri found DE genes: 13
-```
-
-``` output
-get_de_genes: Pvalb found DE genes: 12
-```
-
-``` output
-get_de_genes: Serpinf1 found DE genes: 16
-```
-
-``` output
-get_de_genes: SMC found DE genes: 17
-```
-
-``` output
-get_de_genes: Sncg found DE genes: 19
-```
-
-``` output
-get_de_genes: Sst found DE genes: 13
-```
-
-``` output
-get_de_genes: Vip found DE genes: 17
-```
-
-``` output
-get_de_genes: VLMC found DE genes: 16
-```
-
-``` output
-get_de_genes: total DE genes: 154
-```
-
-``` output
-fitBulk: decomposing bulk
-```
-
-``` output
-chooseSigma: using initial Q_mat with sigma =  1
-```
-
-``` output
-Likelihood value: 149571.609725169
-```
-
-``` output
-Sigma value:  0.84
-```
-
-``` output
-Likelihood value: 148159.897969503
-```
-
-``` output
-Sigma value:  0.7
-```
-
-``` output
-Likelihood value: 147678.589123498
-```
-
-``` output
-Sigma value:  0.7
 ```
 
 ``` output
@@ -1588,11 +848,6 @@ g = CellDimPlot(
                              title = "cluster",
                              ncol = 1))
 g 
-```
-
-``` output
-Scale for colour is already present.
-Adding another scale for colour, which will replace the existing scale.
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-14.png)
@@ -1705,10 +960,6 @@ summary(cooccur_local_df)
 ```
 
 ``` output
-stopping after 4 steps
-```
-
-``` output
 [1] "Elapsed time:"
 ```
 
@@ -1735,10 +986,6 @@ g = ImageFeaturePlot(xenium.obj,
                      #dark.background = F,
                      cols = c("white", "red"))
 g
-```
-
-``` output
-“No FOV associated with assay 'SCT', using global default FOV”
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-17.png)
