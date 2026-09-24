@@ -282,19 +282,27 @@ mods <- colocalization_modules(M, n_modules = 15)
 module_enrichment(mods, my_pathways)      # named list of gene sets
 ```
 
-## Figures from the paper
+## How the methods work
 
-- Spatial Neighborhood Analysis
+- Neighbourhood enrichment
+  ([`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md))
 
-![](reference/figures/Figure2.png)
+![](reference/figures/method_nhood.png)
+
+  
+
+- Local co-localization and hotspots
+  ([`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md))
+
+![](reference/figures/method_local.png)
 
   
 
-- Spatial Co-localization Score
-
-![](reference/figures/Figure3.png)
-
-  
+The JCI Insight paper below used an earlier version of these methods
+(neighbourhood enrichment reported as z-scores, and a random-walk
+co-localization score). Since 0.99.3 the package reports log2 O/E with
+permutation-based multiple-testing correction and the local O/E; see
+[NEWS](https://juninamo.github.io/spatialCooccur/news/index.html).
 
 ## 📝 Citation
 

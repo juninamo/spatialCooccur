@@ -479,34 +479,42 @@ line.</p>
 <span><span class="fu"><a href="../reference/plot_nhood_heatmap.html">plot_nhood_heatmap</a></span><span class="op">(</span><span class="va">nhood_res</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/SNA_tutorial_simulation/fig-02.png" style="width:100.0%"></p>
 <p><img src="figures/SNA_tutorial_simulation/fig-03.png" style="width:100.0%"></p>
-<p>Run the same analysis with different distance parameters</p>
+<p>Run the same analysis for different planted distances (20 new tissues
+each). Compare the effect size <code>log2_oe</code> and count how often
+the planted pair passes <code>padj &lt; 0.05</code>; the unrelated pair
+should stay at 0 and never pass. In this <em>circle</em> design, type-2
+cells form a ring at the planted distance around a disc of type-1 cells.
+Up to about 50 um the ring lies within the k-neighbourhood and the pair
+is enriched; at 75-100 um the ring keeps the two types apart, so the
+pair becomes significantly <em>depleted</em> (negative log2 O/E).</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="va">seed</span><span class="op">)</span></span>
 <span><span class="va">random_seeds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1000</span><span class="op">:</span><span class="fl">9999</span>, <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="va">n_types_sim</span> <span class="op">&lt;-</span> <span class="va">n_types</span></span>
 <span></span>
+<span><span class="co"># For each planted distance: 20 new tissues; keep the effect size (log2_oe) and the</span></span>
+<span><span class="co"># max-T adjusted p-value (padj) of the planted pair and of an unrelated pair</span></span>
 <span><span class="va">accuracy_df_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span>, <span class="fl">50</span>, <span class="fl">75</span>, <span class="fl">100</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">distance_param</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">random_seeds</span>, <span class="kw">function</span><span class="op">(</span><span class="va">seed_</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="co"># a new tissue for every seed</span></span>
 <span>    <span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_sim.html">generate_sim</a></span><span class="op">(</span>close_ratio <span class="op">=</span> <span class="va">close_ratio</span>, n_types <span class="op">=</span> <span class="va">n_types_sim</span>, max_loc <span class="op">=</span> <span class="va">max_loc</span>,</span>
 <span>                       n_cells <span class="op">=</span> <span class="va">n_cells</span>, test_type <span class="op">=</span> <span class="st">"circle"</span>,</span>
 <span>                       distance_param <span class="op">=</span> <span class="va">distance_param</span>, seed <span class="op">=</span> <span class="va">seed_</span><span class="op">)</span></span>
-<span>    <span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span><span class="va">df</span>, cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, neighbors.k <span class="op">=</span> <span class="va">neighbors.k_</span>,</span>
+<span>    <span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span><span class="va">df</span>, cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, neighbors.k <span class="op">=</span> <span class="va">neighbors.k_</span>,</span>
 <span>                          connectivity_key <span class="op">=</span> <span class="st">"nn"</span>, transformation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                          n_perms <span class="op">=</span> <span class="va">n_perm</span>, seed <span class="op">=</span> <span class="va">seed_</span>, n_jobs <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">$</span><span class="va">zscore</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"^Cluster"</span>, <span class="st">""</span>, <span class="va">v</span><span class="op">)</span><span class="op">)</span></span>
+<span>                          n_perms <span class="op">=</span> <span class="va">n_perm</span>, seed <span class="op">=</span> <span class="va">seed_</span>, n_jobs <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="va">L</span> <span class="op">&lt;-</span> <span class="va">r</span><span class="op">$</span><span class="va">log2_oe</span>; <span class="va">P</span> <span class="op">&lt;-</span> <span class="va">r</span><span class="op">$</span><span class="va">padj</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">L</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">P</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">L</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"^Cluster"</span>, <span class="st">""</span>, <span class="va">v</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>test_type <span class="op">=</span> <span class="st">"circle"</span>, seed <span class="op">=</span> <span class="va">seed_</span>, distance_param <span class="op">=</span> <span class="va">distance_param</span>,</span>
-<span>               zscore <span class="op">=</span> <span class="va">z</span><span class="op">[</span><span class="st">"cell_type_1"</span>, <span class="st">"cell_type_2"</span><span class="op">]</span>,        <span class="co"># planted pair</span></span>
-<span>               zscore_false <span class="op">=</span> <span class="va">z</span><span class="op">[</span><span class="st">"cell_type_3"</span>, <span class="st">"cell_type_4"</span><span class="op">]</span><span class="op">)</span>  <span class="co"># unrelated pair</span></span>
+<span>               pair <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"planted (1-2)"</span>, <span class="st">"unrelated (3-4)"</span><span class="op">)</span>,</span>
+<span>               log2_oe <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">L</span><span class="op">[</span><span class="st">"cell_type_1"</span>, <span class="st">"cell_type_2"</span><span class="op">]</span>, <span class="va">L</span><span class="op">[</span><span class="st">"cell_type_3"</span>, <span class="st">"cell_type_4"</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>               padj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">P</span><span class="op">[</span><span class="st">"cell_type_1"</span>, <span class="st">"cell_type_2"</span><span class="op">]</span>, <span class="va">P</span><span class="op">[</span><span class="st">"cell_type_3"</span>, <span class="st">"cell_type_4"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">accuracy_df_all</span><span class="op">$</span><span class="va">n_types</span> <span class="op">&lt;-</span> <span class="va">n_types_sim</span></span>
-<span><span class="va">accuracy_df_all</span><span class="op">$</span><span class="va">neighbors.k_</span> <span class="op">&lt;-</span> <span class="va">neighbors.k_</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">accuracy_df_all</span><span class="op">)</span></span></code></pre></div>
 <div class="nb-output">
 <table class="table dataframe">
 <caption>
-A data.frame: 6 × 7
+A data.frame: 6 × 6
 </caption>
 <thead>
 <tr>
@@ -522,16 +530,13 @@ seed
 distance_param
 </th>
 <th scope="col">
-zscore
+pair
 </th>
 <th scope="col">
-zscore_false
+log2_oe
 </th>
 <th scope="col">
-n_types
-</th>
-<th scope="col">
-neighbors.k_
+padj
 </th>
 </tr>
 <tr>
@@ -547,10 +552,7 @@ neighbors.k_
 &lt;dbl&gt;
 </th>
 <th scope="col">
-&lt;dbl&gt;
-</th>
-<th scope="col">
-&lt;dbl&gt;
+&lt;chr&gt;
 </th>
 <th scope="col">
 &lt;dbl&gt;
@@ -575,21 +577,41 @@ circle
 5
 </td>
 <td>
-14.520796
+planted (1-2)
 </td>
 <td>
--1.76518826
+1.4170049
 </td>
 <td>
-15
-</td>
-<td>
-30
+0.004975124
 </td>
 </tr>
 <tr>
 <th scope="row">
 2
+</th>
+<td>
+circle
+</td>
+<td>
+8451
+</td>
+<td>
+5
+</td>
+<td>
+unrelated (3-4)
+</td>
+<td>
+-0.3660417
+</td>
+<td>
+1.000000000
+</td>
+</tr>
+<tr>
+<th scope="row">
+3
 </th>
 <td>
 circle
@@ -601,21 +623,41 @@ circle
 5
 </td>
 <td>
-13.357590
+planted (1-2)
 </td>
 <td>
-1.39006821
+1.4777119
 </td>
 <td>
-15
-</td>
-<td>
-30
+0.004975124
 </td>
 </tr>
 <tr>
 <th scope="row">
-3
+4
+</th>
+<td>
+circle
+</td>
+<td>
+9015
+</td>
+<td>
+5
+</td>
+<td>
+unrelated (3-4)
+</td>
+<td>
+0.2595118
+</td>
+<td>
+1.000000000
+</td>
+</tr>
+<tr>
+<th scope="row">
+5
 </th>
 <td>
 circle
@@ -627,68 +669,13 @@ circle
 5
 </td>
 <td>
-8.586912
+planted (1-2)
 </td>
 <td>
-0.60730654
+1.0198249
 </td>
 <td>
-15
-</td>
-<td>
-30
-</td>
-</tr>
-<tr>
-<th scope="row">
-4
-</th>
-<td>
-circle
-</td>
-<td>
-9085
-</td>
-<td>
-5
-</td>
-<td>
-14.766955
-</td>
-<td>
-1.51380353
-</td>
-<td>
-15
-</td>
-<td>
-30
-</td>
-</tr>
-<tr>
-<th scope="row">
-5
-</th>
-<td>
-circle
-</td>
-<td>
-8268
-</td>
-<td>
-5
-</td>
-<td>
-14.253751
-</td>
-<td>
-0.06186447
-</td>
-<td>
-15
-</td>
-<td>
-30
+0.004975124
 </td>
 </tr>
 <tr>
@@ -699,22 +686,19 @@ circle
 circle
 </td>
 <td>
-1622
+8161
 </td>
 <td>
 5
 </td>
 <td>
-15.785288
+unrelated (3-4)
 </td>
 <td>
--0.42544077
+0.1369396
 </td>
 <td>
-15
-</td>
-<td>
-30
+1.000000000
 </td>
 </tr>
 </tbody>
@@ -722,43 +706,24 @@ circle
 </div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">summary_df</span> <span class="op">&lt;-</span> <span class="va">accuracy_df_all</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>zscore_false <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">zscore_false</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">zscore</span>, <span class="va">zscore_false</span><span class="op">)</span>, names_to <span class="op">=</span> <span class="st">"zscore_type"</span>, values_to <span class="op">=</span> <span class="st">"zscore"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">zscore_type</span>, <span class="va">test_type</span>, <span class="va">distance_param</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
-<span>    median_zscore <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">zscore</span><span class="op">)</span>,</span>
-<span>    lower_ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">zscore</span>, <span class="fl">0.025</span><span class="op">)</span>,</span>
-<span>    upper_ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">zscore</span>, <span class="fl">0.975</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">pair</span>, <span class="va">distance_param</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>median <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">log2_oe</span><span class="op">)</span>,</span>
+<span>                   lower_ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">log2_oe</span>, <span class="fl">0.025</span><span class="op">)</span>, upper_ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">log2_oe</span>, <span class="fl">0.975</span><span class="op">)</span>,</span>
+<span>                   detected <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">padj</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width<span class="op">=</span><span class="fl">6</span>, repr.plot.height<span class="op">=</span><span class="fl">6</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">summary_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">distance_param</span>, y <span class="op">=</span> <span class="va">median_zscore</span>, color <span class="op">=</span> <span class="va">zscore_type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lower_ci</span>, ymax <span class="op">=</span> <span class="va">upper_ci</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="va">test_type</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    x <span class="op">=</span> <span class="st">"Distance Parameter"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Z-score"</span>,</span>
-<span>    title <span class="op">=</span> <span class="st">"Z-score Median and Confidence Interval by Distance Parameter"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"n_types:"</span>, <span class="va">n_types</span>, <span class="st">"| neighbors.k_:"</span>, <span class="va">neighbors.k_</span>, <span class="st">"| close_ratio:"</span>, <span class="va">close_ratio</span>, <span class="st">"| max_loc:"</span>, <span class="va">max_loc</span>, <span class="st">"| n_cells:"</span>, <span class="va">n_cells</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">summary_df</span><span class="op">$</span><span class="va">distance_param</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"zscore"</span> <span class="op">=</span> <span class="st">"red"</span>, <span class="st">"zscore_false"</span> <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>  </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span>  </span>
-<span>  <span class="co">#geom_hline(yintercept = 1.96, linetype = "dashed", color = "grey70") +  </span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="op">(</span><span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span><span class="op">/</span><span class="va">n_types</span><span class="op">)</span>,<span class="cn">F</span><span class="op">)</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"grey70"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    strip.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>, </span>
-<span>    axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span>,</span>
-<span>    axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9</span>, angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<pre class="output"><code>`summarise()` has grouped output by 'zscore_type', 'test_type'. You can
-override using the `.groups` argument.</code></pre>
-<pre class="output"><code>“Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-ℹ Please use `linewidth` instead.”</code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width <span class="op">=</span> <span class="fl">7</span>, repr.plot.height <span class="op">=</span> <span class="fl">5.5</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">summary_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">distance_param</span>, <span class="va">median</span>, color <span class="op">=</span> <span class="va">pair</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lower_ci</span>, ymax <span class="op">=</span> <span class="va">upper_ci</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">summary_df</span>, <span class="va">pair</span> <span class="op">==</span> <span class="st">"planted (1-2)"</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent</a></span><span class="op">(</span><span class="va">detected</span>, accuracy <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, vjust <span class="op">=</span> <span class="op">-</span><span class="fl">1.2</span>, size <span class="op">=</span> <span class="fl">3.5</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">summary_df</span><span class="op">$</span><span class="va">distance_param</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"planted (1-2)"</span> <span class="op">=</span> <span class="st">"red"</span>, <span class="st">"unrelated (3-4)"</span> <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span>, name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Planted distance (um)"</span>, y <span class="op">=</span> <span class="st">"log2 O/E (median and 95% range of 20 tissues)"</span>,</span>
+<span>       title <span class="op">=</span> <span class="st">"Planted pair (circle design) at different distances"</span>,</span>
+<span>       subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"labels: tissues with padj &lt; 0.05 (max-T), enriched or depleted\nn_types: "</span>, <span class="va">n_types</span>,</span>
+<span>                         <span class="st">" | neighbors.k: "</span>, <span class="va">neighbors.k_</span>, <span class="st">" | n_cells: "</span>, <span class="va">n_cells</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/SNA_tutorial_simulation/fig-04.png" style="width:100.0%"></p>
 </div>
 <div class="section level2">
@@ -768,7 +733,7 @@ override using the `.groups` argument.</code></pre>
 cell_type_2 in “cell_type” cik) are close to each other. Here we assume
 that cell_type_1 and cell_type_2 are close to each other (concentric
 cicle) by close_ratio.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seed</span><span class="op">=</span><span class="fl">1234</span></span>
 <span><span class="va">close_ratio</span><span class="op">=</span><span class="fl">1</span>  <span class="co"># proportion of cell_type_1 and cell_type_2 that are close to each other</span></span>
 <span><span class="va">n_types</span><span class="op">=</span><span class="fl">10</span>  <span class="co"># Number of cell types</span></span>
@@ -909,7 +874,7 @@ cell_type_1
 </table>
 </div>
 <p>check the distribution of cell types in the space</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_colors</span> <span class="op">=</span> <span class="va">manual_colors</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cluster_colors</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"cell_type_"</span>,<span class="fl">1</span><span class="op">:</span><span class="va">n_types</span><span class="op">)</span></span>
 <span></span>
@@ -938,7 +903,7 @@ cell_type_1
 <span><span class="va">g1</span><span class="op">|</span><span class="va">g2</span></span></code></pre></div>
 <p><img src="figures/SNA_tutorial_simulation/fig-05.png" style="width:100.0%"></p>
 <p>Run co-localization analysis</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_x</span> <span class="op">&lt;-</span> <span class="st">"cell_type_1"</span></span>
 <span><span class="va">cluster_y</span> <span class="op">&lt;-</span> <span class="st">"cell_type_2"</span></span>
 <span></span>
@@ -963,7 +928,7 @@ cell_type_1
  3rd Qu.:0.161757                     
  Max.   :0.231130                     </code></pre>
 <p>Check how the co-localization score is distributed in the space</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g3</span> <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>               <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>score <span class="op">=</span> <span class="va">cooccur_local_df</span><span class="op">$</span><span class="va">cooccur_local_cell_type_1_cell_type_2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -984,7 +949,7 @@ cell_type_1
 <p><img src="figures/SNA_tutorial_simulation/fig-06.png" style="width:100.0%"></p>
 <p>Check the relationship between the co-localization score and the
 distance between cell_type_1 and cell_type_2</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">one_cells</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cell_type</span><span class="op">==</span><span class="st">"cell_type_1"</span><span class="op">)</span></span>
 <span><span class="va">two_cells</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cell_type</span><span class="op">==</span><span class="st">"cell_type_2"</span><span class="op">)</span></span>
 <span></span>
@@ -1029,7 +994,7 @@ distance between cell_type_1 and cell_type_2</p>
 <p>Check the ROC curve and AUC value to evaluate the performance of the
 co-localization score</p>
 <p>Check the distribution of the co-localization score by cell type</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">coords_df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cell_type</span>, y <span class="op">=</span> <span class="va">score</span>, fill <span class="op">=</span> <span class="va">cell_type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1053,7 +1018,7 @@ pairs with Gaussian weights of width <code>bandwidth</code>. With
 <code>n_perms &gt; 0</code> it also tests every cell (hotspots, BH over
 cells). Unlike the mean sCLS below, the section-level value does not
 grow with the abundance of the two cell types.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"cell"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">lo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cooccur_local_oe.html">cooccur_local_oe</a></span><span class="op">(</span><span class="va">df</span>, <span class="st">"cell_type_1"</span>, <span class="st">"cell_type_2"</span>, radius <span class="op">=</span> <span class="fl">30</span>, n_perms <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">lo</span>, <span class="st">"section_log2_oe"</span><span class="op">)</span></span>
@@ -1067,7 +1032,7 @@ grow with the abundance of the two cell types.</p>
 <p>1.99828623708995</p>
 </div>
 <p><img src="figures/SNA_tutorial_simulation/fig-09.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>R version 4.3.2 (2023-10-31)
 Platform: aarch64-apple-darwin20 (64-bit)

@@ -394,7 +394,7 @@
 </div>
 </div>
 <div class="section level2">
-<h2 id="figures-from-the-paper">Figures from the paper<a class="anchor" aria-label="anchor" href="#figures-from-the-paper"></a>
+<h2 id="how-the-methods-work">How the methods work<a class="anchor" aria-label="anchor" href="#how-the-methods-work"></a>
 </h2>
 <!--
 ## Citation
@@ -409,15 +409,16 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 &nbsp;&nbsp;
 -->
 <ul>
-<li>Spatial Neighborhood Analysis</li>
+<li>Neighbourhood enrichment (<code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code>)</li>
 </ul>
-<p><kbd> <img src="reference/figures/Figure2.png" width="800" align="center"></kbd></p>
+<p><kbd> <img src="reference/figures/method_nhood.png" width="800" align="center"></kbd></p>
 <p>  </p>
 <ul>
-<li>Spatial Co-localization Score</li>
+<li>Local co-localization and hotspots (<code><a href="reference/cooccur_local_oe.html">cooccur_local_oe()</a></code>)</li>
 </ul>
-<p><kbd> <img src="reference/figures/Figure3.png" width="800" align="center"></kbd></p>
+<p><kbd> <img src="reference/figures/method_local.png" width="800" align="center"></kbd></p>
 <p>  </p>
+<p>The JCI Insight paper below used an earlier version of these methods (neighbourhood enrichment reported as z-scores, and a random-walk co-localization score). Since 0.99.3 the package reports log2 O/E with permutation-based multiple-testing correction and the local O/E; see <a href="https://juninamo.github.io/spatialCooccur/news/index.html">NEWS</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="pencil-citation">📝 Citation<a class="anchor" aria-label="anchor" href="#pencil-citation"></a>
