@@ -101,6 +101,7 @@ reference:
   - read_xenium_transcripts
   - bin_transcripts
   - pcf_cross
+  - pcf_matrix
   - fit_spatial_rff
   - rff_pair_correlation
   - colocalization_per_sample

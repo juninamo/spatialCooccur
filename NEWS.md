@@ -37,6 +37,14 @@
   goes into `compare_groups()` with `pair_keys = c("cluster_i", "cluster_j", "r")`.
   Simulators `simulate_transcripts()` / `simulate_transcripts_groups()` and
   `lgcp_true_pair_correlation()` support validation.
+  `read_xenium_transcripts()` reads Xenium transcript tables (binary gene
+  names in older outputs, qv filter, gene filtering inside Arrow for 5K
+  panels) and `pcf_matrix()` computes all gene-set pairs with cached FFTs.
+* `compare_groups()` supports paired / repeated-measures designs
+  (e.g. pre- vs post-treatment): new `method = "signrank"`, and
+  `method = "perm"` now permutes labels within patients when patients appear
+  in both groups (the previous between-patient permutation was invalid for
+  such designs).
 
 * `nhood_enrichment()` also returns `expected` (permutation mean) and
   `log2_oe` (log2 observed / expected), an effect size that does not grow with

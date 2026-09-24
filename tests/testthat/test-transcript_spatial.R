@@ -74,3 +74,18 @@ test_that("fit_spatial_rff supports a smoothed-total offset", {
   lg <- rff_pair_correlation(fit, c("A_1", "A_2"), c("B_1", "B_2"), r = 10, type = "composition")
   expect_true(is.finite(lg$log_g))
 })
+
+test_that("pcf_matrix agrees with pcf_cross", {
+  tx <- simulate_transcripts(size = 100, rate = 0.02, n_genes_per_set = 2, seed = 12)
+  sets <- split(attr(tx, "truth")$genes, attr(tx, "truth")$set_of)
+  b <- bin_transcripts(tx, bin_size = 5)
+  m <- pcf_matrix(b, sets, r_max = 30)
+  expect_equal(nrow(m), 6L * length(unique(m$r)))
+  ab <- pcf_cross(b, sets$A, sets$B, r_max = 30)
+  ab_rel <- pcf_cross(b, sets$A, sets$B, r_max = 30, relative = TRUE)
+  aa <- pcf_cross(b, sets$A, r_max = 30)
+  mm <- m[m$cluster_i == "A" & m$cluster_j == "B", ]
+  expect_equal(mm$log_g, ab$log_g, tolerance = 1e-8)
+  expect_equal(mm$log_g_rel, ab_rel$log_g, tolerance = 1e-8)
+  expect_equal(m$log_g[m$cluster_i == "A" & m$cluster_j == "A"], aa$log_g, tolerance = 1e-8)
+})

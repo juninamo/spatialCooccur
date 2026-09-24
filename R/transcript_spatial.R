@@ -225,6 +225,11 @@ lgcp_true_pair_correlation <- function(truth, set_a, set_b, r,
 #'   `BLANK`, `Unassigned`, `Deprecated`, `antisense` or `Intergenic`.
 #' @param bbox Optional `c(xmin, xmax, ymin, ymax)` crop, applied while
 #'   reading.
+#' @param genes Optional character vector of genes to keep. Filtering
+#'   happens in Arrow before the data reach R, which keeps memory use low for
+#'   5K-panel sections with 10^8 transcripts.
+#' @param extra_columns Also return `z`, `cell_id` and `overlaps_nucleus`
+#'   when present (default `TRUE`; set `FALSE` to save memory).
 #'
 #' @return A data.frame.
 #' @export
@@ -233,7 +238,8 @@ lgcp_true_pair_correlation <- function(truth, set_a, set_b, r,
 #' tx <- read_xenium_transcripts("Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_outs")
 #' b <- bin_transcripts(tx, bin_size = 4)
 #' }
-read_xenium_transcripts <- function(path, qv_min = 20, drop_controls = TRUE, bbox = NULL) {
+read_xenium_transcripts <- function(path, qv_min = 20, drop_controls = TRUE, bbox = NULL,
+                                    genes = NULL, extra_columns = TRUE) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
     stop("read_xenium_transcripts() requires the 'arrow' package.")
   }
@@ -249,11 +255,24 @@ read_xenium_transcripts <- function(path, qv_min = 20, drop_controls = TRUE, bbo
   } else {
     arrow::read_csv_arrow(file, as_data_frame = FALSE)
   }
+  wanted <- c("x_location", "y_location", "feature_name", "qv",
+              if (extra_columns) c("z_location", "cell_id", "overlaps_nucleus"))
+  tbl <- tbl$SelectColumns(match(intersect(wanted, names(tbl)), names(tbl)) - 1L)
   # older Xenium outputs store strings as binary: cast them to UTF-8
   for (nm in intersect(c("feature_name", "cell_id"), names(tbl))) {
-    if (inherits(tbl[[nm]]$type, "Binary") || tbl[[nm]]$type$ToString() %in% c("binary", "large_binary")) {
+    if (tbl[[nm]]$type$ToString() %in% c("binary", "large_binary")) {
       tbl[[nm]] <- tbl[[nm]]$cast(arrow::utf8())
     }
+  }
+  # filter in Arrow before materializing in R
+  if (!is.null(qv_min) && "qv" %in% names(tbl)) {
+    tbl <- tbl$Filter(arrow::call_function("greater_equal", tbl$qv, arrow::Scalar$create(qv_min)))
+  }
+  if (!is.null(genes)) {
+    sel <- arrow::call_function("is_in", tbl$feature_name,
+                                options = list(value_set = arrow::Array$create(as.character(genes)),
+                                               skip_nulls = TRUE))
+    tbl <- tbl$Filter(sel)
   }
   df <- as.data.frame(tbl)
   out <- data.frame(x = df$x_location, y = df$y_location,
@@ -261,8 +280,8 @@ read_xenium_transcripts <- function(path, qv_min = 20, drop_controls = TRUE, bbo
   if ("z_location" %in% names(df)) out$z <- df$z_location
   if ("qv" %in% names(df)) out$qv <- df$qv
   for (nm in intersect(c("cell_id", "overlaps_nucleus"), names(df))) out[[nm]] <- df[[nm]]
+  rm(df)
   keep <- rep(TRUE, nrow(out))
-  if (!is.null(qv_min) && "qv" %in% names(out)) keep <- keep & out$qv >= qv_min
   if (drop_controls) {
     keep <- keep & !grepl("^(NegControl|BLANK|Unassigned|Deprecated|antisense|Intergenic)", out$gene)
   }
@@ -420,6 +439,83 @@ pcf_cross <- function(binned, set_a, set_b = set_a, r_max = 100,
     res$log_g <- log(res$g)
   }
   res
+}
+
+#' Cross pair correlation for every pair of gene sets
+#'
+#' **Experimental.** Compute [pcf_cross()] for all pairs of gene sets at
+#' once. The FFT of each set is computed a single time, which makes whole
+#' 5K-panel Xenium sections with dozens of pairs practical.
+#'
+#' @param binned A `binned_transcripts` object.
+#' @param gene_sets Named list of gene vectors.
+#' @param r_max,r_step Distance range and annulus width.
+#' @param reference Genes defining the reference pattern for the relative
+#'   pair correlation (default: all binned genes; with a marker-only
+#'   binning this is "all marker transcripts", the analogue of permuting
+#'   labels among typed cells).
+#'
+#' @return A data.frame with `cluster_i`, `cluster_j` (unordered, i <= j in
+#'   the order of `gene_sets`), `r`, `log_g` (full) and `log_g_rel`
+#'   (relative to the reference).
+#' @export
+#' @examples
+#' tx <- simulate_transcripts(size = 150, rate = 0.01)
+#' b <- bin_transcripts(tx, bin_size = 5)
+#' sets <- split(attr(tx, "truth")$genes, attr(tx, "truth")$set_of)
+#' head(pcf_matrix(b, sets, r_max = 30))
+pcf_matrix <- function(binned, gene_sets, r_max = 100, r_step = binned$grid$bin_size,
+                       reference = binned$genes) {
+  if (!inherits(binned, "binned_transcripts")) stop("`binned` must come from bin_transcripts().")
+  if (is.null(names(gene_sets)) || any(names(gene_sets) == "")) stop("gene_sets must be a named list.")
+  gene_sets <- lapply(gene_sets, intersect, binned$genes)
+  gene_sets <- gene_sets[lengths(gene_sets) > 0]
+  g <- binned$grid
+  nx <- g$nx; ny <- g$ny; d <- g$bin_size
+  mask <- matrix(as.numeric(binned$coords$in_tissue), nx, ny)
+  field <- function(genes) {
+    matrix(Matrix::rowSums(binned$counts[, genes, drop = FALSE]), nx, ny) * mask
+  }
+  px <- stats::nextn(2 * nx); py <- stats::nextn(2 * ny)
+  pad <- function(m) { out <- matrix(0, px, py); out[seq_len(nx), seq_len(ny)] <- m; out }
+  inv <- function(fa, fb) Re(stats::fft(Conj(fa) * fb, inverse = TRUE)) / (px * py)
+  lag <- function(p) { k <- 0:(p - 1); ifelse(k < p / 2, k, k - p) }
+  dist <- d * sqrt(outer(lag(px)^2, lag(py)^2, "+"))
+  fm <- stats::fft(pad(mask))
+  overlap <- inv(fm, fm)
+  ok <- overlap > 0.5 & dist <= r_max + r_step / 2
+  breaks <- seq(0, r_max + r_step, by = r_step)
+  ann <- findInterval(dist[ok], breaks)
+  ov_ann <- tapply(overlap[ok], ann, sum)
+  idx <- as.integer(names(ov_ann))
+  rmid <- (breaks[idx] + breaks[idx + 1]) / 2
+  area_bins <- sum(mask)
+  curve <- function(fa_hat, fb_hat, tot_a, tot_b, self) {
+    pairs <- inv(fa_hat, fb_hat)
+    pairs[1, 1] <- pairs[1, 1] - self
+    obs <- tapply(pairs[ok], ann, sum)
+    as.numeric(obs / (ov_ann * (tot_a / area_bins) * (tot_b / area_bins)))
+  }
+  fields <- lapply(gene_sets, field)
+  hats <- lapply(fields, function(m) stats::fft(pad(m)))
+  tots <- vapply(fields, sum, numeric(1))
+  ref <- intersect(reference, binned$genes)
+  fr <- field(ref)
+  g_ref <- curve(stats::fft(pad(fr)), stats::fft(pad(fr)), sum(fr), sum(fr), sum(fr))
+  nm <- names(gene_sets)
+  out <- list()
+  for (i in seq_along(nm)) for (j in i:length(nm)) {
+    shared <- intersect(gene_sets[[i]], gene_sets[[j]])
+    self <- if (length(shared)) sum(field(shared)) else 0
+    gg <- curve(hats[[i]], hats[[j]], tots[[i]], tots[[j]], self)
+    out[[length(out) + 1L]] <- data.frame(
+      cluster_i = nm[i], cluster_j = nm[j], r = rmid,
+      log_g = log(pmax(gg, .Machine$double.eps)),
+      log_g_rel = log(pmax(gg, .Machine$double.eps)) - log(pmax(g_ref, .Machine$double.eps)),
+      n_i = tots[[i]], n_j = tots[[j]], stringsAsFactors = FALSE)
+  }
+  res <- do.call(rbind, out)
+  res[res$r <= r_max, , drop = FALSE]
 }
 
 .pcf_fft <- function(binned, set_a, set_b, r_max, r_step) {
