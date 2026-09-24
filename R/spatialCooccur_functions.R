@@ -465,6 +465,30 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
 # Internal: permutation null shared by nhood_enrichment() and its Seurat
 # method. Returns observed counts, permutation mean ("expected"), z-score and
 # log2(observed / expected).
+# Internal: directional neighbourhood statistics (row = centre cell type i,
+# column = neighbour cell type j; not symmetric), from the unweighted kNN graph
+# without the cell itself:
+#   contact[i, j]   = share of type-i cells with >= 1 type-j neighbour
+#   dominance[i, j] = share of type-i cells whose neighbours are at least half type j
+.directional <- function(adj, int_clust, lv) {
+  Ab <- Matrix::drop0((adj != 0) * 1)
+  Matrix::diag(Ab) <- 0
+  deg <- Matrix::rowSums(Ab)
+  j <- match(int_clust, lv); keep <- !is.na(j)
+  M <- Matrix::sparseMatrix(i = which(keep), j = j[keep], x = 1, dims = c(length(int_clust), length(lv)))
+  nb <- as.matrix(Ab %*% M)                                   # neighbours of each type, per cell
+  n_i <- Matrix::colSums(M)
+  agg <- function(hit) { P <- as.matrix(Matrix::t(M) %*% (hit * 1)) / n_i; P[n_i == 0, ] <- NA_real_; dimnames(P) <- list(lv, lv); P }
+  list(contact = agg(nb >= 1), dominance = agg(nb >= pmax(1, deg / 2)))
+}
+
+# Internal: one label shuffle -> contact counts and directional statistics from the same labels.
+.permute_both <- function(adj, int_clust, n_cls, cluster_data, transformation, lv) {
+  perm <- sample(int_clust)
+  c(list(count = compute_count(adj, int_clust_row = perm, int_clust_col = perm, n_cls, cluster_data, transformation)),
+    .directional(adj, perm, lv))
+}
+
 .nhood_permutation_core <- function(adj, cluster_data, transformation, n_perms, seed, n_jobs) {
   # Keep pre-set factor levels (e.g. harmonized across samples) so that absent
   # cell types yield NA rather than silently dropping rows / columns.
@@ -474,11 +498,13 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
 
   count <- compute_count(adj, int_clust_row = int_clust, int_clust_col = int_clust,
                          n_cls, cluster_data, transformation)
+  lv <- paste0("Cluster", levels(cluster_data))
+  dir_obs <- .directional(adj, int_clust, lv)
 
   .local_seed(seed)
   run_seq <- function() {
     .seed_rng(seed)
-    lapply(seq_len(n_perms), function(x) permute_clusters(adj, int_clust, n_cls, cluster_data, transformation))
+    lapply(seq_len(n_perms), function(x) .permute_both(adj, int_clust, n_cls, cluster_data, transformation, lv))
   }
   perms <- if (n_jobs <= 1L) {
     run_seq()
@@ -491,13 +517,15 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
     # workers do not need spatialCooccur itself to be installed.
     fn_env <- new.env(parent = baseenv())
     fn_env$compute_count <- compute_count
-    fn_env$permute_clusters <- permute_clusters
+    fn_env$.directional <- .directional
+    fn_env$.permute_both <- .permute_both
     environment(fn_env$compute_count) <- fn_env
-    environment(fn_env$permute_clusters) <- fn_env
-    worker <- function(x) fn_env$permute_clusters(adj, int_clust, n_cls, cluster_data, transformation)
+    environment(fn_env$.directional) <- fn_env
+    environment(fn_env$.permute_both) <- fn_env
+    worker <- function(x) fn_env$.permute_both(adj, int_clust, n_cls, cluster_data, transformation, lv)
     environment(worker) <- list2env(
       list(fn_env = fn_env, adj = adj, int_clust = int_clust, n_cls = n_cls,
-           cluster_data = cluster_data, transformation = transformation),
+           cluster_data = cluster_data, transformation = transformation, lv = lv),
       parent = baseenv()
     )
     out <- NULL
@@ -516,6 +544,8 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
     out
   }
 
+  dir_perm <- lapply(c(contact = "contact", dominance = "dominance"), function(nm) lapply(perms, `[[`, nm))
+  perms <- lapply(perms, `[[`, "count")
   arr <- simplify2array(perms)
   perm_mean <- apply(arr, c(1, 2), mean)
   perm_sd <- apply(arr, c(1, 2), sd)
@@ -574,8 +604,28 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
   padj_bh <- to_mat(stats::p.adjust(p_norm, method = "BH"))
   dimnames(log2_oe) <- dimnames(log2_oe_raw) <- dimnames(pvalue) <- dimnames(padj) <- dimnames(padj_bh) <- dimnames(count)
 
-  list(zscore = zscore, count = count, expected = perm_mean, log2_oe = log2_oe,
-       log2_oe_raw = log2_oe_raw, pvalue = pvalue, padj = padj, padj_bh = padj_bh)
+  # Directional statistics (row = centre cell type, column = neighbour type),
+  # compared with the same label shuffles; log2 O/E centred like log2_oe; one
+  # test per ordered pair, max-T over all K x K ordered pairs.
+  dir_stats <- function(obs, parts, name) {
+    PA <- simplify2array(parts); ex <- apply(PA, c(1, 2), mean); ppc <- 0.01
+    plr <- function(x) log2((x + ppc) / (ex + ppc))
+    lo <- plr(obs) - apply(simplify2array(lapply(parts, plr)), c(1, 2), mean)
+    lo[obs == 0 & ex == 0] <- NA_real_                  # not attainable, observed or by chance
+    PS <- as.vector(obs); PP <- matrix(PA, ncol = dim(PA)[3])
+    ALLd <- cbind(PS, PP); m_ <- rowMeans(ALLd); s_ <- sqrt(rowSums((ALLd - m_)^2) / (ncol(ALLd) - 1))
+    zo <- abs(PS - m_) / s_; zp <- abs(PP - m_) / s_; zo[!is.finite(zo)] <- NA_real_; zp[!is.finite(zp)] <- 0
+    mx <- apply(zp, 2, max)
+    pa <- vapply(zo, function(q) if (is.na(q)) NA_real_ else (1 + sum(mx >= q)) / (length(mx) + 1), 0)
+    shape <- function(v) { m <- matrix(v, nrow(count), ncol(count)); dimnames(m) <- dimnames(count); m }
+    dimnames(obs) <- dimnames(ex) <- dimnames(lo) <- dimnames(count)
+    out <- list(obs, ex, lo, shape(2 * stats::pnorm(-zo)), shape(pa))
+    names(out) <- paste0(name, c("", "_expected", "_log2_oe", "_pvalue", "_padj")); out
+  }
+  dir_out <- c(dir_stats(dir_obs$contact, dir_perm$contact, "contact"), dir_stats(dir_obs$dominance, dir_perm$dominance, "dominance"))
+
+  c(list(zscore = zscore, count = count, expected = perm_mean, log2_oe = log2_oe,
+       log2_oe_raw = log2_oe_raw, pvalue = pvalue, padj = padj, padj_bh = padj_bh), dir_out)
 }
 
 #' Neighborhood Enrichment (Seurat Method)
@@ -916,6 +966,21 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #'   * `padj_bh`: Benjamini-Hochberg on `pvalue` (can exceed its level when
 #'     there are many rare cell types).
 #'   * `zscore`, `count` (observed), `expected` (mean of the shuffles).
+#'   * Directional statistics (row = centre cell type i, column = neighbour
+#'     cell type j; not symmetric). The pair-level values above are nearly
+#'     symmetric by construction (every i-j contact is also a j-i contact),
+#'     so they cannot tell apart "type i is surrounded by j" and "type j is
+#'     surrounded by i". Two directional questions are answered separately,
+#'     on the unweighted kNN graph without the cell itself:
+#'     - `contact[i, j]`: share of type-i cells with at least one type-j
+#'       neighbour ("how much of population i touches j");
+#'     - `dominance[i, j]`: share of type-i cells whose neighbours are at
+#'       least half type j ("is the neighbourhood of i dominated by j").
+#'     For each, `*_expected` is the mean over the same label shuffles,
+#'     `*_log2_oe` the centred log2 ratio, `*_pvalue` a test per ordered pair
+#'     and `*_padj` the max-T adjustment over all K x K ordered pairs.
+#'     `contact` saturates near 1 when j is abundant, `dominance` is near 0
+#'     when j is rare; read the two together.
 #' @export
 #' @examples
 #' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,

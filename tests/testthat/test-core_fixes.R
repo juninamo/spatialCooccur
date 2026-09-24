@@ -105,3 +105,20 @@ test_that("pvalue / padj are symmetric and max-T adjusted", {
   expect_gte(min(r$padj, na.rm = TRUE), 1 / 100)
   expect_lt(r$padj[1, 2], 0.05)                    # the planted pair
 })
+
+test_that("directional contact / dominance statistics separate the two points of view", {
+  set.seed(1); n <- 2000
+  d <- data.frame(x = runif(n, 0, 500), y = runif(n, 0, 500), cell_type = sample(c("B", "O"), n, TRUE, prob = c(0.4, 0.6)))
+  ctr <- cbind(runif(60, 20, 480), runif(60, 20, 480))
+  d <- rbind(d, data.frame(x = ctr[, 1], y = ctr[, 2], cell_type = "A"),
+             data.frame(x = rep(ctr[, 1], each = 6) + rnorm(360, 0, 6), y = rep(ctr[, 2], each = 6) + rnorm(360, 0, 6), cell_type = "B"))
+  rownames(d) <- paste0("c", seq_len(nrow(d))); d$cell_type <- factor(d$cell_type)
+  r <- nhood_enrichment(d, cluster_key = "cell_type", neighbors.k = 10, n_perms = 99, seed = 1, n_jobs = 1)
+  nm <- function(m) { dimnames(m) <- lapply(dimnames(m), function(v) sub("^Cluster", "", v)); m }
+  dom <- nm(r$dominance_log2_oe); con <- nm(r$contact_log2_oe)
+  expect_gt(dom["A", "B"], 0.5)                # A cells are surrounded by B
+  expect_true(is.na(dom["B", "A"]) || abs(dom["B", "A"]) < 0.2)   # B neighbourhoods are not dominated by A
+  expect_gt(con["B", "A"], 0.3)                # more B cells than expected touch an A cell
+  expect_false(isSymmetric(unname(round(nm(r$dominance), 3))))
+  expect_true(all(r$contact_padj >= 1 / 100, na.rm = TRUE))
+})

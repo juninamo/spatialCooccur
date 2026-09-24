@@ -325,9 +325,15 @@ plot_volcano_groups <- function(compare_df,
 #'
 #' @param res Output of [nhood_enrichment()] (or the list stored by
 #'   [nhood_enrichment.Seurat()] in `misc`).
-#' @param value Matrix to plot, `"log2_oe"` (default) or `"log2_oe_raw"`.
-#' @param significance Matrix of p-values to mark, `"padj"` (default) or
-#'   `"pvalue"`; `NULL` for no markers.
+#' @param value Matrix to plot: `"log2_oe"` (default) or `"log2_oe_raw"`
+#'   (pair-level, shown averaged over the two directions, so the heatmap is
+#'   symmetric), or the directional `"contact_log2_oe"`, `"dominance_log2_oe"`,
+#'   `"contact"`, `"dominance"` (row = centre cell type, column = neighbour
+#'   cell type; shown as computed, not symmetric).
+#' @param significance Matrix of p-values to mark. Defaults to `"padj"` for
+#'   pair-level values and `"contact_padj"` / `"dominance_padj"` for
+#'   directional ones;
+#'   `NULL` for no markers.
 #' @param breaks Increasing thresholds for `*`, `**`, `***` (one to three
 #'   values). Levels below the smallest attainable adjusted p-value
 #'   (1 / (n_perms + 1) for max-T) are dropped from the legend.
@@ -347,10 +353,11 @@ plot_volcano_groups <- function(compare_df,
 #'   res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 10,
 #'                           n_perms = 100, seed = 1, n_jobs = 1)
 #'   plot_nhood_heatmap(res)
+#'   plot_nhood_heatmap(res, value = "dominance_log2_oe")  # directional
 #' }
 plot_nhood_heatmap <- function(res,
-                               value = c("log2_oe", "log2_oe_raw"),
-                               significance = "padj",
+                               value = c("log2_oe", "log2_oe_raw", "contact_log2_oe", "dominance_log2_oe", "contact", "dominance"),
+                               significance = NULL,
                                breaks = c(0.05, 0.01, 0.001),
                                limits = NULL,
                                show_values = TRUE,
@@ -358,9 +365,11 @@ plot_nhood_heatmap <- function(res,
   .require_ggplot2()
   value <- match.arg(value)
   triangle <- match.arg(triangle)
+  directional <- grepl("^(contact|dominance)", value)
+  if (missing(significance)) significance <- if (directional) paste0(sub("_.*$", "", value), "_padj") else "padj"
   M <- res[[value]]
-  if (is.null(M)) stop("`res` has no '", value, "' matrix; re-run nhood_enrichment() with spatialCooccur >= 0.99.2.")
-  M <- (M + t(M)) / 2
+  if (is.null(M)) stop("`res` has no '", value, "' matrix; re-run nhood_enrichment() with a current spatialCooccur.")
+  if (!directional) M <- (M + t(M)) / 2
   lab <- sub("^Cluster", "", rownames(M))
   n <- length(lab)
   g <- data.frame(i = rep(seq_len(n), n), j = rep(seq_len(n), each = n), v = as.vector(M))
@@ -370,14 +379,14 @@ plot_nhood_heatmap <- function(res,
     if (is.null(P)) stop("`res` has no '", significance, "' matrix.")
     p <- as.vector(P)
     breaks <- sort(breaks, decreasing = TRUE)
-    if (significance == "padj") breaks <- breaks[breaks > min(p, na.rm = TRUE) | seq_along(breaks) == 1]
+    if (grepl("padj$", significance)) breaks <- breaks[breaks > min(p, na.rm = TRUE) | seq_along(breaks) == 1]
     g$star <- vapply(p, function(v) if (is.na(v)) "" else strrep("*", sum(v < breaks)), "")
   }
-  if (triangle == "lower") g <- g[g$i >= g$j, ]
+  if (triangle == "lower" && !directional) g <- g[g$i >= g$j, ]
   g$x <- factor(lab[g$j], levels = lab)
   g$y <- factor(lab[g$i], levels = rev(lab))
   if (is.null(limits)) limits <- c(-1, 1) * max(abs(g$v), na.rm = TRUE)
-  g$txt <- if (show_values) sprintf("%.2f%s", g$v, ifelse(g$star == "", "", paste0("\n", g$star))) else g$star
+  g$txt <- if (show_values) ifelse(is.na(g$v), "n/a", sprintf("%.2f%s", g$v, ifelse(g$star == "", "", paste0("\n", g$star)))) else g$star
   sig_lab <- if (is.null(significance)) NULL else
     paste0(significance, ": ", paste(sprintf("%s < %s", vapply(seq_along(breaks), function(i) strrep("*", i), ""), breaks), collapse = ", "))
   g$fill <- pmin(pmax(g$v, limits[1]), limits[2])
@@ -385,9 +394,10 @@ plot_nhood_heatmap <- function(res,
     ggplot2::geom_tile(color = "white", linewidth = 0.4) +
     ggplot2::geom_text(ggplot2::aes(label = .data$txt), size = 3, lineheight = 0.8) +
     ggplot2::scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", midpoint = 0,
-                                  limits = limits, name = value) +
+                                  limits = limits, name = value, na.value = "grey90") +
     ggplot2::coord_equal() +
-    ggplot2::labs(x = NULL, y = NULL, caption = sig_lab) +
+    ggplot2::labs(x = if (directional) "neighbour cell type" else NULL,
+                  y = if (directional) "centre cell type" else NULL, caption = sig_lab) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),
                    axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))

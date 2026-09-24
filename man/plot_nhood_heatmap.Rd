@@ -6,8 +6,9 @@
 \usage{
 plot_nhood_heatmap(
   res,
-  value = c("log2_oe", "log2_oe_raw"),
-  significance = "padj",
+  value = c("log2_oe", "log2_oe_raw", "contact_log2_oe", "dominance_log2_oe", "contact",
+    "dominance"),
+  significance = NULL,
   breaks = c(0.05, 0.01, 0.001),
   limits = NULL,
   show_values = TRUE,
@@ -18,10 +19,16 @@ plot_nhood_heatmap(
 \item{res}{Output of [nhood_enrichment()] (or the list stored by
 [nhood_enrichment.Seurat()] in `misc`).}
 
-\item{value}{Matrix to plot, `"log2_oe"` (default) or `"log2_oe_raw"`.}
+\item{value}{Matrix to plot: `"log2_oe"` (default) or `"log2_oe_raw"`
+(pair-level, shown averaged over the two directions, so the heatmap is
+symmetric), or the directional `"contact_log2_oe"`, `"dominance_log2_oe"`,
+`"contact"`, `"dominance"` (row = centre cell type, column = neighbour
+cell type; shown as computed, not symmetric).}
 
-\item{significance}{Matrix of p-values to mark, `"padj"` (default) or
-`"pvalue"`; `NULL` for no markers.}
+\item{significance}{Matrix of p-values to mark. Defaults to `"padj"` for
+pair-level values and `"contact_padj"` / `"dominance_padj"` for
+directional ones;
+`NULL` for no markers.}
 
 \item{breaks}{Increasing thresholds for `*`, `**`, `***` (one to three
 values). Levels below the smallest attainable adjusted p-value
@@ -52,5 +59,6 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
   res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 10,
                           n_perms = 100, seed = 1, n_jobs = 1)
   plot_nhood_heatmap(res)
+  plot_nhood_heatmap(res, value = "dominance_log2_oe")  # directional
 }
 }

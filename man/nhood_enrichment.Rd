@@ -52,6 +52,21 @@ A list of cell-type x cell-type matrices:
   * `padj_bh`: Benjamini-Hochberg on `pvalue` (can exceed its level when
     there are many rare cell types).
   * `zscore`, `count` (observed), `expected` (mean of the shuffles).
+  * Directional statistics (row = centre cell type i, column = neighbour
+    cell type j; not symmetric). The pair-level values above are nearly
+    symmetric by construction (every i-j contact is also a j-i contact),
+    so they cannot tell apart "type i is surrounded by j" and "type j is
+    surrounded by i". Two directional questions are answered separately,
+    on the unweighted kNN graph without the cell itself:
+    - `contact[i, j]`: share of type-i cells with at least one type-j
+      neighbour ("how much of population i touches j");
+    - `dominance[i, j]`: share of type-i cells whose neighbours are at
+      least half type j ("is the neighbourhood of i dominated by j").
+    For each, `*_expected` is the mean over the same label shuffles,
+    `*_log2_oe` the centred log2 ratio, `*_pvalue` a test per ordered pair
+    and `*_padj` the max-T adjustment over all K x K ordered pairs.
+    `contact` saturates near 1 when j is abundant, `dominance` is near 0
+    when j is rare; read the two together.
 }
 \description{
 Neighborhood Enrichment (Generic method)

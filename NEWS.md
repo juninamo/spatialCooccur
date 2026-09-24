@@ -46,6 +46,16 @@
   family-wise error rate, calibrated for any number of cell types) and
   `padj_bh`. New `plot_nhood_heatmap()` draws `log2_oe` with significance
   stars.
+* `nhood_enrichment()` also returns directional statistics (row = centre
+  cell type, column = neighbour type; not symmetric), because the pair-level
+  `log2_oe` is symmetric by construction and cannot tell "A is surrounded by
+  B" from "B is surrounded by A": `contact` (share of centre cells with at
+  least one neighbour of the other type) and `dominance` (share of centre
+  cells whose neighbours are at least half of the other type), each with
+  `*_expected`, centred `*_log2_oe`, `*_pvalue` and max-T `*_padj` over all
+  ordered pairs. `plot_nhood_heatmap(value = "dominance_log2_oe")` draws them
+  without symmetrising; the pair-level heatmap is labelled as the average of
+  both directions.
 * Tutorials use `log2_oe` with the max-T adjusted `padj`; new sections on
   `cooccur_local_oe()`, `associate_continuous()` and gene-level modules. The
   algorithm reference covers all current methods.
