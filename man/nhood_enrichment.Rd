@@ -33,11 +33,25 @@ nhood_enrichment(
 \item{n_jobs}{Number of parallel jobs. `1` runs sequentially.}
 }
 \value{
-A list with matrices `zscore`, `count` (observed), `expected`
-  (mean of the permutation null) and `log2_oe` (log2 observed / expected,
-  with a pseudocount of one mean edge weight). Unlike the z-score, which
-  grows with the number of cells, `log2_oe` is an effect size that is
-  comparable across samples of different size.
+A list of cell-type x cell-type matrices:
+  * `log2_oe`: effect size, log2 observed / expected, centred on the label
+    shuffles so that it is 0 on average without interaction for any number
+    of cells (the log of a ratio of small counts is otherwise biased
+    slightly below 0 for rare cell types). Unlike the z-score, which grows
+    with the number of cells, it is comparable across samples.
+  * `log2_oe_raw`: log2((count + c) / (expected + c)) without centring,
+    with c one mean edge weight.
+  * `pvalue`: within-sample test per unordered pair (contacts i -> j and
+    j -> i summed), two-sided normal p-value from the shuffles; use it for
+    a single pre-specified pair.
+  * `padj`: family-wise adjusted p-value over all K (K + 1) / 2 pairs by
+    the Westfall-Young max-T permutation method (the share of shuffles
+    whose largest |z| reaches the observed one). Calibrated for any
+    number of cell types, including rare ones; its smallest value is
+    1 / (n_perms + 1).
+  * `padj_bh`: Benjamini-Hochberg on `pvalue` (can exceed its level when
+    there are many rare cell types).
+  * `zscore`, `count` (observed), `expected` (mean of the shuffles).
 }
 \description{
 Neighborhood Enrichment (Generic method)

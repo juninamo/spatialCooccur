@@ -61,6 +61,19 @@ generate_sim <- function(close_ratio = 0.7,
     angle_shift <- runif(n_pairs, 0, 2 * pi)
     x_coords[idx_close_2] <- x_coords[idx_close_1] + distance_param * cos(angle_shift) + rnorm(n_pairs, mean = 0, sd = distance_param/5)
     y_coords[idx_close_2] <- y_coords[idx_close_1] + distance_param * sin(angle_shift) + rnorm(n_pairs, mean = 0, sd = distance_param/5)
+    # Keep relocated cells inside the tissue: a cell placed outside the square
+    # sits in an empty region where its k nearest neighbours reach far away
+    # (up to the partner cell), which leaks co-localization to long distances.
+    # Out-of-bounds cells get a new partner and direction (rejection sampling).
+    outside <- function(i) x_coords[i] < 0 | x_coords[i] > max_loc | y_coords[i] < 0 | y_coords[i] > max_loc
+    for (iter in seq_len(100)) {
+      bad <- which(outside(idx_close_2))
+      if (!length(bad)) break
+      idx_close_1[bad] <- idx_type_1[sample.int(length(idx_type_1), length(bad), replace = TRUE)]
+      a <- runif(length(bad), 0, 2 * pi)
+      x_coords[idx_close_2[bad]] <- x_coords[idx_close_1[bad]] + distance_param * cos(a) + rnorm(length(bad), 0, distance_param / 5)
+      y_coords[idx_close_2[bad]] <- y_coords[idx_close_1[bad]] + distance_param * sin(a) + rnorm(length(bad), 0, distance_param / 5)
+    }
 
     df <- data.frame(x = x_coords, y = y_coords, cell_type = cell_types) %>%
       dplyr::mutate(cell_type = factor(cell_type, levels = paste0("cell_type_", seq_len(n_types))))
@@ -514,10 +527,55 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
   # so the effect size is on the same scale with or without transformation.
   nz <- adj@x[adj@x != 0]
   pc <- if (length(nz)) mean(nz) else 1
-  log2_oe <- log2((count + pc) / (perm_mean + pc))
+  lr <- function(x) log2((x + pc) / (perm_mean + pc))
+  log2_oe_raw <- lr(count)
+  # The log of a ratio of small counts is biased downwards (Jensen), so rare
+  # cell types get log2 O/E slightly below 0 even without any interaction.
+  # Subtracting the mean of the same statistic over the label shuffles
+  # centres it at exactly 0 under the null for any number of cells.
+  null_bias <- apply(simplify2array(lapply(perms, lr)), c(1, 2), mean)
+  log2_oe <- log2_oe_raw - null_bias
   log2_oe[perm_mean == 0 & count == 0] <- NA_real_
+  log2_oe_raw[perm_mean == 0 & count == 0] <- NA_real_
 
-  list(zscore = zscore, count = count, expected = perm_mean, log2_oe = log2_oe)
+  # Within-sample test per unordered pair: contacts i->j and j->i are summed
+  # (the degree-normalised counts are not exactly symmetric). The observed
+  # sum is standardised together with the shuffles (mean and SD over all
+  # B + 1 values, so the observed tissue is treated exactly like a shuffle).
+  #  * pvalue: two-sided normal p-value, for a single pre-specified pair.
+  #  * padj: Westfall-Young single-step max-T over the K (K + 1) / 2 pairs,
+  #    i.e. the share of shuffles whose largest |z| over all pairs reaches
+  #    the observed |z|. It controls the family-wise error rate and adapts
+  #    to the skewed, dependent null of rare pairs; BH on normal p-values
+  #    (padj_bh) can exceed its level when there are many rare cell types.
+  sym <- function(m) m + t(m) - diag(diag(m), nrow(m))
+  ut <- upper.tri(count, diag = TRUE)
+  S <- sym(count)[ut]
+  SA <- vapply(perms, function(m) sym(m)[ut], numeric(sum(ut)))
+  if (is.null(dim(SA))) SA <- matrix(SA, nrow = 1)
+  ALL <- cbind(S, SA)
+  mu <- rowMeans(ALL)
+  sdv <- sqrt(rowSums((ALL - mu)^2) / (ncol(ALL) - 1))
+  z_obs <- abs(S - mu) / sdv
+  z_perm <- abs(SA - mu) / sdv
+  z_obs[!is.finite(z_obs)] <- NA_real_
+  z_perm[!is.finite(z_perm)] <- 0
+  max_perm <- apply(z_perm, 2, max)
+  p_maxt <- vapply(z_obs, function(q) if (is.na(q)) NA_real_ else (1 + sum(max_perm >= q)) / (length(max_perm) + 1), 0)
+  to_mat <- function(v) {
+    m <- matrix(NA_real_, nrow(count), ncol(count))
+    m[ut] <- v
+    m[lower.tri(m)] <- t(m)[lower.tri(m)]
+    m
+  }
+  p_norm <- 2 * stats::pnorm(-z_obs)
+  pvalue <- to_mat(p_norm)
+  padj <- to_mat(p_maxt)
+  padj_bh <- to_mat(stats::p.adjust(p_norm, method = "BH"))
+  dimnames(log2_oe) <- dimnames(log2_oe_raw) <- dimnames(pvalue) <- dimnames(padj) <- dimnames(padj_bh) <- dimnames(count)
+
+  list(zscore = zscore, count = count, expected = perm_mean, log2_oe = log2_oe,
+       log2_oe_raw = log2_oe_raw, pvalue = pvalue, padj = padj, padj_bh = padj_bh)
 }
 
 #' Neighborhood Enrichment (Seurat Method)
@@ -532,7 +590,8 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
 #' @param n_jobs Number of cores to use in parallel.
 #'
 #' @return Updated Seurat object; `misc[[paste0(cluster_key, "_nhood_enrichment")]]`
-#'   holds `zscore`, `count`, `expected` (permutation mean) and `log2_oe`.
+#'   holds `zscore`, `count`, `expected` (permutation mean), `log2_oe`,
+#'   `log2_oe_raw`, `pvalue`, `padj` and `padj_bh` (see [nhood_enrichment()]).
 #' @export
 #' @examples
 #' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,
@@ -838,11 +897,25 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #' @param seed Random seed.
 #' @param n_jobs Number of parallel jobs. `1` runs sequentially.
 #'
-#' @return A list with matrices `zscore`, `count` (observed), `expected`
-#'   (mean of the permutation null) and `log2_oe` (log2 observed / expected,
-#'   with a pseudocount of one mean edge weight). Unlike the z-score, which
-#'   grows with the number of cells, `log2_oe` is an effect size that is
-#'   comparable across samples of different size.
+#' @return A list of cell-type x cell-type matrices:
+#'   * `log2_oe`: effect size, log2 observed / expected, centred on the label
+#'     shuffles so that it is 0 on average without interaction for any number
+#'     of cells (the log of a ratio of small counts is otherwise biased
+#'     slightly below 0 for rare cell types). Unlike the z-score, which grows
+#'     with the number of cells, it is comparable across samples.
+#'   * `log2_oe_raw`: log2((count + c) / (expected + c)) without centring,
+#'     with c one mean edge weight.
+#'   * `pvalue`: within-sample test per unordered pair (contacts i -> j and
+#'     j -> i summed), two-sided normal p-value from the shuffles; use it for
+#'     a single pre-specified pair.
+#'   * `padj`: family-wise adjusted p-value over all K (K + 1) / 2 pairs by
+#'     the Westfall-Young max-T permutation method (the share of shuffles
+#'     whose largest |z| reaches the observed one). Calibrated for any
+#'     number of cell types, including rare ones; its smallest value is
+#'     1 / (n_perms + 1).
+#'   * `padj_bh`: Benjamini-Hochberg on `pvalue` (can exceed its level when
+#'     there are many rare cell types).
+#'   * `zscore`, `count` (observed), `expected` (mean of the shuffles).
 #' @export
 #' @examples
 #' df <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300,

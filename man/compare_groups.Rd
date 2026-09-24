@@ -6,7 +6,7 @@
 \usage{
 compare_groups(
   per_sample_df,
-  value = "zscore",
+  value = "log2_oe",
   group_key = "group",
   patient_key = NULL,
   method = c("wilcox", "t", "lmm", "perm", "signrank"),
@@ -17,7 +17,8 @@ compare_groups(
   covariates = NULL,
   symmetric = FALSE,
   min_n_per_group = 2,
-  seed = 1234
+  seed = 1234,
+  unit = c("patient", "image")
 )
 }
 \arguments{
@@ -25,14 +26,18 @@ compare_groups(
 [nhood_enrichment_per_sample()], [cooccur_ratio_per_sample()],
 [cooccur_local_per_sample()], or [interaction_spot_per_sample()].}
 
-\item{value}{Name of the column to test (e.g. "log2_oe", "zscore",
-"ratio", "mean", "spots_per_1k_cells").}
+\item{value}{Name of the column to test. Defaults to `"log2_oe"`, the
+effect size that does not grow with the number of cells (other examples:
+"zscore", "ratio", "mean", "spots_per_1k_cells").}
 
 \item{group_key}{Name of the group column. Defaults to "group".}
 
-\item{patient_key}{Optional patient column. Required for `method = "lmm"`
-to use as a random effect; used as the permutation block for
-`method = "perm"`. If `NULL` and the data has a `patient` column, that
+\item{patient_key}{Patient column. If `NULL` and the data contain a
+`patient` column with several images per patient, that column is used
+automatically (a message says so). With `"wilcox"` / `"t"`,
+images are averaged within patient (see `unit`); required for
+`method = "lmm"` to use as a random effect; used as the permutation
+block for `method = "perm"`. If `NULL` and the data has a `patient` column, that
 column is only used to detect pseudoreplication.}
 
 \item{method}{Statistical test:
@@ -74,8 +79,9 @@ which); set it explicitly, because e.g. "case" sorts before "control".}
 age, sex, batch, `n_cells`) included as fixed effects. Only used with
 `method = "lmm"`.}
 
-\item{symmetric}{If `TRUE`, test each unordered pair once (rows with
-`cluster_i <= cluster_j`). Neighborhood enrichment scores are
+\item{symmetric}{If `TRUE`, test each unordered pair once: the (i, j)
+and (j, i) values of each sample are averaged and reported under
+`cluster_i <= cluster_j`. Neighborhood enrichment scores are
 (nearly) symmetric, so testing both (i, j) and (j, i) doubles the
 multiple-testing burden without adding information.}
 
@@ -83,6 +89,13 @@ multiple-testing burden without adding information.}
 each group; pairs below this are skipped.}
 
 \item{seed}{Random seed for the permutation test.}
+
+\item{unit}{`"patient"` (default): with `patient_key` and `method =
+"wilcox"` or `"t"`, images are first averaged within patient, so the
+patient is the unit of analysis. `"image"` tests image-level rows as
+given (pseudoreplication when patients have several images; a warning
+is issued). `"lmm"`, `"perm"` and `"signrank"` always account for
+patients through `patient_key`.}
 }
 \value{
 A data.frame with the cluster pair columns, group sizes and

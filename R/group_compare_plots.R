@@ -315,3 +315,80 @@ plot_volcano_groups <- function(compare_df,
   }
   p
 }
+
+#' Heatmap of a single-sample neighbourhood enrichment with significance
+#'
+#' Plot the `log2_oe` matrix returned by [nhood_enrichment()] and mark the
+#' cell-type pairs that pass the within-sample test after
+#' Benjamini-Hochberg correction over all K (K + 1) / 2 unordered pairs
+#' (`padj`). The matrix is symmetrised (mean of i -> j and j -> i).
+#'
+#' @param res Output of [nhood_enrichment()] (or the list stored by
+#'   [nhood_enrichment.Seurat()] in `misc`).
+#' @param value Matrix to plot, `"log2_oe"` (default) or `"log2_oe_raw"`.
+#' @param significance Matrix of p-values to mark, `"padj"` (default) or
+#'   `"pvalue"`; `NULL` for no markers.
+#' @param breaks Increasing thresholds for `*`, `**`, `***` (one to three
+#'   values). Levels below the smallest attainable adjusted p-value
+#'   (1 / (n_perms + 1) for max-T) are dropped from the legend.
+#' @param limits Fill limits; values outside are squished. Defaults to a
+#'   symmetric range around 0.
+#' @param show_values Print the value in each tile.
+#' @param triangle `"full"`, or `"lower"` to show each pair once.
+#'
+#' @return A ggplot object.
+#' @export
+#' @examples
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   df <- generate_sim(close_ratio = 0.8, n_types = 5, n_cells = 800,
+#'                      max_loc = 450, test_type = "distribute",
+#'                      distance_param = 10, seed = 1)
+#'   rownames(df) <- paste0("cell", seq_len(nrow(df)))
+#'   res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 10,
+#'                           n_perms = 100, seed = 1, n_jobs = 1)
+#'   plot_nhood_heatmap(res)
+#' }
+plot_nhood_heatmap <- function(res,
+                               value = c("log2_oe", "log2_oe_raw"),
+                               significance = "padj",
+                               breaks = c(0.05, 0.01, 0.001),
+                               limits = NULL,
+                               show_values = TRUE,
+                               triangle = c("full", "lower")) {
+  .require_ggplot2()
+  value <- match.arg(value)
+  triangle <- match.arg(triangle)
+  M <- res[[value]]
+  if (is.null(M)) stop("`res` has no '", value, "' matrix; re-run nhood_enrichment() with spatialCooccur >= 0.99.2.")
+  M <- (M + t(M)) / 2
+  lab <- sub("^Cluster", "", rownames(M))
+  n <- length(lab)
+  g <- data.frame(i = rep(seq_len(n), n), j = rep(seq_len(n), each = n), v = as.vector(M))
+  g$star <- ""
+  if (!is.null(significance)) {
+    P <- res[[significance]]
+    if (is.null(P)) stop("`res` has no '", significance, "' matrix.")
+    p <- as.vector(P)
+    breaks <- sort(breaks, decreasing = TRUE)
+    if (significance == "padj") breaks <- breaks[breaks > min(p, na.rm = TRUE) | seq_along(breaks) == 1]
+    g$star <- vapply(p, function(v) if (is.na(v)) "" else strrep("*", sum(v < breaks)), "")
+  }
+  if (triangle == "lower") g <- g[g$i >= g$j, ]
+  g$x <- factor(lab[g$j], levels = lab)
+  g$y <- factor(lab[g$i], levels = rev(lab))
+  if (is.null(limits)) limits <- c(-1, 1) * max(abs(g$v), na.rm = TRUE)
+  g$txt <- if (show_values) sprintf("%.2f%s", g$v, ifelse(g$star == "", "", paste0("\n", g$star))) else g$star
+  sig_lab <- if (is.null(significance)) NULL else
+    paste0(significance, ": ", paste(sprintf("%s < %s", vapply(seq_along(breaks), function(i) strrep("*", i), ""), breaks), collapse = ", "))
+  g$fill <- pmin(pmax(g$v, limits[1]), limits[2])
+  ggplot2::ggplot(g, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$fill)) +
+    ggplot2::geom_tile(color = "white", linewidth = 0.4) +
+    ggplot2::geom_text(ggplot2::aes(label = .data$txt), size = 3, lineheight = 0.8) +
+    ggplot2::scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", midpoint = 0,
+                                  limits = limits, name = value) +
+    ggplot2::coord_equal() +
+    ggplot2::labs(x = NULL, y = NULL, caption = sig_lab) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(panel.grid = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+}

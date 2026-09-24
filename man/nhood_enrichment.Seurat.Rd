@@ -34,7 +34,8 @@ nhood_enrichment.Seurat(
 }
 \value{
 Updated Seurat object; `misc[[paste0(cluster_key, "_nhood_enrichment")]]`
-  holds `zscore`, `count`, `expected` (permutation mean) and `log2_oe`.
+  holds `zscore`, `count`, `expected` (permutation mean), `log2_oe`,
+  `log2_oe_raw`, `pvalue`, `padj` and `padj_bh` (see [nhood_enrichment()]).
 }
 \description{
 Neighborhood Enrichment (Seurat Method)

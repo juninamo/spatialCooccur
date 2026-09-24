@@ -75,6 +75,7 @@ reference:
     radius-based co-occurrence and interaction spots for one tissue.
   contents:
   - nhood_enrichment
+  - plot_nhood_heatmap
   - nhood_enrichment.Seurat
   - cooccur_local
   - cooccur_local.Seurat
@@ -103,6 +104,10 @@ reference:
   - bin_transcripts
   - pcf_cross
   - pcf_matrix
+  - colocalization_gene_matrix
+  - colocalization_modules
+  - module_enrichment
+  - module_enrichr
   - fit_spatial_rff
   - rff_pair_correlation
   - colocalization_per_sample
@@ -113,6 +118,7 @@ reference:
   desc: Test every cell-type pair between two groups.
   contents:
   - compare_groups
+  - associate_continuous
 - title: Visualization
   contents:
   - plot_group_delta_heatmap

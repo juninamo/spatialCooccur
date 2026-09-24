@@ -837,12 +837,16 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
 #' @param per_sample_df Tidy data.frame, typically the output of
 #'   [nhood_enrichment_per_sample()], [cooccur_ratio_per_sample()],
 #'   [cooccur_local_per_sample()], or [interaction_spot_per_sample()].
-#' @param value Name of the column to test (e.g. "log2_oe", "zscore",
-#'   "ratio", "mean", "spots_per_1k_cells").
+#' @param value Name of the column to test. Defaults to `"log2_oe"`, the
+#'   effect size that does not grow with the number of cells (other examples:
+#'   "zscore", "ratio", "mean", "spots_per_1k_cells").
 #' @param group_key Name of the group column. Defaults to "group".
-#' @param patient_key Optional patient column. Required for `method = "lmm"`
-#'   to use as a random effect; used as the permutation block for
-#'   `method = "perm"`. If `NULL` and the data has a `patient` column, that
+#' @param patient_key Patient column. If `NULL` and the data contain a
+#'   `patient` column with several images per patient, that column is used
+#'   automatically (a message says so). With `"wilcox"` / `"t"`,
+#'   images are averaged within patient (see `unit`); required for
+#'   `method = "lmm"` to use as a random effect; used as the permutation
+#'   block for `method = "perm"`. If `NULL` and the data has a `patient` column, that
 #'   column is only used to detect pseudoreplication.
 #' @param method Statistical test:
 #'   * "wilcox" — Wilcoxon rank-sum (two groups); exact p-values for small
@@ -877,13 +881,20 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
 #' @param covariates Optional character vector of additional columns (e.g.
 #'   age, sex, batch, `n_cells`) included as fixed effects. Only used with
 #'   `method = "lmm"`.
-#' @param symmetric If `TRUE`, test each unordered pair once (rows with
-#'   `cluster_i <= cluster_j`). Neighborhood enrichment scores are
+#' @param symmetric If `TRUE`, test each unordered pair once: the (i, j)
+#'   and (j, i) values of each sample are averaged and reported under
+#'   `cluster_i <= cluster_j`. Neighborhood enrichment scores are
 #'   (nearly) symmetric, so testing both (i, j) and (j, i) doubles the
 #'   multiple-testing burden without adding information.
 #' @param min_n_per_group Minimum number of finite observations required in
 #'   each group; pairs below this are skipped.
 #' @param seed Random seed for the permutation test.
+#' @param unit `"patient"` (default): with `patient_key` and `method =
+#'   "wilcox"` or `"t"`, images are first averaged within patient, so the
+#'   patient is the unit of analysis. `"image"` tests image-level rows as
+#'   given (pseudoreplication when patients have several images; a warning
+#'   is issued). `"lmm"`, `"perm"` and `"signrank"` always account for
+#'   patients through `patient_key`.
 #'
 #' @return A data.frame with the cluster pair columns, group sizes and
 #'   means, `effect` (test group mean minus reference group mean), for
@@ -906,7 +917,7 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
 #'                       ref_group = "control", symmetric = TRUE)
 #' head(cmp)
 compare_groups <- function(per_sample_df,
-                           value = "zscore",
+                           value = "log2_oe",
                            group_key = "group",
                            patient_key = NULL,
                            method = c("wilcox", "t", "lmm", "perm", "signrank"),
@@ -917,8 +928,10 @@ compare_groups <- function(per_sample_df,
                            covariates = NULL,
                            symmetric = FALSE,
                            min_n_per_group = 2,
-                           seed = 1234) {
+                           seed = 1234,
+                           unit = c("patient", "image")) {
   method <- match.arg(method)
+  unit <- match.arg(unit)
   if (!value %in% colnames(per_sample_df)) {
     stop(sprintf("value column '%s' not in data.frame", value))
   }
@@ -928,6 +941,13 @@ compare_groups <- function(per_sample_df,
   if (!all(pair_keys %in% colnames(per_sample_df))) {
     missing_keys <- setdiff(pair_keys, colnames(per_sample_df))
     stop(sprintf("pair_keys not all present: %s", paste(missing_keys, collapse = ", ")))
+  }
+  # Use a `patient` column automatically when patients have several images.
+  if (is.null(patient_key) && "patient" %in% colnames(per_sample_df) &&
+      !all(is.na(per_sample_df$patient)) &&
+      any(duplicated(per_sample_df[, intersect(c("patient", group_key, pair_keys), colnames(per_sample_df)), drop = FALSE]))) {
+    patient_key <- "patient"
+    message("compare_groups(): using the 'patient' column as patient_key (several images per patient).")
   }
   if (!is.null(patient_key) && !patient_key %in% colnames(per_sample_df)) {
     stop(sprintf("patient_key column '%s' not in data.frame", patient_key))
@@ -987,7 +1007,28 @@ compare_groups <- function(per_sample_df,
   df <- df[as.character(df[[group_key]]) %in% c(g1, g2), , drop = FALSE]
 
   if (symmetric && length(pair_keys) == 2L) {
-    df <- df[as.character(df[[pair_keys[1]]]) <= as.character(df[[pair_keys[2]]]), , drop = FALSE]
+    # One test per unordered pair: average the (i, j) and (j, i) rows of each
+    # sample (degree-normalised scores are directional), keyed on the sorted
+    # pair; other columns are taken from the (i <= j) row.
+    a_ <- as.character(df[[pair_keys[1]]]); b_ <- as.character(df[[pair_keys[2]]])
+    lo_ <- pmin(a_, b_); hi_ <- pmax(a_, b_)
+    sid <- if ("sample_id" %in% colnames(df)) df$sample_id else seq_len(nrow(df))
+    key <- paste(sid, as.character(df[[group_key]]), lo_, hi_, sep = "\r")
+    avg <- tapply(df[[value]], key, function(x) mean(x, na.rm = TRUE))
+    df <- df[a_ <= b_, , drop = FALSE]
+    df[[value]] <- as.numeric(avg[key[a_ <= b_]])
+  }
+
+  # Patient as the unit: for tests that assume independent rows, average the
+  # images of each patient (within group and pair) first.
+  if (unit == "patient" && !is.null(patient_key) && method %in% c("wilcox", "t")) {
+    keys <- c(patient_key, group_key, pair_keys)
+    n_before <- nrow(df)
+    df <- stats::aggregate(df[, value, drop = FALSE], by = df[, keys, drop = FALSE],
+                           FUN = function(x) mean(x, na.rm = TRUE))
+    if (nrow(df) < n_before) {
+      message(sprintf("compare_groups(): averaged images within patients (unit = \"patient\"): %d rows -> %d.", n_before, nrow(df)))
+    }
   }
 
   # Pseudoreplication check for tests that assume one row per unit.

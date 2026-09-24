@@ -1,3 +1,55 @@
+# spatialCooccur 0.99.3
+
+## Changes that affect results
+
+* `nhood_enrichment()`: `log2_oe` is now centred on the label shuffles
+  (the mean of the same log ratio over the shuffles is subtracted), so it is
+  0 on average without interaction for any number of cells. The log of a
+  ratio of small counts was biased below 0 for rare cell types (about -0.03
+  for 25 cell types of 60 cells, -0.05 for pairs with < 50 cells). The
+  previous value is returned as `log2_oe_raw`.
+* `generate_sim(test_type = "distribute")` no longer places relocated cells
+  outside the tissue. Such cells sat in empty space where their k nearest
+  neighbours reached their partner cell even at 100 um, so co-localization
+  leaked to long planted distances.
+* `compare_groups()`: new `unit = c("patient", "image")`, default
+  `"patient"`. With `patient_key` and `method = "wilcox"` or `"t"`, images
+  are averaged within patient before testing, so the patient is the unit of
+  analysis. Previously these tests used image-level rows (pseudoreplication,
+  13.8% false positives at 5% in simulations) unless the data were first
+  passed through `summarize_by_patient()`; use `unit = "image"` for the old
+  behaviour.
+* `compare_groups()` now defaults to `value = "log2_oe"` and uses a
+  `patient` column automatically when `patient_key` is not given and
+  patients have several images.
+* `compare_groups(symmetric = TRUE)` averages the (i, j) and (j, i) values
+  of each sample instead of keeping only the `cluster_i <= cluster_j` row
+  (degree-normalised neighbourhood scores are slightly directional).
+* `summarize_by_patient()` keeps distances (`r`) of
+  `colocalization_per_sample()` output separate instead of averaging them;
+  new `pair_keys` argument.
+
+## New features
+
+* `associate_continuous()`: association of per-image / per-patient
+  co-localization with a continuous clinical variable (CRP, disease
+  activity, age): Spearman on patient means (default), linear model with
+  covariates, mixed model on images, or permutation; BH over pairs.
+* Unsupervised transcript-level co-localization (experimental):
+  `colocalization_gene_matrix()` (gene x gene log2 O/E of transcript pairs
+  within a radius, label-shuffling expectation in closed form, one FFT per
+  gene), `colocalization_modules()` (clusters co-localizing genes),
+  `module_enrichment()` (hypergeometric test of any gene sets, e.g. pathways
+  or cell-type markers) and `module_enrichr()` (enrichR wrapper).
+* `nhood_enrichment()` returns a within-sample test per unordered pair:
+  `pvalue` (normal, from the shuffles), `padj` (Westfall-Young max-T,
+  family-wise error rate, calibrated for any number of cell types) and
+  `padj_bh`. New `plot_nhood_heatmap()` draws `log2_oe` with significance
+  stars.
+* Tutorials use `log2_oe` with the max-T adjusted `padj`; new sections on
+  `cooccur_local_oe()`, `associate_continuous()` and gene-level modules. The
+  algorithm reference covers all current methods.
+
 # spatialCooccur 0.99.2
 
 ## Bug fixes that change results
@@ -24,9 +76,6 @@
 * `interaction_spot_per_sample()` returns `NA` (not 0 spots) when the spot
   search fails, and no longer requires a `cell` column in `meta.data`.
 * Absent cell types give `NA` scores instead of silently dropped rows.
-* `summarize_by_patient()` keeps distances (`r`) of
-  `colocalization_per_sample()` output separate instead of averaging them;
-  new `pair_keys` argument.
 
 ## New features
 

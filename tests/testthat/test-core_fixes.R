@@ -71,3 +71,37 @@ test_that("cooccur_local diffusion iterates from the previous step", {
   expect_equal(sum(s3), sum(s0))               # diffusion conserves total mass
   expect_lt(sd(s3), sd(s1))                    # and keeps smoothing
 })
+
+test_that("generate_sim keeps relocated cells inside the tissue", {
+  for (dp in c(10, 100)) {
+    d <- generate_sim(close_ratio = 0.5, n_types = 8, n_cells = 1500, max_loc = 600,
+                      test_type = "distribute", distance_param = dp, seed = 3)
+    expect_true(all(d$x >= 0 & d$x <= 600 & d$y >= 0 & d$y <= 600))
+  }
+})
+
+test_that("centred log2_oe is unbiased for rare cell types under the null", {
+  set.seed(11)
+  est <- sapply(1:6, function(i) {
+    n <- 1200
+    d <- data.frame(x = runif(n, 0, 550), y = runif(n, 0, 550),
+                    cell_type = sample(paste0("t", 1:20), n, TRUE))
+    rownames(d) <- paste0("c", seq_len(n))
+    r <- nhood_enrichment(d, "cell_type", neighbors.k = 10, n_perms = 60, seed = i, n_jobs = 1)
+    up <- upper.tri(r$log2_oe)
+    c(raw = mean(r$log2_oe_raw[up]), centred = mean(r$log2_oe[up]))
+  })
+  expect_lt(mean(est["raw", ]), -0.02)            # the uncorrected log ratio is biased
+  expect_lt(abs(mean(est["centred", ])), 0.01)    # the centred one is not
+})
+
+test_that("pvalue / padj are symmetric and max-T adjusted", {
+  d <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 1000, max_loc = 500,
+                    test_type = "distribute", distance_param = 10, seed = 1)
+  rownames(d) <- paste0("c", seq_len(nrow(d)))
+  r <- nhood_enrichment(d, "cell_type", neighbors.k = 10, n_perms = 99, seed = 1, n_jobs = 1)
+  expect_true(isSymmetric(unname(r$padj)))
+  expect_true(all(r$padj >= r$pvalue - 1e-12 | r$padj >= 1 / 100, na.rm = TRUE))
+  expect_gte(min(r$padj, na.rm = TRUE), 1 / 100)
+  expect_lt(r$padj[1, 2], 0.05)                    # the planted pair
+})

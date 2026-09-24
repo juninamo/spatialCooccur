@@ -159,9 +159,13 @@ test_that("wilcox uses exact p-values for small samples", {
   expect_equal(cmp$p, 0.1)
 })
 
-test_that("pseudoreplication triggers a warning", {
+test_that("images are averaged within patients by default; unit = 'image' warns", {
   d <- .toy_scores(n_pat = 3, n_img = 3)
-  expect_warning(compare_groups(d, value = "value", method = "wilcox", ref_group = "control"),
+  expect_message(r <- compare_groups(d, value = "value", method = "wilcox", ref_group = "control"),
+                 "patient")
+  expect_equal(r$n_total, 6)
+  expect_warning(compare_groups(d, value = "value", method = "wilcox", ref_group = "control",
+                                patient_key = "patient", unit = "image"),
                  "pseudoreplication")
   expect_silent(compare_groups(d, value = "value", method = "perm", patient_key = "patient",
                                ref_group = "control", n_perms = 100))
@@ -250,4 +254,38 @@ test_that("summarize_by_patient keeps distances separate", {
   expect_equal(nrow(pp), 4)
   expect_setequal(pp$r, c(10, 40))
   expect_equal(pp$log_g_rel[pp$patient == "p1" & pp$r == 10], 1.5)
+})
+
+test_that("associate_continuous finds a planted association and is calibrated", {
+  set.seed(3)
+  pats <- paste0("p", 1:12)
+  crp <- setNames(seq(0, 55, length.out = 12), pats)
+  mk <- function(slope) do.call(rbind, lapply(pats, function(p) {
+    u <- rnorm(1, 0, 0.1)
+    data.frame(sample_id = rep(paste0(p, "_", 1:2), each = 2), patient = p, group = "all",
+               cluster_i = "A", cluster_j = rep(c("B", "C"), 2),
+               log2_oe = rep(c(slope * crp[p] / 50, 0), 2) + u + rnorm(4, 0, 0.05))
+  }))
+  d <- mk(1)
+  for (m in c("spearman", "lm", "lmm", "perm")) {
+    r <- associate_continuous(d, crp, value = "log2_oe", method = m, n_perms = 500)
+    expect_lt(r$p[r$cluster_j == "B"], 0.01)
+    expect_gt(r$estimate[r$cluster_j == "B"], 0)
+  }
+  # null: the p-values of the unrelated pair are roughly uniform
+  ps <- replicate(200, { d <- mk(0); r <- associate_continuous(d, crp, value = "log2_oe"); r$p[r$cluster_j == "C"] })
+  expect_lt(abs(mean(ps < 0.05) - 0.05), 0.05)
+})
+
+test_that("compare_groups averages images within patients by default", {
+  set.seed(2)
+  d <- expand.grid(img = 1:4, patient = paste0("p", 1:8), stringsAsFactors = FALSE)
+  d$group <- ifelse(d$patient %in% paste0("p", 1:4), "control", "case")
+  d$sample_id <- paste(d$patient, d$img); d$cluster_i <- "A"; d$cluster_j <- "B"
+  d$log2_oe <- rnorm(8)[match(d$patient, paste0("p", 1:8))] + rnorm(nrow(d), 0, 0.05)
+  r_pat <- suppressMessages(compare_groups(d, value = "log2_oe", patient_key = "patient", method = "wilcox", ref_group = "control"))
+  expect_equal(r_pat$n_total, 8)                 # 8 patients, not 32 images
+  expect_warning(r_img <- compare_groups(d, value = "log2_oe", patient_key = "patient", method = "wilcox",
+                                         ref_group = "control", unit = "image"))
+  expect_equal(r_img$n_total, 32)
 })

@@ -146,7 +146,7 @@ round(fit$L, 2)[c("A_1", "B_1", "C_1"), ]
 ```
 
 ```{.output}
-Time difference of 46.0359 secs
+Time difference of 3.240163 mins
 ```
 
 ```{.output}
@@ -229,7 +229,7 @@ cc_res[order(cc_res$score, cc_res$pair, cc_res$r), ]
 ```
 
 ```{.output}
-Time difference of 48.88825 secs
+Time difference of 6.687315 mins
 ```
 
 <div class="nb-output">
@@ -411,7 +411,7 @@ Sys.time() - t0
 ```
 
 ```{.output}
-Time difference of 1.399758 mins
+Time difference of 2.328136 mins
 ```
 
 ```r
@@ -493,7 +493,7 @@ Endothelial   Astrocyte       Oligo         OPC   Microglia         SMC
 ```
 
 <div class="nb-output">
-0.769038208168643
+0.775230566534914
 </div>
 
 ```r
@@ -532,7 +532,7 @@ cfit
 ```
 
 ```{.output}
-Time difference of 1.191569 mins
+Time difference of 2.077509 mins
 ```
 
 ```{.output}
@@ -627,6 +627,117 @@ With `method = "intensity"` the model reproduces the empirical estimate. The clo
 4. **Use the model for composition and spatial scales.** `rff_pair_correlation(type = "composition")` removes the cellularity field, and the fitted length scales show at which scale each spatial program operates. With few cell types, use `offset = "smoothed_total"` with reference `offset_genes`.
 5. **Limitations (experimental).** MAP fitting in R (about 1 minute per 10,000 bins and 40 genes) limits the model to regions; the Dirichlet-process spectral mixture and Gibbs sampler of the original RFLVM are not implemented yet; model-based estimates are shrunk towards 0 at short range.
 
+### 7. Without gene sets: co-localized transcript modules
+
+The analyses above need gene sets, and assume that every gene in a set marks that population. `colocalization_gene_matrix()` works gene by gene: for every pair of genes it counts transcript pairs within `radius` and divides by the number expected if gene labels were shuffled over the fixed transcript positions (log2 O/E; cellularity cancels). `colocalization_modules()` clusters genes that co-localize with one another, and `module_enrichment()` interprets each module with any gene sets (pathways or cell-type markers; hypergeometric test, BH). `module_enrichr()` sends module gene names to the Enrichr web service (needs the enrichR package and internet access).
+
+First the simulated tissue from section 2, where the three gene sets are known:
+
+```r
+Msim <- colocalization_gene_matrix(b, radius = 12)
+mods_sim <- colocalization_modules(Msim, n_modules = 3)
+mods_sim$summary
+module_enrichment(mods_sim, sets)
+```
+
+<div class="nb-output">
+<table class="dataframe">
+<caption>A data.frame: 3 × 4</caption>
+<thead>
+	<tr><th scope=col>module</th><th scope=col>size</th><th scope=col>mean_oe</th><th scope=col>top_genes</th></tr>
+	<tr><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><td>M1</td><td>5</td><td>0.9272278</td><td>A_3, A_5, A_1, A_2, A_4</td></tr>
+	<tr><td>M2</td><td>5</td><td>0.8726565</td><td>B_2, B_5, B_4, B_3, B_1</td></tr>
+	<tr><td>M3</td><td>5</td><td>0.4027856</td><td>C_3, C_4, C_1, C_2, C_5</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="nb-output">
+<table class="dataframe">
+<caption>A data.frame: 3 × 9</caption>
+<thead>
+	<tr><th></th><th scope=col>module</th><th scope=col>gene_set</th><th scope=col>overlap</th><th scope=col>module_size</th><th scope=col>set_size</th><th scope=col>odds_ratio</th><th scope=col>p</th><th scope=col>padj</th><th scope=col>genes</th></tr>
+	<tr><th></th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td>M1</td><td>A</td><td>5</td><td>5</td><td>5</td><td>231</td><td>0.0003330003</td><td>0.000999001</td><td>A_3, A_5, A_1, A_2, A_4</td></tr>
+	<tr><th scope=row>5</th><td>M2</td><td>B</td><td>5</td><td>5</td><td>5</td><td>231</td><td>0.0003330003</td><td>0.000999001</td><td>B_2, B_5, B_4, B_3, B_1</td></tr>
+	<tr><th scope=row>9</th><td>M3</td><td>C</td><td>5</td><td>5</td><td>5</td><td>231</td><td>0.0003330003</td><td>0.000999001</td><td>C_3, C_4, C_1, C_2, C_5</td></tr>
+</tbody>
+</table>
+</div>
+
+Then all 248 genes of the mouse brain section (4 µm bins from section 5). The marker gene sets are used only to interpret the modules, not to find them.
+
+```r
+t0 <- Sys.time()
+Mb <- colocalization_gene_matrix(xb, radius = 20, min_count = 200)
+difftime(Sys.time(), t0, units = "secs")
+mods_b <- colocalization_modules(Mb, n_modules = 14, min_size = 3)
+mods_b$summary
+en_b <- module_enrichment(mods_b, brain_sets)
+subset(en_b, padj < 0.05)[, c("module", "gene_set", "overlap", "module_size", "padj", "genes")]
+```
+
+```{.output}
+Time difference of 36.92203 secs
+```
+
+<div class="nb-output">
+<table class="dataframe">
+<caption>A data.frame: 10 × 4</caption>
+<thead>
+	<tr><th scope=col>module</th><th scope=col>size</th><th scope=col>mean_oe</th><th scope=col>top_genes</th></tr>
+	<tr><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><td>M1 </td><td>48</td><td>1.0020395</td><td>Igf2, Slc13a4, Dcn, Cyp1b1, Col1a1, Fmod, Aldh1a2, Acta2   </td></tr>
+	<tr><td>M2 </td><td>43</td><td>0.9106521</td><td>Ndst4, Npy2r, Slc44a5, Pip5k1b, Trpc4, Cpne6, Rasl10a, Dpyd</td></tr>
+	<tr><td>M3 </td><td>42</td><td>0.4737585</td><td>Nxph3, Gadd45a, Arhgap25, Rspo2, Rprm, Trbc2, Myl4, Rxfp1  </td></tr>
+	<tr><td>M4 </td><td>28</td><td>1.2089635</td><td>Chat, Tacr1, Sncg, Nwd2, Kctd8, Necab2, Calb2, Nrp2        </td></tr>
+	<tr><td>M5 </td><td>24</td><td>0.4540791</td><td>Rspo1, Kcnh5, Cbln4, Myo16, Tmem132d, Pdzrn3, Prr16, Lamp5 </td></tr>
+	<tr><td>M6 </td><td>24</td><td>0.6625122</td><td>Cort, Sst, Gad2, Gad1, Rab3b, Pvalb, Pthlh, Kcnmb2         </td></tr>
+	<tr><td>M7 </td><td>16</td><td>0.4964736</td><td>Sox10, Opalin, Gjc3, Gpr17, Adamtsl1, Sema3d, Vwc2l, Sema6a</td></tr>
+	<tr><td>M8 </td><td> 8</td><td>1.7045032</td><td>Cd300c2, Ikzf1, Spi1, Cd53, Trem2, Siglech, Laptm5, Cd68   </td></tr>
+	<tr><td>M9 </td><td> 8</td><td>0.9186085</td><td>Nts, Pdyn, Penk, Ppp1r1b, Pde7b, Meis2, Mapk4, Unc13c      </td></tr>
+	<tr><td>M10</td><td> 3</td><td>0.1577920</td><td>Ntsr2, Acsbg1, Gli3                                        </td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="nb-output">
+<table class="dataframe">
+<caption>A data.frame: 5 × 6</caption>
+<thead>
+	<tr><th></th><th scope=col>module</th><th scope=col>gene_set</th><th scope=col>overlap</th><th scope=col>module_size</th><th scope=col>padj</th><th scope=col>genes</th></tr>
+	<tr><th></th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>77</th><td>M8 </td><td>Microglia  </td><td>5</td><td> 8</td><td>6.713858e-07</td><td>Ikzf1, Cd53, Trem2, Siglech, Laptm5                  </td></tr>
+	<tr><th scope=row>1</th><td>M1 </td><td>Endothelial</td><td>8</td><td>48</td><td>5.362878e-05</td><td>Cd93, Kdr, Pecam1, Fgd5, Emcn, Cldn5, Adgrl4, Nostrin</td></tr>
+	<tr><th scope=row>63</th><td>M6 </td><td>Inhibitory </td><td>5</td><td>24</td><td>9.527572e-04</td><td>Sst, Gad2, Gad1, Pvalb, Vip                          </td></tr>
+	<tr><th scope=row>66</th><td>M7 </td><td>Oligo      </td><td>3</td><td>16</td><td>5.016930e-03</td><td>Sox10, Opalin, Gjc3                                  </td></tr>
+	<tr><th scope=row>11</th><td>M10</td><td>Astrocyte  </td><td>2</td><td> 3</td><td>1.748759e-02</td><td>Ntsr2, Acsbg1                                        </td></tr>
+</tbody>
+</table>
+</div>
+
+```r
+ord <- mods_b$tree$order; gn <- rownames(Mb)[ord]
+hm <- expand.grid(i = factor(gn, levels = rev(gn)), j = factor(gn, levels = gn))
+hm$v <- Mb[cbind(as.character(hm$i), as.character(hm$j))]
+options(repr.plot.width = 7, repr.plot.height = 7)
+ggplot(hm, aes(j, i, fill = pmax(pmin(v, 2), -2))) + geom_raster() +
+  scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", name = "log2 O/E") +
+  coord_equal() + labs(title = "Mouse brain: 248 genes clustered without gene sets", x = NULL, y = NULL) +
+  theme_minimal() + theme(axis.text = element_blank(), panel.grid = element_blank())
+```
+
+![](figures/segmentation_free_tutorial/fig-12.png){width="100%"}
+
 ```r
 sessionInfo()
 ```
@@ -650,7 +761,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.2
+[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.3
 [4] testthat_3.2.1       
 
 loaded via a namespace (and not attached):

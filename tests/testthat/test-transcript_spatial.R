@@ -102,3 +102,30 @@ test_that("pcf_matrix accepts any labelled points, e.g. pixel-level factors", {
   expect_gt(mean(short$log_g_rel[short$cluster_i == "F1" & short$cluster_j == "F2"]), 0.5)
   expect_lt(mean(short$log_g_rel[short$cluster_i == "F1" & short$cluster_j == "F3"]), -0.3)
 })
+
+test_that("gene-level co-localization modules recover planted gene sets", {
+  tx <- simulate_transcripts(size = 300, rate = 0.02, coloc = c(A = 0.8, B = 0.8), seed = 11)
+  truth <- attr(tx, "truth")
+  b <- bin_transcripts(tx, bin_size = 4, tissue_radius = Inf)
+  M <- colocalization_gene_matrix(b, radius = 12)
+  expect_true(isSymmetric(unname(M)))
+  sets <- split(truth$genes, truth$set_of)
+  ab <- mean(M[sets$A, sets$B]); ac <- mean(M[sets$A, sets$C])
+  expect_gt(ab, ac)                                     # A and B share a niche
+  mods <- colocalization_modules(M, n_modules = 3)
+  tab <- table(truth$set_of[match(mods$modules$gene, truth$genes)], mods$modules$module)
+  expect_equal(sum(apply(tab, 1, max)), nrow(mods$modules))   # each set in one module
+  en <- module_enrichment(mods, sets)
+  expect_equal(sum(en$padj < 0.05), 3)
+})
+
+test_that("gene-level O/E is ~0 when gene labels are random", {
+  set.seed(4); n <- 20000
+  tx <- data.frame(x = runif(n, 0, 300), y = runif(n, 0, 300))
+  tx$x <- tx$x + ifelse(tx$x > 150, 0, 0)               # uneven density: denser left half
+  keep <- tx$x > 150 | runif(n) < 0.4; tx <- tx[keep, ]
+  tx$gene <- sample(paste0("g", 1:6), nrow(tx), TRUE)
+  b <- bin_transcripts(tx, bin_size = 4, tissue_radius = 3)
+  M <- colocalization_gene_matrix(b, radius = 15, min_count = 10)
+  expect_lt(max(abs(M)), 0.1)
+})
