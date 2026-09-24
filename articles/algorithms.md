@@ -481,7 +481,12 @@ The coordinates $`u_b`$ are observed, so only the fields and loadings
 are estimated (MAP, L-BFGS-B, analytic gradients). Model pair
 correlations follow from
 $`g_{AB}(r) = \exp \mathrm{Cov}[\log\lambda_A(u), \log\lambda_B(u + r)]`$;
-removing $`f_0`$ gives the composition version.
+removing $`f_0`$ gives the composition version. Because each $`f_k`$ is
+a function of the coordinates,
+[`rff_fields()`](https://juninamo.github.io/spatialCooccur/reference/rff_fields.md)
+evaluates the fitted (unit-variance) fields at any point - cell
+centroids or transcripts - and averages them per cell when a cell id is
+given.
 
 #### Gene-level modules — `colocalization_gene_matrix()`, `colocalization_modules()`, `module_enrichment()`
 

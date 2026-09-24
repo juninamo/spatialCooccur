@@ -81,6 +81,9 @@ log-Gaussian Cox process factor model (after Gundersen et al. 2021).
   : Query enrichR for each co-localization module
 - [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
   : Fit a random-feature spatial factor model to binned transcripts
+- [`rff_fields()`](https://juninamo.github.io/spatialCooccur/reference/rff_fields.md)
+  : Latent fields of a fitted random-feature LGCP at cells, transcripts
+  or any point
 - [`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md)
   : Model-based cross pair correlation from a fitted random-feature LGCP
 - [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)

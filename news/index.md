@@ -39,6 +39,15 @@
 
 ### New features
 
+- [`rff_fields()`](https://juninamo.github.io/spatialCooccur/reference/rff_fields.md)
+  (experimental): evaluates the latent fields of a
+  [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+  fit (cellularity and the `K` factors, on the unit-variance scale of
+  `fit$field_grid`) at any coordinates - cell centroids, transcripts or
+  other points - and averages them per cell with `by = "cell_id"`.
+  [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+  now also stores the coordinate centre used for the random features
+  (`center`); older fits still work.
 - [`associate_continuous()`](https://juninamo.github.io/spatialCooccur/reference/associate_continuous.md):
   association of per-image / per-patient co-localization with a
   continuous clinical variable (CRP, disease activity, age): Spearman on

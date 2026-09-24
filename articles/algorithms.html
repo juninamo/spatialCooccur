@@ -780,7 +780,11 @@ L-BFGS-B, analytic gradients). Model pair correlations follow from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">v</mi></mrow><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>λ</mi><mi>A</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>λ</mi><mi>B</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo>+</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">g_{AB}(r) = \exp \mathrm{Cov}[\log\lambda_A(u), \log\lambda_B(u + r)]</annotation></semantics></math>;
 removing
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mn>0</mn></msub><annotation encoding="application/x-tex">f_0</annotation></semantics></math>
-gives the composition version.</p>
+gives the composition version. Because each
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mi>k</mi></msub><annotation encoding="application/x-tex">f_k</annotation></semantics></math>
+is a function of the coordinates, <code><a href="../reference/rff_fields.html">rff_fields()</a></code> evaluates
+the fitted (unit-variance) fields at any point - cell centroids or
+transcripts - and averages them per cell when a cell id is given.</p>
 </div>
 <div class="section level4">
 <h4 id="gene-level-modules-colocalization_gene_matrix-colocalization_modules-module_enrichment">Gene-level modules — <code>colocalization_gene_matrix()</code>,

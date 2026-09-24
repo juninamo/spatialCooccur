@@ -103,7 +103,10 @@ The notebooks behind these pages are in
 - Random-feature log-Gaussian Cox process factor model after Gundersen,
   Zhang & Engelhardt (AISTATS 2021):
   [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md),
-  [`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md)
+  [`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md);
+  [`rff_fields()`](https://juninamo.github.io/spatialCooccur/reference/rff_fields.md)
+  returns the fitted latent fields (cellularity and factors) per cell,
+  transcript or any point
 - [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
   feeds
   [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
