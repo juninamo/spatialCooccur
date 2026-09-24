@@ -134,7 +134,7 @@
 <ul>
 <li>Simulate spatial layouts with a planted interaction: <code><a href="reference/generate_sim.html">generate_sim()</a></code>
 </li>
-<li>Neighborhood enrichment with a label-permutation null: <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> returns <code>log2_oe</code> = log2(observed / expected), centred on the shuffles (effect size, 0 without interaction for any cell number), and a within-sample test per pair with max-T family-wise adjustment (<code>padj</code>); <code><a href="reference/plot_nhood_heatmap.html">plot_nhood_heatmap()</a></code> shows both</li>
+<li>Neighborhood enrichment with a label-permutation null: <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> returns <code>log2_oe</code> = log2(observed / expected), centred on the shuffles (effect size, 0 without interaction for any cell number), and a within-sample test per pair with max-T family-wise adjustment (<code>padj</code>); <code><a href="reference/plot_nhood_heatmap.html">plot_nhood_heatmap()</a></code> shows both. Directional statistics (<code>contact</code>, <code>dominance</code>; row = centre cell type) tell “A is surrounded by B” apart from “B is surrounded by A”, which the symmetric pair-level O/E cannot</li>
 <li>Radius-based co-occurrence ratio: <code><a href="reference/calc_co_occurrence_for_radius.html">calc_co_occurrence_for_radius()</a></code> / <code><a href="reference/compute_co_occurrence_ratio.html">compute_co_occurrence_ratio()</a></code>
 </li>
 <li>Local co-localization: <code><a href="reference/cooccur_local_oe.html">cooccur_local_oe()</a></code> counts A-B pairs around each cell, divides by their exact expectation under label permutation and smooths with a Gaussian kernel (abundance-adjusted local log2 O/E, optional permutation hotspots, O(n k)); the original diffusion sCLS is kept as <code><a href="reference/cooccur_local.html">cooccur_local()</a></code>
@@ -240,6 +240,11 @@
 <td>Neighbourhood enrichment, negative control</td>
 <td>random tissues, 3–25 cell types (even or 1–30% abundance)</td>
 <td>log2 O/E 95% CI includes 0; per-pair false positives ≈ 5%; any pair with <code>padj</code> &lt; 0.05 in ≤ 6% of tissues (BH: up to 12%)</td>
+</tr>
+<tr>
+<td>Neighbourhood enrichment, directional (<code>contact</code>, <code>dominance</code>), negative control</td>
+<td>random tissues, 3–10 cell types (3–30% abundance), 100–400 tissues</td>
+<td>per ordered pair 3.6–5.1% false positives; any ordered pair with <code>*_padj</code> &lt; 0.05 in 3–6% of tissues (95% CI includes 5%)</td>
 </tr>
 <tr>
 <td>Neighbourhood enrichment, positive control</td>

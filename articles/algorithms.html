@@ -407,13 +407,75 @@ The unsymmetrised
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>E</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z_{ij} = (C_{ij} - E_{ij}) / \mathrm{SD}(C^{(b)}_{ij})</annotation></semantics></math>
 is still returned as <code>zscore</code>; it grows with the number of
 cells.</p>
+</div>
+<div class="section level4">
+<h4 id="step-7-directional-statistics-contact-and-dominance">Step 7 — directional statistics: <code>contact</code> and
+<code>dominance</code><a class="anchor" aria-label="anchor" href="#step-7-directional-statistics-contact-and-dominance"></a>
+</h4>
+<p>Every
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>–<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+contact is also a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>–<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+contact, so the pair-level O/E is (nearly) symmetric:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">O</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">E</mi></mrow><mrow><mi>i</mi><mo>→</mo><mi>j</mi></mrow></msub><mo>=</mo><mfrac><mrow><mrow><mtext mathvariant="normal">share of </mtext><mspace width="0.333em"></mspace></mrow><mi>j</mi><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> among the neighbours of </mtext><mspace width="0.333em"></mspace></mrow><mi>i</mi></mrow><msub><mi>p</mi><mi>j</mi></msub></mfrac><mo>≈</mo><mfrac><mrow><mrow><mtext mathvariant="normal">share of </mtext><mspace width="0.333em"></mspace></mrow><mi>i</mi><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> among the neighbours of </mtext><mspace width="0.333em"></mspace></mrow><mi>j</mi></mrow><msub><mi>p</mi><mi>i</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">\mathrm{O/E}_{i\to j} = \frac{\text{share of } j
+\text{ among the neighbours of } i}{p_j} \approx \frac{\text{share of } i
+\text{ among the neighbours of } j}{p_i}</annotation></semantics></math>.
+It answers “is there more
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>–<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+contact than chance?”, not “from whose point of view”. The heatmap of
+<code>plot_nhood_heatmap(value = "log2_oe")</code> shows the average of
+the two directions. Two directional questions (row = centre cell type
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>,
+column = neighbour type
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>)
+are answered on the unweighted
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-NN
+graph without the cell itself, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mrow><mi>u</mi><mo>,</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">n_{u,j}</annotation></semantics></math>
+the number of
+type-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+neighbours of cell
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>u</mi></msub><annotation encoding="application/x-tex">d_u</annotation></semantics></math>
+its number of neighbours:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>i</mi></msub></mfrac><munder><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>i</mi></mrow></munder><mn>1</mn><mo stretchy="false" form="prefix">[</mo><msub><mi>n</mi><mrow><mi>u</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>≥</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">e</mi></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>i</mi></msub></mfrac><munder><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>i</mi></mrow></munder><mn>1</mn><mo stretchy="false" form="prefix">[</mo><msub><mi>n</mi><mrow><mi>u</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>≥</mo><msub><mi>d</mi><mi>u</mi></msub><mi>/</mi><mn>2</mn><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathrm{contact}_{ij} = \frac{1}{n_i}\sum_{u \in i} 1[n_{u,j} \ge 1],
+\qquad
+\mathrm{dominance}_{ij} = \frac{1}{n_i}\sum_{u \in i} 1[n_{u,j} \ge d_u / 2].
+</annotation></semantics></math></p>
+<p><code>contact</code> asks how much of population
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+touches
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>;
+<code>dominance</code> asks whether the neighbourhoods of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+are dominated by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>.
+Both are compared with the same label shuffles (<code>*_expected</code>,
+centred <code>*_log2_oe</code>), tested per ordered pair
+(<code>*_pvalue</code>) and adjusted by max-T over all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>K</mi><mn>2</mn></msup><annotation encoding="application/x-tex">K^2</annotation></semantics></math>
+ordered pairs (<code>*_padj</code>). For a rare type
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+that always sits inside clusters of an abundant type
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>,
+<code>dominance[A, B]</code> is enriched and
+<code>dominance[B, A]</code> is not, while <code>contact[B, A]</code> is
+enriched (more
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+cells than expected touch an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>)
+and <code>contact[A, B]</code> saturates near 1. Read the two
+together.</p>
 <p>In code:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span><span class="va">df</span>, cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, neighbors.k <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>                        n_perms <span class="op">=</span> <span class="fl">200</span>, seed <span class="op">=</span> <span class="fl">1</span>, n_jobs <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>   <span class="co"># effect size (centred)</span></span>
 <span><span class="va">res</span><span class="op">$</span><span class="va">padj</span>      <span class="co"># max-T adjusted, all pairs</span></span>
-<span><span class="fu"><a href="../reference/plot_nhood_heatmap.html">plot_nhood_heatmap</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_nhood_heatmap.html">plot_nhood_heatmap</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span>                               <span class="co"># pair level (symmetric)</span></span>
+<span><span class="fu"><a href="../reference/plot_nhood_heatmap.html">plot_nhood_heatmap</a></span><span class="op">(</span><span class="va">res</span>, value <span class="op">=</span> <span class="st">"dominance_log2_oe"</span><span class="op">)</span>  <span class="co"># directional</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -827,11 +889,13 @@ data.frame of surviving cells, one row per cell, with columns
 <tbody>
 <tr class="odd">
 <td><code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code></td>
-<td>cell-type pair</td>
+<td>cell-type pair (and ordered pair)</td>
 <td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-NN
 graph</td>
-<td>centred log2 O/E</td>
+<td>centred log2 O/E; directional <code>contact</code>,
+<code>dominance</code>
+</td>
 <td>shuffles: <code>pvalue</code>, max-T <code>padj</code>
 </td>
 </tr>

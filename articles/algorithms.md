@@ -229,6 +229,37 @@ The smallest possible `padj` is $`1/(B+1)`$. The unsymmetrised
 $`z_{ij} = (C_{ij} - E_{ij}) / \mathrm{SD}(C^{(b)}_{ij})`$ is still
 returned as `zscore`; it grows with the number of cells.
 
+#### Step 7 — directional statistics: `contact` and `dominance`
+
+Every $`i`$–$`j`$ contact is also a $`j`$–$`i`$ contact, so the
+pair-level O/E is (nearly) symmetric:
+$`\mathrm{O/E}_{i\to j} = \frac{\text{share of } j
+\text{ among the neighbours of } i}{p_j} \approx \frac{\text{share of } i
+\text{ among the neighbours of } j}{p_i}`$. It answers “is there more
+$`i`$–$`j`$ contact than chance?”, not “from whose point of view”. The
+heatmap of `plot_nhood_heatmap(value = "log2_oe")` shows the average of
+the two directions. Two directional questions (row = centre cell type
+$`i`$, column = neighbour type $`j`$) are answered on the unweighted
+$`k`$-NN graph without the cell itself, with $`n_{u,j}`$ the number of
+type-$`j`$ neighbours of cell $`u`$ and $`d_u`$ its number of
+neighbours:
+
+``` math
+\mathrm{contact}_{ij} = \frac{1}{n_i}\sum_{u \in i} 1[n_{u,j} \ge 1],
+\qquad
+\mathrm{dominance}_{ij} = \frac{1}{n_i}\sum_{u \in i} 1[n_{u,j} \ge d_u / 2].
+```
+
+`contact` asks how much of population $`i`$ touches $`j`$; `dominance`
+asks whether the neighbourhoods of $`i`$ are dominated by $`j`$. Both
+are compared with the same label shuffles (`*_expected`, centred
+`*_log2_oe`), tested per ordered pair (`*_pvalue`) and adjusted by max-T
+over all $`K^2`$ ordered pairs (`*_padj`). For a rare type $`A`$ that
+always sits inside clusters of an abundant type $`B`$, `dominance[A, B]`
+is enriched and `dominance[B, A]` is not, while `contact[B, A]` is
+enriched (more $`B`$ cells than expected touch an $`A`$) and
+`contact[A, B]` saturates near 1. Read the two together.
+
 In code:
 
 ``` r
@@ -237,7 +268,8 @@ res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 10,
                         n_perms = 200, seed = 1, n_jobs = 1)
 res$log2_oe   # effect size (centred)
 res$padj      # max-T adjusted, all pairs
-plot_nhood_heatmap(res)
+plot_nhood_heatmap(res)                               # pair level (symmetric)
+plot_nhood_heatmap(res, value = "dominance_log2_oe")  # directional
 ```
 
 ## `calc_co_occurrence_for_radius()` and `compute_co_occurrence_ratio()`
@@ -516,7 +548,7 @@ columns `cluster_id`, `x_min`, `x_max`, `y_min`, `y_max`, and
 
 | Function | Unit | Local geometry | Statistic | Test |
 |----|----|----|----|----|
-| [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md) | cell-type pair | $`k`$-NN graph | centred log2 O/E | shuffles: `pvalue`, max-T `padj` |
+| [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md) | cell-type pair (and ordered pair) | $`k`$-NN graph | centred log2 O/E; directional `contact`, `dominance` | shuffles: `pvalue`, max-T `padj` |
 | [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md) | cell, for a pair | radius $`r`$ + Gaussian smoothing | local log2 O/E | shuffles per cell, BH |
 | [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md) / [`compute_co_occurrence_ratio()`](https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.md) | cell-type pair | radius $`r`$ | $`P(j \mid i) / P(j)`$ | — |
 | [`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md) | cell, for a pair | radius $`r`$ + graph diffusion | 0/1 indicator (sCLS) | — |

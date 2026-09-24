@@ -48,7 +48,9 @@ The notebooks behind these pages are in
   within-sample test per pair with max-T family-wise adjustment
   (`padj`);
   [`plot_nhood_heatmap()`](https://juninamo.github.io/spatialCooccur/reference/plot_nhood_heatmap.md)
-  shows both
+  shows both. Directional statistics (`contact`, `dominance`; row =
+  centre cell type) tell “A is surrounded by B” apart from “B is
+  surrounded by A”, which the symmetric pair-level O/E cannot
 - Radius-based co-occurrence ratio:
   [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md)
   /
@@ -189,6 +191,7 @@ and 95% CI).*
 | Check | Setting | Result |
 |----|----|----|
 | Neighbourhood enrichment, negative control | random tissues, 3–25 cell types (even or 1–30% abundance) | log2 O/E 95% CI includes 0; per-pair false positives ≈ 5%; any pair with `padj` \< 0.05 in ≤ 6% of tissues (BH: up to 12%) |
+| Neighbourhood enrichment, directional (`contact`, `dominance`), negative control | random tissues, 3–10 cell types (3–30% abundance), 100–400 tissues | per ordered pair 3.6–5.1% false positives; any ordered pair with `*_padj` \< 0.05 in 3–6% of tissues (95% CI includes 5%) |
 | Neighbourhood enrichment, positive control | B placed 5–100 µm from A, 20 tissues per distance | planted pair log2 O/E ≈ 0.3–0.4 up to 20 µm and `padj` \< 0.05 in 90–100% of tissues; 95% CI includes 0 from 40 µm |
 | Local O/E, negative control | only the abundance of A and B changes (3–24%) | section O/E 95% CI includes 0; ≤ 5% of cells with p \< 0.05; no FDR hits in 80 tissues |
 | Local O/E, positive control | ring of B around a disc of A | 74% of ring cells are hotspots, 0% far away |
