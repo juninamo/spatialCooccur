@@ -9,7 +9,7 @@ compare_groups(
   value = "zscore",
   group_key = "group",
   patient_key = NULL,
-  method = c("wilcox", "t", "lmm", "perm"),
+  method = c("wilcox", "t", "lmm", "perm", "signrank"),
   n_perms = 1000,
   adjust = "BH",
   pair_keys = c("cluster_i", "cluster_j"),
@@ -46,8 +46,15 @@ column is only used to detect pseudoreplication.}
   patient-level factor). Falls back to `lm()` when every patient
   contributes a single row. Requires the `lme4` package.
 * "perm" — group-label permutation test on the mean difference
-  (blocked by patient if `patient_key` is supplied). All relabelings
-  are enumerated when there are at most `n_perms` of them (exact test).}
+  (blocked by patient if `patient_key` is supplied). If patients
+  appear in both groups (paired / repeated-measures designs such as
+  pre- vs post-treatment), labels are instead swapped *within*
+  patients. All relabelings are enumerated when there are at most
+  `n_perms` of them (exact test).
+* "signrank" — paired design: values are averaged per patient and
+  group, and the per-patient differences (test minus reference) are
+  tested with the Wilcoxon signed-rank test. Requires `patient_key`;
+  patients observed in only one group are dropped.}
 
 \item{n_perms}{Number of permutations for `method = "perm"`.}
 

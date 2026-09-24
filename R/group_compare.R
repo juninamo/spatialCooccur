@@ -145,6 +145,29 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
   invisible()
 }
 
+# Internal: permutation null for paired / repeated-measures designs. Within
+# each patient observed in both groups, the two group labels are swapped
+# with probability 1/2 (sign flip of the patient's contribution); patients
+# seen in only one group keep their labels. Exact when 2^n_patients <=
+# n_perms.
+.paired_perm_null <- function(v, g, pat, g1, g2, n_perms) {
+  both <- names(which(tapply(g, pat, function(x) all(c(g1, g2) %in% x))))
+  stat <- function(flip) {
+    gg <- g
+    sw <- pat %in% both[flip]
+    gg[sw] <- ifelse(g[sw] == g1, g2, g1)
+    mean(v[gg == g2]) - mean(v[gg == g1])
+  }
+  n <- length(both)
+  if (2^n <= n_perms) {
+    grid <- as.matrix(expand.grid(rep(list(c(FALSE, TRUE)), n)))
+    list(null = apply(grid, 1, stat), exact = TRUE)
+  } else {
+    list(null = replicate(n_perms, stat(sample(c(FALSE, TRUE), n, replace = TRUE))),
+         exact = FALSE)
+  }
+}
+
 # Internal: logical selector of the meta.data rows belonging to image `img`.
 # Cell names are the ground truth (they are what links an image to its
 # meta.data rows); the `sample_key` column is only used as a fallback when
@@ -818,8 +841,15 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
 #'     patient-level factor). Falls back to `lm()` when every patient
 #'     contributes a single row. Requires the `lme4` package.
 #'   * "perm" — group-label permutation test on the mean difference
-#'     (blocked by patient if `patient_key` is supplied). All relabelings
-#'     are enumerated when there are at most `n_perms` of them (exact test).
+#'     (blocked by patient if `patient_key` is supplied). If patients
+#'     appear in both groups (paired / repeated-measures designs such as
+#'     pre- vs post-treatment), labels are instead swapped *within*
+#'     patients. All relabelings are enumerated when there are at most
+#'     `n_perms` of them (exact test).
+#'   * "signrank" — paired design: values are averaged per patient and
+#'     group, and the per-patient differences (test minus reference) are
+#'     tested with the Wilcoxon signed-rank test. Requires `patient_key`;
+#'     patients observed in only one group are dropped.
 #' @param n_perms Number of permutations for `method = "perm"`.
 #' @param adjust Multiple-testing adjustment method passed to
 #'   [stats::p.adjust()].
@@ -865,7 +895,7 @@ compare_groups <- function(per_sample_df,
                            value = "zscore",
                            group_key = "group",
                            patient_key = NULL,
-                           method = c("wilcox", "t", "lmm", "perm"),
+                           method = c("wilcox", "t", "lmm", "perm", "signrank"),
                            n_perms = 1000,
                            adjust = "BH",
                            pair_keys = c("cluster_i", "cluster_j"),
@@ -895,6 +925,9 @@ compare_groups <- function(per_sample_df,
   }
   if (method == "lmm" && !requireNamespace("lme4", quietly = TRUE)) {
     stop("method = 'lmm' requires the 'lme4' package; install it or choose another method.")
+  }
+  if (method == "signrank" && is.null(patient_key)) {
+    stop("method = 'signrank' requires patient_key (the pairing variable).")
   }
   if (method == "lmm" && is.null(patient_key)) {
     warning("method = 'lmm' without patient_key is equivalent to OLS; passing patient_key is recommended.")
@@ -951,6 +984,7 @@ compare_groups <- function(per_sample_df,
 
   p_method <- switch(method,
     wilcox = "Wilcoxon rank-sum",
+    signrank = "Wilcoxon signed-rank (paired by patient)",
     t = "Welch t-test",
     perm = "permutation",
     lmm = if (requireNamespace("lmerTest", quietly = TRUE)) {
@@ -990,6 +1024,11 @@ compare_groups <- function(per_sample_df,
     sub <- sub[is.finite(sub[[value]]), , drop = FALSE]
     g <- as.character(sub[[group_key]])
     if (sum(g == g1) < min_n_per_group || sum(g == g2) < min_n_per_group) next
+    if (method == "signrank") {
+      pm <- tapply(sub[[value]], list(as.character(sub[[patient_key]]), g), mean)
+      pm <- pm[stats::complete.cases(pm[, c(g1, g2), drop = FALSE]), , drop = FALSE]
+      if (nrow(pm) < min_n_per_group) next
+    }
 
     res_row <- as.list(sub[1, pair_keys, drop = FALSE])
     res_row$n_total <- nrow(sub)
@@ -1004,7 +1043,12 @@ compare_groups <- function(per_sample_df,
 
     test <- list(stat = NA_real_, p = NA_real_, est = NA_real_)
     fac <- factor(g, levels = c(g1, g2))
-    if (method == "wilcox") {
+    if (method == "signrank") {
+      d <- pm[, g2] - pm[, g1]
+      res_row$n_pairs <- length(d)
+      tt <- tryCatch(suppressWarnings(wilcox.test(d)), error = function(e) NULL)
+      if (!is.null(tt)) { test$stat <- unname(tt$statistic); test$p <- tt$p.value }
+    } else if (method == "wilcox") {
       # exact = NULL lets wilcox.test use the exact distribution for small
       # samples without ties (the normal approximation is anti-conservative
       # there, e.g. 3 vs 3: 0.081 vs exact 0.10).
@@ -1053,16 +1097,24 @@ compare_groups <- function(per_sample_df,
       }
     } else if (method == "perm") {
       observed <- m2 - m1
+      paired <- FALSE
       if (!is.null(patient_key)) {
         pat <- as.character(sub[[patient_key]])
-        pat_levels <- unique(pat)
-        unit <- match(pat, pat_levels)
-        unit_group <- g[match(pat_levels, pat)]
-      } else {
-        unit <- seq_along(g)
-        unit_group <- g
+        paired <- any(tapply(g, pat, function(x) length(unique(x)) > 1))
       }
-      pn <- perm_null(v, unit, unit_group)
+      pn <- if (paired) {
+        .paired_perm_null(v, g, pat, g1, g2, n_perms)
+      } else {
+        if (!is.null(patient_key)) {
+          pat_levels <- unique(pat)
+          unit <- match(pat, pat_levels)
+          unit_group <- g[match(pat_levels, pat)]
+        } else {
+          unit <- seq_along(g)
+          unit_group <- g
+        }
+        perm_null(v, unit, unit_group)
+      }
       tol <- sqrt(.Machine$double.eps)
       test$stat <- observed
       test$p <- if (pn$exact) {

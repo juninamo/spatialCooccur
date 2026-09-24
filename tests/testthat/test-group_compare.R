@@ -221,3 +221,23 @@ test_that("nhood_enrichment_per_sample returns log2_oe and composition", {
   one <- res[res$sample_id == res$sample_id[1] & res$cluster_i == "cell_type_1", ]
   expect_equal(unique(one$n_i), sum(df$sample_id == res$sample_id[1] & df$cell_type == "cell_type_1"))
 })
+
+test_that("paired designs: signrank and within-patient permutation", {
+  set.seed(8)
+  n <- 8
+  base <- rnorm(n, sd = 2)                      # large between-patient variation
+  d <- rbind(
+    data.frame(patient = paste0("p", 1:n), group = "pre",  value = base),
+    data.frame(patient = paste0("p", 1:n), group = "post", value = base + 0.8 + rnorm(n, sd = 0.2)))
+  d$sample_id <- paste(d$patient, d$group); d$cluster_i <- "A"; d$cluster_j <- "B"
+  sr <- compare_groups(d, value = "value", method = "signrank", patient_key = "patient",
+                       ref_group = "pre")
+  expect_equal(sr$n_pairs, n)
+  expect_equal(sr$p, 2 / 2^n)                    # all 8 differences positive
+  pp <- compare_groups(d, value = "value", method = "perm", patient_key = "patient",
+                       ref_group = "pre", n_perms = 1000)
+  expect_equal(pp$p, 2 / 2^n)                    # exact sign-flip null
+  unp <- suppressWarnings(compare_groups(d, value = "value", method = "wilcox", ref_group = "pre"))
+  expect_gt(unp$p, 0.05)                         # ignoring pairing loses the signal
+  expect_error(compare_groups(d, value = "value", method = "signrank"), "patient_key")
+})

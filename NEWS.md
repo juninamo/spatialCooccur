@@ -27,6 +27,17 @@
 
 ## New features
 
+* **Experimental segmentation-free analysis** of transcript coordinates
+  (e.g. Xenium `transcripts.parquet`): `bin_transcripts()`, model-free cross
+  pair correlation of gene sets `pcf_cross()` (the relative version is the
+  label-permutation O/E, the continuous analogue of `log2_oe`), a
+  random-feature log-Gaussian Cox process factor model `fit_spatial_rff()`
+  after Gundersen, Zhang & Engelhardt (AISTATS 2021) with model-based
+  `rff_pair_correlation()`, and `colocalization_per_sample()` whose output
+  goes into `compare_groups()` with `pair_keys = c("cluster_i", "cluster_j", "r")`.
+  Simulators `simulate_transcripts()` / `simulate_transcripts_groups()` and
+  `lgcp_true_pair_correlation()` support validation.
+
 * `nhood_enrichment()` also returns `expected` (permutation mean) and
   `log2_oe` (log2 observed / expected), an effect size that does not grow with
   the number of cells. Recommended for between-group comparison.
