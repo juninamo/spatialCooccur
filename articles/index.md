@@ -12,6 +12,8 @@ End-to-end walkthroughs with code, output and figures.
   data](https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_10Xdata.md):
 - [Case-control comparison of spatial co-localization with
   spatialCooccur](https://juninamo.github.io/spatialCooccur/articles/case_control_tutorial.md):
+- [Segmentation-free co-localization analysis of transcript coordinates
+  (experimental)](https://juninamo.github.io/spatialCooccur/articles/segmentation_free_tutorial.md):
 
 ### Methods
 

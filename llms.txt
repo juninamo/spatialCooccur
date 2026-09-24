@@ -70,6 +70,11 @@ devtools::install_github("juninamo/spatialCooccur")
   several images per patient: choosing the score, patient-level testing
   (Wilcoxon / LMM / blocked permutation), pseudoreplication, covariates,
   and power
+- `vignettes/segmentation_free_tutorial.ipynb` — experimental
+  segmentation-free analysis of transcript coordinates: cross pair
+  correlation of marker gene sets, a random-feature log-Gaussian Cox
+  process model (after Gundersen et al. 2021), case-control testing, and
+  a worked Xenium mouse-brain example
 
 ### 1. Spatial Neighborhood Analysis (SNA)
 
@@ -308,6 +313,8 @@ End-to-end walkthroughs with code, output and figures.
   data](https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_10Xdata.md):
 - [Case-control comparison of spatial co-localization with
   spatialCooccur](https://juninamo.github.io/spatialCooccur/articles/case_control_tutorial.md):
+- [Segmentation-free co-localization analysis of transcript coordinates
+  (experimental)](https://juninamo.github.io/spatialCooccur/articles/segmentation_free_tutorial.md):
 
 ### Methods
 
