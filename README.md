@@ -56,6 +56,11 @@ devtools::install_github("juninamo/spatialCooccur")
 - `vignettes/case_control_tutorial.ipynb` — case-control study with several
   images per patient: choosing the score, patient-level testing (Wilcoxon /
   LMM / blocked permutation), pseudoreplication, covariates, and power
+- `vignettes/segmentation_free_tutorial.ipynb` — experimental
+  segmentation-free analysis of transcript coordinates: cross pair
+  correlation of marker gene sets, a random-feature log-Gaussian Cox
+  process model (after Gundersen et al. 2021), case-control testing, and a
+  worked Xenium mouse-brain example
 
 ### 1. Spatial Neighborhood Analysis (SNA)
 To simulate spatial transcriptomic data and perform neighborhood enrichment analysis:

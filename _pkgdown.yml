@@ -34,6 +34,10 @@ navbar:
       - text: "Multi-sample analysis"
       - text: "Case-control comparison"
         href: articles/case_control_tutorial.html
+      - text: "---------"
+      - text: "Transcript-level (experimental)"
+      - text: "Segmentation-free co-localization"
+        href: articles/segmentation_free_tutorial.html
     articles:
       text: Methods
       menu:
@@ -49,6 +53,7 @@ articles:
   - articles/SNA_tutorial_simulation
   - articles/SNA_tutorial_10Xdata
   - articles/case_control_tutorial
+  - articles/segmentation_free_tutorial
 - title: Methods
   desc: >
     Mathematical description of every core function.
