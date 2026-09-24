@@ -83,7 +83,8 @@ The notebooks behind these pages are in [`vignettes/`](vignettes/).
   counterpart of `log2_oe`
 - Random-feature log-Gaussian Cox process factor model after Gundersen,
   Zhang & Engelhardt (AISTATS 2021): `fit_spatial_rff()`,
-  `rff_pair_correlation()`
+  `rff_pair_correlation()`; `rff_fields()` returns the fitted latent
+  fields (cellularity and factors) per cell, transcript or any point
 - `colocalization_per_sample()` feeds `compare_groups()`
 - Unsupervised, gene-level: `colocalization_gene_matrix()` (gene x gene
   log2 O/E of transcript pairs within a radius), `colocalization_modules()`

@@ -790,6 +790,7 @@ fit_spatial_rff <- function(binned, n_factors = 3,
     gamma = p$gamma, dispersion = if (!is.null(p$r)) stats::setNames(p$r, colnames(Y)) else NULL,
     Omega = Omega, family = family, genes = colnames(Y), n_bins = N,
     field_grid = field_grid, grid = binned$grid, in_tissue = keep,
+    center = colMeans(as.matrix(binned$coords[keep, c("x", "y")])),
     offset_grid = offset_grid,
     bin_size = binned$grid$bin_size, has_density = has_d,
     objective = opt$value, convergence = opt$convergence, message = opt$message,
@@ -808,6 +809,97 @@ print.spatial_rff_fit <- function(x, ...) {
   }
   cat(sprintf("  convergence: %d (%s)\n", x$convergence, x$message))
   invisible(x)
+}
+
+#' Latent fields of a fitted random-feature LGCP at cells, transcripts or any point
+#'
+#' **Experimental.** [fit_spatial_rff()] represents the cellularity field and
+#' the `K` spatial factors as smooth functions of the coordinates (random
+#' Fourier features), so they can be evaluated anywhere, not only on the bin
+#' grid stored in `fit$field_grid`. `rff_fields()` evaluates them at the
+#' given coordinates - cell centroids, transcripts or any other points - and
+#' optionally averages the values per group (e.g. per cell, from the
+#' transcripts assigned to it).
+#'
+#' The fields are on the unit-variance scale of `fit$field_grid` (each field
+#' has variance 1 over the fitted tissue). The contribution of the factors to
+#' the log intensity of gene `j` at a point is `fields[, factors] %*% fit$L[j, ]`
+#' (plus `fit$sigma0` times the density field when it was fitted).
+#'
+#' @param fit Output of [fit_spatial_rff()].
+#' @param coords A data frame (or matrix) with the coordinates, in the same
+#'   unit and frame as the transcripts used for the fit: one row per cell
+#'   centroid, transcript or point.
+#' @param x_col,y_col Column names of the coordinates in `coords`.
+#' @param by Optional column of `coords` (e.g. `"cell_id"`) whose values
+#'   define groups; the fields are then averaged within each group, e.g. over
+#'   the transcripts of a cell. `NULL` (default) returns one row per point.
+#' @param which `"all"` (default), `"factors"` or `"density"`.
+#' @param warn_outside Warn when points lie outside the fitted tissue
+#'   (farther than one bin from any in-tissue bin), where the fields are
+#'   extrapolated.
+#'
+#' @return A data frame with one row per point (or per group when `by` is
+#'   given, with the group in the first column and the number of points in
+#'   `n_points`), and one column per field: `density` (if fitted) and
+#'   `factor1` ... `factorK`. Row names are kept from `coords` when `by` is
+#'   `NULL`.
+#' @seealso [fit_spatial_rff()], [rff_pair_correlation()]
+#' @export
+#' @examples
+#' tx <- simulate_transcripts(size = 120, rate = 0.02, n_genes_per_set = 3)
+#' b <- bin_transcripts(tx, bin_size = 6)
+#' fit <- fit_spatial_rff(b, n_factors = 2, n_features = 32, max_iter = 50)
+#' # one row per transcript
+#' head(rff_fields(fit, tx))
+#' # averaged per "cell" (here: 20 x 20 um squares as stand-in cells)
+#' tx$cell_id <- paste(floor(tx$x / 20), floor(tx$y / 20))
+#' head(rff_fields(fit, tx, by = "cell_id"))
+rff_fields <- function(fit, coords, x_col = "x", y_col = "y", by = NULL,
+                       which = c("all", "factors", "density"), warn_outside = TRUE) {
+  if (!inherits(fit, "spatial_rff_fit")) stop("`fit` must come from fit_spatial_rff().")
+  which <- match.arg(which)
+  coords <- as.data.frame(coords)
+  miss <- setdiff(c(x_col, y_col, by), colnames(coords))
+  if (length(miss)) stop("Columns not found in `coords`: ", paste(miss, collapse = ", "))
+  if (which == "density" && !fit$has_density) stop("This fit has no cellularity (density) field.")
+  g <- fit$grid
+  center <- fit$center
+  if (is.null(center)) {                      # fits made before `center` was stored
+    gx <- rep(seq_len(g$nx) - 1, times = g$ny); gy <- rep(seq_len(g$ny) - 1, each = g$nx)
+    center <- c(mean(g$xmin + (gx[fit$in_tissue] + 0.5) * g$bin_size),
+                mean(g$ymin + (gy[fit$in_tissue] + 0.5) * g$bin_size))
+  }
+  xy <- cbind(as.numeric(coords[[x_col]]), as.numeric(coords[[y_col]]))
+  if (warn_outside) {
+    ix <- floor((xy[, 1] - g$xmin) / g$bin_size); iy <- floor((xy[, 2] - g$ymin) / g$bin_size)
+    tis <- matrix(fit$in_tissue, g$nx, g$ny)
+    near <- .dilate(tis, 1)
+    ok <- ix >= 0 & ix < g$nx & iy >= 0 & iy < g$ny
+    ok[ok] <- near[cbind(ix[ok] + 1, iy[ok] + 1)]
+    if (any(!ok)) warning(sum(!ok), " of ", length(ok), " points lie outside the fitted tissue; their fields are extrapolated.")
+  }
+  M <- nrow(fit$Omega); s <- 1 / sqrt(M)
+  Z <- sweep(xy, 2, center) %*% t(fit$Omega)
+  ell <- c(if (fit$has_density) fit$density_lengthscale, fit$lengthscales)
+  Fm <- vapply(seq_along(ell), function(k) {
+    A <- Z / ell[k]
+    as.vector(s * (cos(A) %*% fit$gamma[seq_len(M), k] + sin(A) %*% fit$gamma[M + seq_len(M), k]))
+  }, numeric(nrow(xy)))
+  Fm <- matrix(Fm, ncol = length(ell))
+  colnames(Fm) <- c(if (fit$has_density) "density", paste0("factor", seq_along(fit$lengthscales)))
+  keep <- switch(which, all = colnames(Fm), factors = grep("^factor", colnames(Fm), value = TRUE), density = "density")
+  out <- as.data.frame(Fm[, keep, drop = FALSE])
+  if (is.null(by)) {
+    rownames(out) <- rownames(coords)
+    return(out)
+  }
+  grp <- factor(coords[[by]])
+  n <- tabulate(grp, nlevels(grp))
+  avg <- rowsum(as.matrix(out), grp, reorder = TRUE) / n
+  res <- data.frame(levels(grp), n_points = n, avg, check.names = FALSE, row.names = NULL)
+  names(res)[1] <- by
+  res
 }
 
 #' Model-based cross pair correlation from a fitted random-feature LGCP

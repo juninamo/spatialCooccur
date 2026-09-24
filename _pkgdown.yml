@@ -109,6 +109,7 @@ reference:
   - module_enrichment
   - module_enrichr
   - fit_spatial_rff
+  - rff_fields
   - rff_pair_correlation
   - colocalization_per_sample
   - simulate_transcripts

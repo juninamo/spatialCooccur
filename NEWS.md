@@ -31,6 +31,12 @@
 
 ## New features
 
+* `rff_fields()` (experimental): evaluates the latent fields of a
+  `fit_spatial_rff()` fit (cellularity and the `K` factors, on the
+  unit-variance scale of `fit$field_grid`) at any coordinates - cell
+  centroids, transcripts or other points - and averages them per cell with
+  `by = "cell_id"`. `fit_spatial_rff()` now also stores the coordinate
+  centre used for the random features (`center`); older fits still work.
 * `associate_continuous()`: association of per-image / per-patient
   co-localization with a continuous clinical variable (CRP, disease
   activity, age): Spearman on patient means (default), linear model with
