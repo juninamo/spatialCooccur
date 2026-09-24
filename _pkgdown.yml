@@ -10,10 +10,10 @@ template:
     btn-border-radius: 0.4rem
   includes:
     in_header: |
-      <meta name="description" content="spatialCooccur: neighborhood co-occurrence and spatial interaction analysis for spatial transcriptomics, with multi-sample disease-group comparison.">
+      <meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
 
 home:
-  title: "spatialCooccur: spatial co-occurrence analysis for spatial transcriptomics"
+  title: "spatialCooccur: calibrated co-localization for spatial transcriptomics"
   sidebar:
     structure: [links, license, citation, authors, dev]
 

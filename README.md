@@ -123,6 +123,39 @@ What spatialCooccur adds:
   AISTATS 2021) that learns spatial length scales and separates cellularity
   from composition.
 
+## Validation
+
+Every module is checked on simulated positive controls (a planted
+interaction or group difference) and negative controls (nothing planted),
+repeated over many tissues or studies.
+
+<img src="man/figures/validation_calibration.png" width="100%" />
+
+*Neighbourhood enrichment on 250 random tissues (50 per number of cell
+types): log2 O/E stays at 0 and the within-sample test gives 5% false
+positives for 3 to 25 cell types (mean and 95% CI).*
+
+| Check | Setting | Result |
+|---|---|---|
+| Neighbourhood enrichment, negative control | random tissues, 3–25 cell types | false-positive rate 3–6%, 95% CI includes 5% |
+| Neighbourhood enrichment, positive control | B placed 5–100 µm from A, 20 tissues per distance | planted pair log2 O/E ≈ 0.35–0.4 up to 20 µm (detected in 90% at 10 µm), ≈ 0 beyond the neighbourhood |
+| Local O/E, negative control | only the abundance of A and B changes (3–24%) | section O/E 95% CI includes 0; ≤ 5% of cells with p < 0.05; no FDR hits in 80 tissues |
+| Local O/E, positive control | ring of B around a disc of A | 74% of ring cells are hotspots, 0% far away |
+| Group comparison, negative controls | 200 studies each: no difference, or 4× larger images | 3–4.5% false positives (mixed model, patient-level Wilcoxon) |
+| Pseudoreplication | images treated as independent | 13.8% false positives vs ≈ 5% with patient-aware tests |
+| Segmentation-free | shared niche field / cellularity-only difference | relative g follows the truth; calibrated when only cellularity differs |
+
+**Compute cost** (one core of an Apple M3 Max, R 4.3.2; RA synovium,
+Xenium 5K):
+
+| Task | Size | Time | Peak memory |
+|---|---|---|---|
+| `nhood_enrichment()`, 100 shuffles | 18k / 63k / 100k / 140k cells | 3 / 11 / 17 / 24 s | 0.7–1.4 GB |
+| `cooccur_local_oe()`, no / 99 shuffles | 140k cells | 1.4 s / 15 s | 1.6 GB |
+| `compare_groups()` | 34 sections × 105 pairs | 0.2 s (signed-rank), 1.7 s (mixed model) | < 0.6 GB |
+| `read_xenium_transcripts()` + `pcf_matrix()` | 1 section, 8 marker sets, 1.8M transcripts | 40 s | 5.5 GB (reading the 5K parquet) |
+| `fit_spatial_rff()`, 6 factors | 1 mm × 1 mm | 2.9 min | 5.5 GB |
+
 > **Note for users of versions <= 0.99.1.** Version 0.99.2 fixes the
 > permutation null of `nhood_enrichment()` (same-type z-scores were
 > inflated) and the diffusion of `cooccur_local()` for `maxnsteps > 1`.
