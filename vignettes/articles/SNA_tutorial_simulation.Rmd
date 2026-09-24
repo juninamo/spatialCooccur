@@ -136,7 +136,7 @@ round(nhood_res$log2_oe[1:4, 1:4], 2)
 .list-inline>li {display: inline-block}
 .list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
 </style>
-<ol class=list-inline><li>'zscore'</li><li>'count'</li><li>'expected'</li><li>'log2_oe'</li><li>'log2_oe_raw'</li><li>'pvalue'</li><li>'padj'</li><li>'padj_bh'</li></ol>
+<ol class=list-inline><li>'zscore'</li><li>'count'</li><li>'expected'</li><li>'log2_oe'</li><li>'log2_oe_raw'</li><li>'pvalue'</li><li>'padj'</li><li>'padj_bh'</li><li>'contact'</li><li>'contact_expected'</li><li>'contact_log2_oe'</li><li>'contact_pvalue'</li><li>'contact_padj'</li><li>'dominance'</li><li>'dominance_expected'</li><li>'dominance_log2_oe'</li><li>'dominance_pvalue'</li><li>'dominance_padj'</li></ol>
 </div>
 
 <div class="nb-output">
@@ -188,6 +188,32 @@ plot_nhood_heatmap(nhood_res)
 ![](figures/SNA_tutorial_simulation/fig-02.png){width="100%"}
 
 ![](figures/SNA_tutorial_simulation/fig-03.png){width="100%"}
+
+#### Who surrounds whom? Directional statistics
+
+Every A-B contact is also a B-A contact, so the pair-level `log2_oe` is (nearly) symmetric and `plot_nhood_heatmap()` shows the average of both directions. It cannot tell "A is surrounded by B" from "B is surrounded by A". `nhood_enrichment()` also returns two directional statistics, with row = centre cell type and column = neighbour cell type:
+
+* `contact[i, j]`: share of type-i cells with at least one type-j neighbour (how much of population i touches j);
+* `dominance[i, j]`: share of type-i cells whose neighbours are at least half type j (is the neighbourhood of i dominated by j).
+
+Each comes with `*_expected`, centred `*_log2_oe`, `*_pvalue` and max-T `*_padj` over all ordered pairs. Below, a rare type A always sits inside small clusters of an abundant type B: the pair-level heatmap is symmetric, `dominance` is high only for A as the centre, and `contact` is high only for B as the centre (A touches B by chance anyway because B is abundant).
+
+```r
+set.seed(1); n <- 3000
+da <- data.frame(x = runif(n, 0, 600), y = runif(n, 0, 600), cell_type = sample(c("B", "O"), n, TRUE, prob = c(0.4, 0.6)))
+ctr <- cbind(runif(90, 20, 580), runif(90, 20, 580))                       # 90 A cells ...
+da <- rbind(da, data.frame(x = ctr[, 1], y = ctr[, 2], cell_type = "A"),
+            data.frame(x = rep(ctr[, 1], each = 6) + rnorm(540, 0, 6),      # ... each inside a cluster of 6 B cells
+                       y = rep(ctr[, 2], each = 6) + rnorm(540, 0, 6), cell_type = "B"))
+rownames(da) <- paste0("c", seq_len(nrow(da))); da$cell_type <- factor(da$cell_type, levels = c("A", "B", "O"))
+ra <- nhood_enrichment(da, cluster_key = "cell_type", neighbors.k = 10, n_perms = 200, seed = 1, n_jobs = 1)
+options(repr.plot.width = 15, repr.plot.height = 5)
+(plot_nhood_heatmap(ra, limits = c(-1.2, 1.2)) + ggtitle("pair level (symmetric)")) |
+  (plot_nhood_heatmap(ra, value = "dominance_log2_oe", limits = c(-1.2, 1.2)) + ggtitle("dominance (row = centre)")) |
+  (plot_nhood_heatmap(ra, value = "contact_log2_oe", limits = c(-1.2, 1.2)) + ggtitle("contact (row = centre)"))
+```
+
+![](figures/SNA_tutorial_simulation/fig-04.png){width="100%"}
 
 Run the same analysis for different planted distances (20 new tissues each). Compare the effect size `log2_oe` and count how often the planted pair passes `padj < 0.05`; the unrelated pair should stay at 0 and never pass. In this *circle* design, type-2 cells form a ring at the planted distance around a disc of type-1 cells. Up to about 50 um the ring lies within the k-neighbourhood and the pair is enriched; at 75-100 um the ring keeps the two types apart, so the pair becomes significantly *depleted* (negative log2 O/E).
 
@@ -257,7 +283,7 @@ ggplot(summary_df, aes(distance_param, median, color = pair)) +
   theme_classic(base_size = 12) + theme(legend.position = "bottom")
 ```
 
-![](figures/SNA_tutorial_simulation/fig-04.png){width="100%"}
+![](figures/SNA_tutorial_simulation/fig-05.png){width="100%"}
 
 ## Spatial co-localization score (sCLA, cell-cell level analysis)
 
@@ -333,7 +359,7 @@ options(repr.plot.width=8, repr.plot.height=4)
 g1|g2
 ```
 
-![](figures/SNA_tutorial_simulation/fig-05.png){width="100%"}
+![](figures/SNA_tutorial_simulation/fig-06.png){width="100%"}
 
 Run co-localization analysis
 
@@ -388,7 +414,7 @@ options(repr.plot.width=12, repr.plot.height=4)
 g1 | g2 | g3
 ```
 
-![](figures/SNA_tutorial_simulation/fig-06.png){width="100%"}
+![](figures/SNA_tutorial_simulation/fig-07.png){width="100%"}
 
 Check the relationship between the co-localization score and the distance between cell_type_1 and cell_type_2
 
@@ -428,7 +454,7 @@ ggplot(data = coords_df, aes(x = dist_nearest, y = score)) +
   )
 ```
 
-![](figures/SNA_tutorial_simulation/fig-07.png){width="100%"}
+![](figures/SNA_tutorial_simulation/fig-08.png){width="100%"}
 
 Check the ROC curve and AUC value to evaluate the performance of the co-localization score
 
@@ -448,7 +474,7 @@ coords_df %>%
   )
 ```
 
-![](figures/SNA_tutorial_simulation/fig-08.png){width="100%"}
+![](figures/SNA_tutorial_simulation/fig-09.png){width="100%"}
 
 ### Where do the two cell types meet? `cooccur_local_oe()`
 
@@ -470,7 +496,7 @@ options(repr.plot.width = 12, repr.plot.height = 5)
 1.99828623708995
 </div>
 
-![](figures/SNA_tutorial_simulation/fig-09.png){width="100%"}
+![](figures/SNA_tutorial_simulation/fig-10.png){width="100%"}
 
 ```r
 sessionInfo()
