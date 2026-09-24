@@ -79,16 +79,16 @@ interaction_spot_per_sample(seu, sample_key = "sample_id",
                             radius = 15, n_min = 3)
 #>           sample_id   group patient          target_cluster n_spots
 #> case_1       case_1    case    <NA> cell_type_1,cell_type_2      15
-#> case_2       case_2    case    <NA> cell_type_1,cell_type_2      17
-#> case_3       case_3    case    <NA> cell_type_1,cell_type_2      19
+#> case_2       case_2    case    <NA> cell_type_1,cell_type_2      12
+#> case_3       case_3    case    <NA> cell_type_1,cell_type_2      10
 #> control_1 control_1 control    <NA> cell_type_1,cell_type_2      11
-#> control_2 control_2 control    <NA> cell_type_1,cell_type_2      20
+#> control_2 control_2 control    <NA> cell_type_1,cell_type_2      13
 #> control_3 control_3 control    <NA> cell_type_1,cell_type_2      16
 #>           mean_spot_size n_cells spots_per_1k_cells
-#> case_1          9.466667     200                 75
-#> case_2          8.058824     200                 85
-#> case_3          8.315789     200                 95
-#> control_1      10.909091     200                 55
-#> control_2       7.450000     200                100
-#> control_3       7.500000     200                 80
+#> case_1           9.40000     200                 75
+#> case_2          10.66667     200                 60
+#> case_3          13.30000     200                 50
+#> control_1       10.00000     200                 55
+#> control_2       10.30769     200                 65
+#> control_3        8.62500     200                 80
 ```

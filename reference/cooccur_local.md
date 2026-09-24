@@ -64,5 +64,5 @@ sc <- cooccur_local(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2",
                     neighbors.k = 10, radius = 20)
 summary(sc[[1]])
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>  0.0000  0.2926  0.5879  0.5333  0.7553  1.0706 
+#>  0.0000  0.2912  0.6024  0.5367  0.7692  1.1405 
 ```

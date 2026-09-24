@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">spatialCooccur</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -104,11 +104,25 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list with matrices `zscore`, `count` (observed), `expected`
-  (mean of the permutation null) and `log2_oe` (log2 observed / expected,
-  with a pseudocount of one mean edge weight). Unlike the z-score, which
-  grows with the number of cells, `log2_oe` is an effect size that is
-  comparable across samples of different size.</p>
+    <p>A list of cell-type x cell-type matrices:
+  * `log2_oe`: effect size, log2 observed / expected, centred on the label
+    shuffles so that it is 0 on average without interaction for any number
+    of cells (the log of a ratio of small counts is otherwise biased
+    slightly below 0 for rare cell types). Unlike the z-score, which grows
+    with the number of cells, it is comparable across samples.
+  * `log2_oe_raw`: log2((count + c) / (expected + c)) without centring,
+    with c one mean edge weight.
+  * `pvalue`: within-sample test per unordered pair (contacts i -&gt; j and
+    j -&gt; i summed), two-sided normal p-value from the shuffles; use it for
+    a single pre-specified pair.
+  * `padj`: family-wise adjusted p-value over all K (K + 1) / 2 pairs by
+    the Westfall-Young max-T permutation method (the share of shuffles
+    whose largest |z| reaches the observed one). Calibrated for any
+    number of cell types, including rare ones; its smallest value is
+    1 / (n_perms + 1).
+  * `padj_bh`: Benjamini-Hochberg on `pvalue` (can exceed its level when
+    there are many rare cell types).
+  * `zscore`, `count` (observed), `expected` (mean of the shuffles).</p>
     </div>
 
     <div class="section level2">
@@ -120,26 +134,26 @@
 <span class="r-in"><span>                        n_perms <span class="op">=</span> <span class="fl">50</span>, n_jobs <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">zscore</span>, <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                    Clustercell_type_1 Clustercell_type_2 Clustercell_type_3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_1               -0.9                1.6                1.2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_2                1.1                0.4               -2.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_3                1.2               -1.9                1.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_4               -0.7                0.3                0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_1               -0.5                1.0                1.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_2                0.4                1.3               -2.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_3                1.0               -2.2                1.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_4               -0.5               -0.1                0.5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                    Clustercell_type_4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_1               -1.9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_2               -1.3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_3               -0.8</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_4                2.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_1               -2.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_2               -2.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_3               -0.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_4                3.0</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                    Clustercell_type_1 Clustercell_type_2 Clustercell_type_3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_1              -0.08               0.15               0.11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_2               0.10               0.03              -0.26</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_3               0.12              -0.21               0.12</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_4              -0.09               0.03               0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_1              -0.04               0.11               0.16</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_2               0.04               0.12              -0.30</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_3               0.10              -0.25               0.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_4              -0.05              -0.01               0.07</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                    Clustercell_type_4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_1              -0.26</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_2              -0.14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_1              -0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_2              -0.27</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_3              -0.09</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_4               0.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustercell_type_4               0.25</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

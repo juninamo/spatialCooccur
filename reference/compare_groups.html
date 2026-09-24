@@ -11,7 +11,7 @@ between groups and return tidy results with multiple-testing adjustment."><meta 
 
     <a class="navbar-brand me-2" href="../index.html">spatialCooccur</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@ between groups and return tidy results with multiple-testing adjustment.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">compare_groups</span><span class="op">(</span></span>
 <span>  <span class="va">per_sample_df</span>,</span>
-<span>  value <span class="op">=</span> <span class="st">"zscore"</span>,</span>
+<span>  value <span class="op">=</span> <span class="st">"log2_oe"</span>,</span>
 <span>  group_key <span class="op">=</span> <span class="st">"group"</span>,</span>
 <span>  patient_key <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wilcox"</span>, <span class="st">"t"</span>, <span class="st">"lmm"</span>, <span class="st">"perm"</span>, <span class="st">"signrank"</span><span class="op">)</span>,</span>
@@ -73,7 +73,8 @@ between groups and return tidy results with multiple-testing adjustment.</p>
 <span>  covariates <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  symmetric <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  min_n_per_group <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">1234</span></span>
+<span>  seed <span class="op">=</span> <span class="fl">1234</span>,</span>
+<span>  unit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"patient"</span>, <span class="st">"image"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -88,8 +89,9 @@ between groups and return tidy results with multiple-testing adjustment.</p>
 
 
 <dt id="arg-value">value<a class="anchor" aria-label="anchor" href="#arg-value"></a></dt>
-<dd><p>Name of the column to test (e.g. "log2_oe", "zscore",
-"ratio", "mean", "spots_per_1k_cells").</p></dd>
+<dd><p>Name of the column to test. Defaults to `"log2_oe"`, the
+effect size that does not grow with the number of cells (other examples:
+"zscore", "ratio", "mean", "spots_per_1k_cells").</p></dd>
 
 
 <dt id="arg-group-key">group_key<a class="anchor" aria-label="anchor" href="#arg-group-key"></a></dt>
@@ -97,9 +99,12 @@ between groups and return tidy results with multiple-testing adjustment.</p>
 
 
 <dt id="arg-patient-key">patient_key<a class="anchor" aria-label="anchor" href="#arg-patient-key"></a></dt>
-<dd><p>Optional patient column. Required for `method = "lmm"`
-to use as a random effect; used as the permutation block for
-`method = "perm"`. If `NULL` and the data has a `patient` column, that
+<dd><p>Patient column. If `NULL` and the data contain a
+`patient` column with several images per patient, that column is used
+automatically (a message says so). With `"wilcox"` / `"t"`,
+images are averaged within patient (see `unit`); required for
+`method = "lmm"` to use as a random effect; used as the permutation
+block for `method = "perm"`. If `NULL` and the data has a `patient` column, that
 column is only used to detect pseudoreplication.</p></dd>
 
 
@@ -155,8 +160,9 @@ age, sex, batch, `n_cells`) included as fixed effects. Only used with
 
 
 <dt id="arg-symmetric">symmetric<a class="anchor" aria-label="anchor" href="#arg-symmetric"></a></dt>
-<dd><p>If `TRUE`, test each unordered pair once (rows with
-`cluster_i &lt;= cluster_j`). Neighborhood enrichment scores are
+<dd><p>If `TRUE`, test each unordered pair once: the (i, j)
+and (j, i) values of each sample are averaged and reported under
+`cluster_i &lt;= cluster_j`. Neighborhood enrichment scores are
 (nearly) symmetric, so testing both (i, j) and (j, i) doubles the
 multiple-testing burden without adding information.</p></dd>
 
@@ -168,6 +174,15 @@ each group; pairs below this are skipped.</p></dd>
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>Random seed for the permutation test.</p></dd>
+
+
+<dt id="arg-unit">unit<a class="anchor" aria-label="anchor" href="#arg-unit"></a></dt>
+<dd><p>`"patient"` (default): with `patient_key` and `method =
+"wilcox"` or `"t"`, images are first averaged within patient, so the
+patient is the unit of analysis. `"image"` tests image-level rows as
+given (pseudoreplication when patients have several images; a warning
+is issued). `"lmm"`, `"perm"` and `"signrank"` always account for
+patients through `patient_key`.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -205,20 +220,20 @@ image. With several images per patient either aggregate first
 <span class="r-in"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu">compare_groups</span><span class="op">(</span><span class="va">ps</span>, value <span class="op">=</span> <span class="st">"log2_oe"</span>, method <span class="op">=</span> <span class="st">"wilcox"</span>,</span></span>
 <span class="r-in"><span>                      ref_group <span class="op">=</span> <span class="st">"control"</span>, symmetric <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     cluster_i   cluster_j n_total n_control n_case mean_control  mean_case</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 cell_type_1 cell_type_3       6         3      3   0.08777052 -0.1548648</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 cell_type_1 cell_type_4       6         3      3   0.07356400 -0.4615872</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 cell_type_2 cell_type_4       6         3      3  -0.07560648 -0.4360321</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 cell_type_4 cell_type_4       6         3      3  -0.06441771  0.1496259</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 cell_type_1 cell_type_2       6         3      3   0.25911989  0.1589639</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 cell_type_2 cell_type_3       6         3      3  -0.05225977 -0.2397878</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       effect statistic   p      padj</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -0.2426353         9 0.1 0.2500000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -0.5351512         9 0.1 0.2500000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 -0.3604256         9 0.1 0.2500000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0.2140436         0 0.1 0.2500000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 -0.1001560         8 0.2 0.3333333</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 -0.1875280         8 0.2 0.3333333</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     cluster_i   cluster_j n_total n_control n_case mean_control   mean_case</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 cell_type_1 cell_type_1       6         3      3 -0.002914502 -0.16112524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 cell_type_1 cell_type_2       6         3      3 -0.035441967  0.28149556</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 cell_type_2 cell_type_3       6         3      3  0.070994838 -0.23207128</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 cell_type_2 cell_type_4       6         3      3 -0.058837919 -0.24324235</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 cell_type_3 cell_type_4       6         3      3 -0.072880627  0.27247481</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 cell_type_2 cell_type_2       6         3      3 -0.002434414  0.05194004</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        effect statistic   p      padj</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -0.15821073         9 0.1 0.2000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0.31693753         0 0.1 0.2000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 -0.30306612         9 0.1 0.2000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 -0.18440443         9 0.1 0.2000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0.34535543         0 0.1 0.2000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  0.05437445         3 0.7 0.7777778</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

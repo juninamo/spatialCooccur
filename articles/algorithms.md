@@ -7,7 +7,7 @@ This vignette documents the mathematics behind each core function in
 ``` r
 
 library(spatialCooccur)
-#> Loading spatialCooccur v0.99.2: An R package for analyzing spatial co-occurrence.
+#> Loading spatialCooccur v0.99.3: An R package for analyzing spatial co-occurrence.
 #> To cite this package in publications, please use:
 #>   Inamo J, et al. (2026). Spatial transcriptomics reveals  immune-stromal crosstalk within the synovium of patients with  juvenile idiopathic arthritis. JCI Insight. 11(1):e198074.  doi:10.1172/jci.insight.198074
 #> Developed by: Jun Inamo <juninamo@keio.jp>
@@ -127,10 +127,7 @@ shifted by $`\Delta`$. A fraction $`\rho`$ of layer-1 cells are
 layer-0 cell, so that $`\rho`$ again controls how many `cell_type_2`
 cells are tightly paired with a `cell_type_1` cell.
 
-## `nhood_enrichment()` — neighborhood enrichment z-score
-
-This is the heaviest of the core functions and the most natural to
-formalize.
+## `nhood_enrichment()` — neighbourhood enrichment
 
 #### Step 1 — build the kNN adjacency
 
@@ -163,61 +160,84 @@ $`c_j`$:
 C_{ij} \;=\; \sum_{u \in \mathcal{V}_{c_i}} \sum_{v \in \mathcal{V}_{c_j}} \tilde A_{uv}.
 ```
 
-(With `transformation = FALSE` the inner term is $`\mathbb{1}\{A_{uv} =
-1\}`$ instead — i.e. raw edge counts.)
-
-This is the observed value. Implemented in
-[`compute_count()`](https://juninamo.github.io/spatialCooccur/reference/compute_count.md).
+This is the observed value, implemented in
+[`compute_count()`](https://juninamo.github.io/spatialCooccur/reference/compute_count.md)
+as $`M^\top \tilde A M`$ with one-hot cluster indicators $`M`$.
 
 #### Step 4 — permutation null
 
 [`permute_clusters()`](https://juninamo.github.io/spatialCooccur/reference/permute_clusters.md)
-shuffles the cluster vector $`\mathbf{c} = (c(v_1),
-\dots, c(v_N))`$ twice — *independently* for rows and columns — and
-recomputes the count:
+draws **one** uniform random permutation $`\pi^{(b)}`$ of the cluster
+labels and applies it to rows and columns alike, so every cell keeps a
+single (random) label, and recomputes the count:
 
 ``` math
-C^{(b)}_{ij} \;=\; \sum_{u \in \mathcal{V}^{(\pi^{(b)}_r)}_{c_i}}
-                   \sum_{v \in \mathcal{V}^{(\pi^{(b)}_c)}_{c_j}}
+C^{(b)}_{ij} \;=\; \sum_{u \in \mathcal{V}^{(\pi^{(b)})}_{c_i}}
+                   \sum_{v \in \mathcal{V}^{(\pi^{(b)})}_{c_j}}
                    \tilde A_{uv},
-\quad b = 1, \dots, B,
+\quad b = 1, \dots, B.
 ```
 
-where $`\pi^{(b)}_r, \pi^{(b)}_c`$ are independent uniform random
-permutations of $`\{1, \dots, N\}`$ and $`\mathcal{V}^{(\pi)}_c`$ is the
-set of cells whose *permuted* label equals $`c`$. The permutations
-destroy any association between cluster identity and spatial position,
-giving the null distribution of $`C_{ij}`$.
+Positions, the graph and the number of cells of each type are fixed;
+only which type sits where is random. (Versions $`\le`$ 0.99.1 shuffled
+rows and columns independently, which inflated same-type z-scores.)
 
-#### Step 5 — z-score
+#### Step 5 — effect size: centred log2 O/E
 
-Let $`\hat\mu_{ij}, \hat\sigma_{ij}`$ be the empirical mean and standard
-deviation of $`\{C^{(b)}_{ij}\}_{b=1}^B`$. The reported enrichment
-z-score is
+With $`E_{ij} = \frac{1}{B}\sum_b C^{(b)}_{ij}`$ and a pseudocount $`c`$
+of one mean edge weight,
 
 ``` math
-\boxed{\;
-z_{ij} \;=\; \frac{C_{ij} - \hat\mu_{ij}}{\hat\sigma_{ij}}\;.
-}
+\ell_{ij} = \log_2\frac{C_{ij} + c}{E_{ij} + c},
+\qquad
+\boxed{\;\mathrm{log2\_oe}_{ij} \;=\; \ell_{ij} - \frac{1}{B}\sum_{b}\log_2\frac{C^{(b)}_{ij} + c}{E_{ij} + c}\;}
 ```
 
-Positive $`z_{ij}`$ means cluster $`c_i`$ and cluster $`c_j`$ co-occur
-more than expected under shuffling; negative means segregation.
+The log of a ratio of small counts is biased below 0 (Jensen), so rare
+cell types get $`\ell_{ij} < 0`$ without any interaction. Subtracting
+the mean of the same statistic over the shuffles centres it at 0 under
+the null for any number of cells. $`\ell_{ij}`$ is returned as
+`log2_oe_raw`. `log2_oe` does not grow with the number of cells and is
+the value to compare between samples.
+
+#### Step 6 — within-sample test: `pvalue` and `padj`
+
+For each unordered pair the two directions are summed,
+$`S_{ij} = C_{ij} + C_{ji}`$ ($`S_{ii} = C_{ii}`$), and standardised
+together with the shuffles, using the mean $`\mu_{ij}`$ and SD
+$`s_{ij}`$ of the $`B + 1`$ values
+$`\{S_{ij}, S^{(1)}_{ij}, \dots, S^{(B)}_{ij}\}`$:
+
+``` math
+z_{ij} = \frac{|S_{ij} - \mu_{ij}|}{s_{ij}},
+\qquad
+\mathrm{pvalue}_{ij} = 2\,\Phi(-z_{ij}).
+```
+
+`pvalue` is accurate for a single pre-specified pair. For all
+$`K(K+1)/2`$ pairs at once, `padj` is the Westfall–Young single-step
+max-T adjusted p-value
+
+``` math
+\boxed{\;\mathrm{padj}_{ij} \;=\; \frac{1 + \#\{b : \max_{kl} z^{(b)}_{kl} \ge z_{ij}\}}{B + 1}\;}
+```
+
+which controls the family-wise error rate and adapts to the skewed,
+dependent null of rare pairs (Benjamini–Hochberg on `pvalue`, returned
+as `padj_bh`, can exceed its level when there are many rare cell types).
+The smallest possible `padj` is $`1/(B+1)`$. The unsymmetrised
+$`z_{ij} = (C_{ij} - E_{ij}) / \mathrm{SD}(C^{(b)}_{ij})`$ is still
+returned as `zscore`; it grows with the number of cells.
 
 In code:
 
 ``` r
 
-res <- nhood_enrichment(
-  df,
-  cluster_key  = "cell_type",
-  neighbors.k  = 30,
-  connectivity_key = "nn",
-  transformation = TRUE,
-  n_perms = 100
-)
-res$count    # the C_{ij} matrix
-res$zscore   # the z_{ij} matrix
+res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 10,
+                        n_perms = 200, seed = 1, n_jobs = 1)
+res$log2_oe   # effect size (centred)
+res$padj      # max-T adjusted, all pairs
+plot_nhood_heatmap(res)
 ```
 
 ## `calc_co_occurrence_for_radius()` and `compute_co_occurrence_ratio()`
@@ -323,6 +343,130 @@ the raw indicator. (Versions \<= 0.99.1 recomputed every step from
 $`\mathbf{s}^{(0)}`$, so any `maxnsteps >= 1` gave the single step
 above.)
 
+## `cooccur_local_oe()` — calibrated local co-localization
+
+For cell $`v`$ with $`N_v`$ other cells within radius $`r`$, of which
+$`n_A(v)`$ are of type A and $`n_B(v)`$ of type B, the number of A–B
+pairs is $`s_v = n_A(v)\, n_B(v)`$ ($`n_A(n_A - 1)`$ for A = B). Its
+exact expectation when labels are shuffled over fixed positions is
+multivariate hypergeometric:
+
+``` math
+E_v = N_v (N_v - 1)\,\frac{K_A K_B}{M (M - 1)},
+```
+
+with $`M`$ the other cells and $`K_A, K_B`$ the A and B cells among
+them. Both are smoothed with Gaussian weights
+$`w_{vu} = \exp(-d_{vu}^2 / 2\sigma^2)`$, $`\sigma = h/2`$ (`bandwidth`
+$`= h`$, truncated at $`h`$, self weight 1):
+
+``` math
+\mathrm{local\_log2\_oe}_v = \log_2 \frac{\sum_u w_{vu} s_u + c}{\sum_u w_{vu} E_u + c}.
+```
+
+The section value is $`\log_2(\sum_v s_v / \sum_v E_v)`$. Hotspot
+p-values use $`B`$ label shuffles:
+$`p_v = (1 + \#\{b : \tilde s^{(b)}_v \ge \tilde s_v\}) / (B + 1)`$ with
+$`\tilde s_v = \sum_u w_{vu} s_u`$, then BH over cells. One neighbour
+search, $`O(nk)`$; each shuffle is one more pass.
+
+## Group comparison — `compare_groups()`
+
+Per-image scores $`y_{pm}`$ (image $`m`$ of patient $`p`$,
+e.g. `log2_oe`) come from
+[`nhood_enrichment_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment_per_sample.md)
+and related helpers. For every cell-type pair, with the patient as the
+unit:
+
+- `"wilcox"`: patient means $`\bar y_p = \frac{1}{m_p}\sum_m y_{pm}`$,
+  Wilcoxon rank-sum (exact for small samples).
+- `"lmm"`:
+  $`y_{pm} = \beta_0 + \beta_1\,\mathrm{case}_p + \gamma^\top c_p + u_p + \varepsilon_{pm}`$,
+  $`u_p \sim N(0, \tau^2)`$, $`\varepsilon_{pm} \sim N(0, \sigma^2)`$;
+  test of $`\beta_1`$ with Satterthwaite degrees of freedom (lmerTest).
+  The group ($`\beta_0, \beta_1`$) and covariates ($`\gamma`$) are fixed
+  effects; the patient is a random effect (random intercept $`u_p`$,
+  i.e. `value ~ group + covariates + (1 | patient)`), so the images of a
+  patient are treated as correlated observations. Patient cannot be a
+  fixed effect: each patient belongs to one group, so patient dummies
+  would be confounded with \$eta_1\$.
+- `"perm"`:
+  $`T = \overline{\bar y}_{\mathrm{case}} - \overline{\bar y}_{\mathrm{control}}`$
+  compared with patient-level label shuffles (within-patient sign flips
+  for paired data).
+- `"signrank"`:
+  $`d_p = \bar y_{p,\mathrm{post}} - \bar y_{p,\mathrm{pre}}`$, Wilcoxon
+  signed-rank.
+
+Benjamini–Hochberg over pairs.
+[`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
+averages images within patient, pair and distance `r`.
+
+## Continuous variables — `associate_continuous()`
+
+For a patient-level variable $`x_p`$ (CRP, disease activity, age):
+Spearman correlation of $`\bar y_p`$ with $`x_p`$ (default; exact p for
+small cohorts), linear regression
+$`\bar y_p = \beta_0 + \beta_1 x_p + \gamma^\top c_p + \varepsilon_p`$,
+the linear mixed model
+$`y_{pm} = \beta_0 + \beta_1 x_p + \gamma^\top c_p + u_p + \varepsilon_{pm}`$
+(patient as a random intercept $`u_p`$:
+`value ~ x + covariates + (1 | patient)`), or a permutation test that
+shuffles $`x_p`$ between patients. BH over pairs.
+
+## Segmentation-free analysis
+
+#### Pair correlation of transcripts — `pcf_cross()`, `pcf_matrix()`
+
+Transcripts are counted in square bins ($`Y_A(u)`$ = transcripts of gene
+set A in bin $`u`$, inside the tissue mask $`W`$). With the FFT
+cross-correlation $`P_{AB}(h) = \sum_u Y_A(u)\, Y_B(u + h)`$ and the
+mask overlap $`O(h) = \sum_u W(u) W(u + h)`$,
+
+``` math
+g_{AB}(r) = \frac{\sum_{|h| \approx r} P_{AB}(h)}{\lambda_A \lambda_B \sum_{|h| \approx r} O(h)},
+\qquad
+g^{\mathrm{rel}}_{AB}(r) = \frac{g_{AB}(r)}{g_{\mathrm{all}}(r)},
+```
+
+where $`\lambda`$ are mean intensities and $`g_{\mathrm{all}}`$ is the
+pair correlation of all transcripts. $`g^{\mathrm{rel}}`$ equals
+observed / expected under gene-label shuffling over fixed transcript
+positions, the transcript counterpart of log2 O/E; cellularity cancels.
+
+#### Random-feature log-Gaussian Cox process — `fit_spatial_rff()`
+
+``` math
+y_{bj} \sim \mathrm{NB}(\mu_{bj}),\quad
+\log \mu_{bj} = \log a + \alpha_j + \sigma_0 f_0(u_b) + \sum_{k=1}^K L_{jk} f_k(u_b),
+\quad f_k(u) = \phi_k(u)^\top \gamma_k,
+```
+
+with random Fourier features
+$`\phi(u) = \sqrt{2/M}\,[\cos(\omega_m^\top u / \ell + b_m)]_m`$,
+$`\omega_m \sim N(0, I)`$ (Gundersen, Zhang & Engelhardt, AISTATS 2021).
+The coordinates $`u_b`$ are observed, so only the fields and loadings
+are estimated (MAP, L-BFGS-B, analytic gradients). Model pair
+correlations follow from
+$`g_{AB}(r) = \exp \mathrm{Cov}[\log\lambda_A(u), \log\lambda_B(u + r)]`$;
+removing $`f_0`$ gives the composition version.
+
+#### Gene-level modules — `colocalization_gene_matrix()`, `colocalization_modules()`, `module_enrichment()`
+
+With a disc kernel $`K_r`$ (one FFT convolution per gene),
+
+``` math
+P_{ab} = \sum_u Y_a(u)\, (K_r * Y_b)(u) \;(- n_a \text{ if } a = b),
+\qquad
+E_{ab} = \frac{n_a n_b}{N (N - 1)}\, P_{\mathrm{all}},
+```
+
+and $`\log_2((P_{ab} + c) / (E_{ab} + c))`$ is 0 without
+co-localization. Genes are clustered (average linkage, distance
+$`\max M - M`$) into modules;
+[`module_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichment.md)
+tests any gene sets per module with the hypergeometric test and BH.
+
 ## `search_interaction_spot()` — connected-component spots
 
 This function turns a radius-neighborhood graph into discrete
@@ -370,20 +514,23 @@ columns `cluster_id`, `x_min`, `x_max`, `y_min`, `y_max`, and
 
 ## Summary
 
-| Function | Per-cell or pairwise | Local geometry | Statistic | Test |
+| Function | Unit | Local geometry | Statistic | Test |
 |----|----|----|----|----|
-| [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md) | Cluster pair $`(i, j)`$ | $`k`$-NN graph $`A`$ | $`z`$-score of $`C_{ij}`$ | Permutation null |
-| [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md) / [`compute_co_occurrence_ratio()`](https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.md) | Cluster pair $`(i, j)`$ | Radius-$`r`$ neighbors | Ratio $`P(j\mid i)/P(j)`$ | Deterministic |
-| [`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md) | Per cell, for fixed $`(c_x, c_y)`$ | Radius-$`r`$ + kNN diffusion | Real-valued score $`s_v^{(1)}`$ | — |
-| [`search_interaction_spot()`](https://juninamo.github.io/spatialCooccur/reference/search_interaction_spot.md) | Per cell, group label | Radius-$`r`$ + connected comp. | Component size | — |
-| [`generate_sim()`](https://juninamo.github.io/spatialCooccur/reference/generate_sim.md) | — | Generative | Spatial layout | — |
+| [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md) | cell-type pair | $`k`$-NN graph | centred log2 O/E | shuffles: `pvalue`, max-T `padj` |
+| [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md) | cell, for a pair | radius $`r`$ + Gaussian smoothing | local log2 O/E | shuffles per cell, BH |
+| [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md) / [`compute_co_occurrence_ratio()`](https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.md) | cell-type pair | radius $`r`$ | $`P(j \mid i) / P(j)`$ | — |
+| [`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md) | cell, for a pair | radius $`r`$ + graph diffusion | 0/1 indicator (sCLS) | — |
+| [`search_interaction_spot()`](https://juninamo.github.io/spatialCooccur/reference/search_interaction_spot.md) | cell | radius $`r`$ + components | component size | — |
+| [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md) | patient | per-image scores | group difference | Wilcoxon, LMM, permutation, signed-rank |
+| [`associate_continuous()`](https://juninamo.github.io/spatialCooccur/reference/associate_continuous.md) | patient | per-image scores | slope / Spearman $`\rho`$ | Spearman, lm, LMM, permutation |
+| [`pcf_cross()`](https://juninamo.github.io/spatialCooccur/reference/pcf_cross.md) / [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md) | gene-set pair × $`r`$ | bins + FFT | (relative) $`g(r)`$ | via [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md) |
+| [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md) | genes | random-feature LGCP | model $`g(r)`$ | — |
+| [`colocalization_gene_matrix()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_gene_matrix.md) | gene pair | disc of radius $`r`$ | log2 O/E | modules + hypergeometric |
 
-The disease-group extension (`*_per_sample()`,
-[`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md))
-sits on top of these by running them per sample and testing the
-resulting per-sample scalars between groups. See the [disease comparison
-vignette](https://juninamo.github.io/spatialCooccur/articles/disease_comparison.md)
-for the group-comparison side of the story.
+The multi-sample functions run the single-sample statistics per image
+and test the per-image values with the patient as the unit; see the
+[case-control
+tutorial](https://juninamo.github.io/spatialCooccur/articles/case_control_tutorial.md).
 
 ## Session information
 
@@ -411,7 +558,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] spatialCooccur_0.99.2
+#> [1] spatialCooccur_0.99.3
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] deldir_2.0-4           pbapply_1.7-5          gridExtra_2.3.1       

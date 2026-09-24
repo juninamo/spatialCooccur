@@ -55,7 +55,8 @@ nhood_enrichment.Seurat(
 
 Updated Seurat object; \`misc\[\[paste0(cluster_key,
 "\_nhood_enrichment")\]\]\` holds \`zscore\`, \`count\`, \`expected\`
-(permutation mean) and \`log2_oe\`.
+(permutation mean), \`log2_oe\`, \`log2_oe_raw\`, \`pvalue\`, \`padj\`
+and \`padj_bh\` (see \[nhood_enrichment()\]).
 
 ## Examples
 
@@ -70,13 +71,13 @@ seu <- nhood_enrichment.Seurat(seu, cluster_key = "cell_type",
 res <- SeuratObject::Misc(seu, slot = "cell_type_nhood_enrichment")
 round(res$zscore, 1)
 #>                    Clustercell_type_1 Clustercell_type_2 Clustercell_type_3
-#> Clustercell_type_1               -1.0                1.7                1.1
-#> Clustercell_type_2                1.1                0.2               -2.5
-#> Clustercell_type_3                1.2               -2.1                1.0
-#> Clustercell_type_4               -1.0                0.5                0.2
+#> Clustercell_type_1               -0.5                1.3                1.8
+#> Clustercell_type_2                0.5                1.0               -2.8
+#> Clustercell_type_3                1.1               -2.4                1.2
+#> Clustercell_type_4               -0.7                0.0                0.6
 #>                    Clustercell_type_4
-#> Clustercell_type_1               -2.7
-#> Clustercell_type_2               -1.4
+#> Clustercell_type_1               -2.8
+#> Clustercell_type_2               -2.9
 #> Clustercell_type_3               -0.8
-#> Clustercell_type_4                2.6
+#> Clustercell_type_4                3.1
 ```

@@ -66,12 +66,12 @@ rs <- cooccur_ratio_per_sample(df, sample_key = "sample_id",
                                patient_key = "patient", radius = 20, k = 30)
 head(rs)
 #>   sample_id   cluster_i   cluster_j     ratio count group patient n_cells n_i
-#> 1    case_1 cell_type_1 cell_type_1 0.8150888    38  case  case_1     200  41
-#> 2    case_1 cell_type_2 cell_type_1 1.2316360    98  case  case_1     200  63
-#> 3    case_1 cell_type_3 cell_type_1 0.8417997    40  case  case_1     200  55
-#> 4    case_1 cell_type_4 cell_type_1 0.9331322    32  case  case_1     200  41
-#> 5    case_1 cell_type_1 cell_type_2 1.2316360    98  case  case_1     200  41
-#> 6    case_1 cell_type_2 cell_type_2 1.0309066   140  case  case_1     200  63
+#> 1    case_1 cell_type_1 cell_type_1 0.8010355    38  case  case_1     200  41
+#> 2    case_1 cell_type_2 cell_type_1 1.2564103    98  case  case_1     200  63
+#> 3    case_1 cell_type_3 cell_type_1 0.8351648    40  case  case_1     200  55
+#> 4    case_1 cell_type_4 cell_type_1 0.9230769    32  case  case_1     200  41
+#> 5    case_1 cell_type_1 cell_type_2 1.2564103    98  case  case_1     200  41
+#> 6    case_1 cell_type_2 cell_type_2 1.0136452   130  case  case_1     200  63
 #>   n_j
 #> 1  41
 #> 2  41

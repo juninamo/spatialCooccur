@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">spatialCooccur</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,33 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.99.3" id="spatialcooccur-0993">spatialCooccur 0.99.3<a class="anchor" aria-label="anchor" href="#spatialcooccur-0993"></a></h2>
+<div class="section level3">
+<h3 id="changes-that-affect-results-0-99-3">Changes that affect results<a class="anchor" aria-label="anchor" href="#changes-that-affect-results-0-99-3"></a></h3>
+<ul><li>
+<code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code>: <code>log2_oe</code> is now centred on the label shuffles (the mean of the same log ratio over the shuffles is subtracted), so it is 0 on average without interaction for any number of cells. The log of a ratio of small counts was biased below 0 for rare cell types (about -0.03 for 25 cell types of 60 cells, -0.05 for pairs with &lt; 50 cells). The previous value is returned as <code>log2_oe_raw</code>.</li>
+<li>
+<code>generate_sim(test_type = "distribute")</code> no longer places relocated cells outside the tissue. Such cells sat in empty space where their k nearest neighbours reached their partner cell even at 100 um, so co-localization leaked to long planted distances.</li>
+<li>
+<code><a href="../reference/compare_groups.html">compare_groups()</a></code>: new <code>unit = c("patient", "image")</code>, default <code>"patient"</code>. With <code>patient_key</code> and <code>method = "wilcox"</code> or <code>"t"</code>, images are averaged within patient before testing, so the patient is the unit of analysis. Previously these tests used image-level rows (pseudoreplication, 13.8% false positives at 5% in simulations) unless the data were first passed through <code><a href="../reference/summarize_by_patient.html">summarize_by_patient()</a></code>; use <code>unit = "image"</code> for the old behaviour.</li>
+<li>
+<code><a href="../reference/compare_groups.html">compare_groups()</a></code> now defaults to <code>value = "log2_oe"</code> and uses a <code>patient</code> column automatically when <code>patient_key</code> is not given and patients have several images.</li>
+<li>
+<code>compare_groups(symmetric = TRUE)</code> averages the (i, j) and (j, i) values of each sample instead of keeping only the <code>cluster_i &lt;= cluster_j</code> row (degree-normalised neighbourhood scores are slightly directional).</li>
+<li>
+<code><a href="../reference/summarize_by_patient.html">summarize_by_patient()</a></code> keeps distances (<code>r</code>) of <code><a href="../reference/colocalization_per_sample.html">colocalization_per_sample()</a></code> output separate instead of averaging them; new <code>pair_keys</code> argument.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-0-99-3">New features<a class="anchor" aria-label="anchor" href="#new-features-0-99-3"></a></h3>
+<ul><li>
+<code><a href="../reference/associate_continuous.html">associate_continuous()</a></code>: association of per-image / per-patient co-localization with a continuous clinical variable (CRP, disease activity, age): Spearman on patient means (default), linear model with covariates, mixed model on images, or permutation; BH over pairs.</li>
+<li>Unsupervised transcript-level co-localization (experimental): <code><a href="../reference/colocalization_gene_matrix.html">colocalization_gene_matrix()</a></code> (gene x gene log2 O/E of transcript pairs within a radius, label-shuffling expectation in closed form, one FFT per gene), <code><a href="../reference/colocalization_modules.html">colocalization_modules()</a></code> (clusters co-localizing genes), <code><a href="../reference/module_enrichment.html">module_enrichment()</a></code> (hypergeometric test of any gene sets, e.g. pathways or cell-type markers) and <code><a href="../reference/module_enrichr.html">module_enrichr()</a></code> (enrichR wrapper).</li>
+<li>
+<code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code> returns a within-sample test per unordered pair: <code>pvalue</code> (normal, from the shuffles), <code>padj</code> (Westfall-Young max-T, family-wise error rate, calibrated for any number of cell types) and <code>padj_bh</code>. New <code><a href="../reference/plot_nhood_heatmap.html">plot_nhood_heatmap()</a></code> draws <code>log2_oe</code> with significance stars.</li>
+<li>Tutorials use <code>log2_oe</code> with the max-T adjusted <code>padj</code>; new sections on <code><a href="../reference/cooccur_local_oe.html">cooccur_local_oe()</a></code>, <code><a href="../reference/associate_continuous.html">associate_continuous()</a></code> and gene-level modules. The algorithm reference covers all current methods.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.99.2" id="spatialcooccur-0992">spatialCooccur 0.99.2<a class="anchor" aria-label="anchor" href="#spatialcooccur-0992"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-that-change-results-0-99-2">Bug fixes that change results<a class="anchor" aria-label="anchor" href="#bug-fixes-that-change-results-0-99-2"></a></h3>
@@ -66,8 +93,6 @@
 <li>
 <code><a href="../reference/interaction_spot_per_sample.html">interaction_spot_per_sample()</a></code> returns <code>NA</code> (not 0 spots) when the spot search fails, and no longer requires a <code>cell</code> column in <code>meta.data</code>.</li>
 <li>Absent cell types give <code>NA</code> scores instead of silently dropped rows.</li>
-<li>
-<code><a href="../reference/summarize_by_patient.html">summarize_by_patient()</a></code> keeps distances (<code>r</code>) of <code><a href="../reference/colocalization_per_sample.html">colocalization_per_sample()</a></code> output separate instead of averaging them; new <code>pair_keys</code> argument.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="new-features-0-99-2">New features<a class="anchor" aria-label="anchor" href="#new-features-0-99-2"></a></h3>

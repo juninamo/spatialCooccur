@@ -106,15 +106,15 @@ Genome matrix has multiple modalities, returning a list of matrices for this gen
 
 |        | used     | (Mb)  | gc trigger | (Mb)   | limit (Mb) | max used | (Mb)   |
 |--------|----------|-------|------------|--------|------------|----------|--------|
-| Ncells | 12939514 | 691.1 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
-| Vcells | 27085989 | 206.7 | 45754539   | 349.1  | 204800     | 45712823 | 348.8  |
+| Ncells | 12945208 | 691.4 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
+| Vcells | 27133329 | 207.1 | 45754539   | 349.1  | 204800     | 45728698 | 348.9  |
 
 A matrix: 2 × 7 of type dbl {.table .dataframe}
 
 |        | used     | (Mb)  | gc trigger | (Mb)   | limit (Mb) | max used | (Mb)   |
 |--------|----------|-------|------------|--------|------------|----------|--------|
-| Ncells | 12945910 | 691.4 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
-| Vcells | 27100299 | 206.8 | 45754539   | 349.1  | 204800     | 45712823 | 348.8  |
+| Ncells | 12951604 | 691.7 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
+| Vcells | 27147639 | 207.2 | 45754539   | 349.1  | 204800     | 45728698 | 348.9  |
 
 A matrix: 2 × 7 of type dbl {.table .dataframe}
 
@@ -273,7 +273,7 @@ Calculating gene attributes
 ```
 
 ``` output
-Wall clock passed: Time difference of 1.471042 secs
+Wall clock passed: Time difference of 1.779582 secs
 ```
 
 ``` output
@@ -354,35 +354,35 @@ This message will be shown once per session”
 ```
 
 ``` output
-12:22:37 UMAP embedding parameters a = 0.9922 b = 1.112
+15:37:28 UMAP embedding parameters a = 0.9922 b = 1.112
 ```
 
 ``` output
-12:22:37 Read 7273 rows and found 30 numeric columns
+15:37:28 Read 7273 rows and found 30 numeric columns
 ```
 
 ``` output
-12:22:37 Using Annoy for neighbor search, n_neighbors = 30
+15:37:28 Using Annoy for neighbor search, n_neighbors = 30
 ```
 
 ``` output
-12:22:37 Building Annoy index with metric = cosine, n_trees = 50
+15:37:28 Building Annoy index with metric = cosine, n_trees = 50
 ```
 
 ``` output
-12:22:37 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpksBbvY/file62a728346358
+15:37:29 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpHMu1Jl/file99c35e8beded
 ```
 
 ``` output
-12:22:37 Searching Annoy index using 1 thread, search_k = 3000
+15:37:29 Searching Annoy index using 1 thread, search_k = 3000
 ```
 
 ``` output
-12:22:38 Annoy recall = 100%
+15:37:30 Annoy recall = 100%
 ```
 
 ``` output
-12:22:38 Commencing smooth kNN distance calibration using 1 thread
+15:37:31 Commencing smooth kNN distance calibration using 1 thread
 ```
 
 ``` output
@@ -390,15 +390,15 @@ This message will be shown once per session”
 ```
 
 ``` output
-12:22:39 Initializing from normalized Laplacian + noise (using RSpectra)
+15:37:33 Initializing from normalized Laplacian + noise (using RSpectra)
 ```
 
 ``` output
-12:22:39 Commencing optimization for 500 epochs, with 319794 positive edges
+15:37:33 Commencing optimization for 500 epochs, with 319794 positive edges
 ```
 
 ``` output
-12:22:44 Optimization finished
+15:37:40 Optimization finished
 ```
 
 ``` output
@@ -708,64 +708,28 @@ difftime(end_time, start_time, units = "secs")
 ```
 
 ``` output
-Time difference of 2.019416 secs
+Time difference of 3.642823 secs
 ```
 
 ``` r
 
-mat = xenium.obj@misc[[paste0(cluster_col,"_nhood_enrichment")]]$zscore
-colnames(mat) = gsub("^Cluster","",colnames(mat))
-rownames(mat) = gsub("^Cluster","",rownames(mat))
-
-pval_mat <- 1 - pnorm(mat)
-fdr_vec <- p.adjust(as.vector(pval_mat), method = "BH")
-fdr_mat <- matrix(fdr_vec, nrow=nrow(mat), ncol=ncol(mat),
-                  dimnames = dimnames(mat))
-sig_mat <- ifelse(fdr_mat < 0.05, "**", ifelse(fdr_mat > 0.05 & fdr_mat < 0.1, "*", ""))
-
-common_names <- intersect(rownames(mat), colnames(mat))
-for (nm in common_names) {
-  mat[nm, nm] <- NA
-  sig_mat[nm, nm] <- ""
-}
-
-heatmap <- Heatmap(mat,
-                   name = "Z-score",
-                   col = colorRamp2(c(-2, 0, 2), c("#0072B5FF", "white", "#BC3C29FF")), 
-                   show_row_names = TRUE, 
-                   show_column_names = TRUE,  
-                   cluster_rows = TRUE,  
-                   cluster_columns = TRUE,  
-                   #show_column_dend = FALSE,
-                   #show_row_dend = FALSE,
-                   row_title = "",  
-                   column_title = paste0("Spatial Neigborhood Enrichment\n",data_name),
+res <- xenium.obj@misc[[paste0(cluster_col, "_nhood_enrichment")]]
+L <- res$log2_oe; P <- res$padj
+dimnames(L) <- dimnames(P) <- lapply(dimnames(L), function(v) gsub("^Cluster", "", v))
+TITLE <- paste0("Neighbourhood enrichment, log2 O/E\n", data_name, " (* padj < 0.05, ** padj < 0.01)")
+sig_mat <- ifelse(P < 0.01, "**", ifelse(P < 0.05, "*", ""))
+heatmap <- Heatmap(L,
+                   name = "log2 O/E",
+                   col = colorRamp2(c(-1, 0, 1), c("#0072B5FF", "white", "#BC3C29FF")),
+                   show_row_names = TRUE, show_column_names = TRUE,
+                   cluster_rows = TRUE, cluster_columns = TRUE,
+                   column_title = TITLE,
                    rect_gp = gpar(col = "black", lwd = 0.3),
-                   na_col = "black",         
-                   column_names_gp = grid::gpar(fontsize = 10),
-                   row_names_gp = grid::gpar(fontsize = 10),
-
                    cell_fun = function(j, i, x, y, width, height, fill) {
-                     if(sig_mat[i, j] == "**") {
-                       grid.text("**", 
-                                 x = x,
-                                 y = y - 0.2 * height,  
-                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
-                     }
-                     if(sig_mat[i, j] == "*") {
-                       grid.text("*", 
-                                 x = x,
-                                 y = y - 0.2 * height, 
-                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
-                     }
-                   }
-)
-
-
-draw(heatmap, 
-     merge_legend = TRUE,
-     heatmap_legend_side = "bottom", 
-     annotation_legend_side = "bottom")
+                     if (sig_mat[i, j] != "") grid.text(sig_mat[i, j], x = x, y = y - 0.2 * height,
+                                                        gp = gpar(fontsize = 15, col = "black", fontface = "bold"))
+                   })
+draw(heatmap, merge_legend = TRUE, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-06.png)
@@ -889,7 +853,7 @@ stopping after 4 steps
 ```
 
 ``` output
-Time difference of 1.44676 secs
+Time difference of 2.079798 secs
 ```
 
 ``` output
@@ -1033,7 +997,7 @@ Calculating gene attributes
 ```
 
 ``` output
-Wall clock passed: Time difference of 1.649014 secs
+Wall clock passed: Time difference of 9.253556 secs
 ```
 
 ``` output
@@ -1107,35 +1071,35 @@ Negative:  Cabp7, Gfap, Aqp4, Laptm5, Ntsr2, Trem2, Siglech, Acsbg1, Cd53, Slc39
 ```
 
 ``` output
-12:24:37 UMAP embedding parameters a = 0.9922 b = 1.112
+15:41:29 UMAP embedding parameters a = 0.9922 b = 1.112
 ```
 
 ``` output
-12:24:37 Read 36553 rows and found 30 numeric columns
+15:41:29 Read 36553 rows and found 30 numeric columns
 ```
 
 ``` output
-12:24:37 Using Annoy for neighbor search, n_neighbors = 30
+15:41:29 Using Annoy for neighbor search, n_neighbors = 30
 ```
 
 ``` output
-12:24:37 Building Annoy index with metric = cosine, n_trees = 50
+15:41:29 Building Annoy index with metric = cosine, n_trees = 50
 ```
 
 ``` output
-12:24:40 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpksBbvY/file62a742fa525
+15:41:33 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpHMu1Jl/file99c33a21767e
 ```
 
 ``` output
-12:24:40 Searching Annoy index using 1 thread, search_k = 3000
+15:41:33 Searching Annoy index using 1 thread, search_k = 3000
 ```
 
 ``` output
-12:24:45 Annoy recall = 100%
+15:41:42 Annoy recall = 100%
 ```
 
 ``` output
-12:24:46 Commencing smooth kNN distance calibration using 1 thread
+15:41:44 Commencing smooth kNN distance calibration using 1 thread
 ```
 
 ``` output
@@ -1143,15 +1107,15 @@ Negative:  Cabp7, Gfap, Aqp4, Laptm5, Ntsr2, Trem2, Siglech, Acsbg1, Cd53, Slc39
 ```
 
 ``` output
-12:24:47 Initializing from normalized Laplacian + noise (using RSpectra)
+15:41:46 Initializing from normalized Laplacian + noise (using RSpectra)
 ```
 
 ``` output
-12:24:48 Commencing optimization for 200 epochs, with 1669102 positive edges
+15:41:47 Commencing optimization for 200 epochs, with 1669102 positive edges
 ```
 
 ``` output
-12:24:57 Optimization finished
+15:42:01 Optimization finished
 ```
 
 ``` output
@@ -1171,7 +1135,7 @@ Number of edges: 1340944
 Running Louvain algorithm...
 Maximum modularity in 10 random starts: 0.9585
 Number of communities: 27
-Elapsed time: 4 seconds
+Elapsed time: 7 seconds
 ```
 
 ``` r
@@ -1672,62 +1636,28 @@ difftime(end_time, start_time, units = "secs")
 ```
 
 ``` output
-Time difference of 7.315697 secs
+Time difference of 7.805199 secs
 ```
 
 ``` r
 
-mat = xenium.obj@misc[[paste0(cluster_col,"_nhood_enrichment")]]$zscore
-colnames(mat) = gsub("^Cluster","",colnames(mat))
-rownames(mat) = gsub("^Cluster","",rownames(mat))
-
-pval_mat <- 1 - pnorm(mat)
-fdr_vec <- p.adjust(as.vector(pval_mat), method = "BH")
-fdr_mat <- matrix(fdr_vec, nrow=nrow(mat), ncol=ncol(mat),
-                  dimnames = dimnames(mat))
-sig_mat <- ifelse(fdr_mat < 0.05, "**", ifelse(fdr_mat > 0.05 & fdr_mat < 0.1, "*", ""))
-
-common_names <- intersect(rownames(mat), colnames(mat))
-for (nm in common_names) {
-  mat[nm, nm] <- NA
-  sig_mat[nm, nm] <- ""
-}
-
-heatmap <- Heatmap(mat,
-                   name = "Z-score",
-                   col = colorRamp2(c(-2, 0, 2), c("#0072B5FF", "white", "#BC3C29FF")), 
-                   show_row_names = TRUE, 
-                   show_column_names = TRUE,  
-                   cluster_rows = TRUE,  
-                   cluster_columns = TRUE,  
-                   #show_column_dend = FALSE,
-                   #show_row_dend = FALSE,
-                   row_title = "",  
-                   column_title = paste0("Spatial Neigborhood Enrichment\n",data_name),
+res <- xenium.obj@misc[[paste0(cluster_col, "_nhood_enrichment")]]
+L <- res$log2_oe; P <- res$padj
+dimnames(L) <- dimnames(P) <- lapply(dimnames(L), function(v) gsub("^Cluster", "", v))
+TITLE <- paste0("Neighbourhood enrichment, log2 O/E\n", data_name, " (* padj < 0.05, ** padj < 0.01)")
+sig_mat <- ifelse(P < 0.01, "**", ifelse(P < 0.05, "*", ""))
+heatmap <- Heatmap(L,
+                   name = "log2 O/E",
+                   col = colorRamp2(c(-1, 0, 1), c("#0072B5FF", "white", "#BC3C29FF")),
+                   show_row_names = TRUE, show_column_names = TRUE,
+                   cluster_rows = TRUE, cluster_columns = TRUE,
+                   column_title = TITLE,
                    rect_gp = gpar(col = "black", lwd = 0.3),
-                   na_col = "black",          
-                   column_names_gp = grid::gpar(fontsize = 10),
-                   row_names_gp = grid::gpar(fontsize = 10),
                    cell_fun = function(j, i, x, y, width, height, fill) {
-                     if(sig_mat[i, j] == "**") {
-                       grid.text("**", 
-                                 x = x,
-                                 y = y - 0.2 * height,  
-                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
-                     }
-                     if(sig_mat[i, j] == "*") {
-                       grid.text("*", 
-                                 x = x,
-                                 y = y - 0.2 * height, 
-                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
-                     }
-                   }
-)
-
-draw(heatmap, 
-     merge_legend = TRUE,
-     heatmap_legend_side = "bottom", 
-     annotation_legend_side = "bottom")
+                     if (sig_mat[i, j] != "") grid.text(sig_mat[i, j], x = x, y = y - 0.2 * height,
+                                                        gp = gpar(fontsize = 15, col = "black", fontface = "bold"))
+                   })
+draw(heatmap, merge_legend = TRUE, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-16.png)
@@ -1783,7 +1713,7 @@ stopping after 4 steps
 ```
 
 ``` output
-Time difference of 6.518088 secs
+Time difference of 7.06738 secs
 ```
 
 ``` output
@@ -1865,7 +1795,7 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] spacexr_2.2.1         spatialCooccur_0.99.2 testthat_3.2.1       
+ [1] spacexr_2.2.1         spatialCooccur_0.99.3 testthat_3.2.1       
  [4] ComplexHeatmap_2.18.0 circlize_0.4.15       ggplot2_3.4.4        
  [7] SCP_0.5.6             dplyr_1.1.4           magrittr_2.0.3       
 [10] Seurat_5.2.1          SeuratObject_5.0.2    sp_2.1-2             

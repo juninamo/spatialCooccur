@@ -245,16 +245,16 @@ head(per_image[order(per_image$sample_id), ], 4)
 ```
 
 ``` output
-Time difference of 13.96439 secs
+Time difference of 14.06373 secs
 ```
 
 |  | sample_id | cluster_i | cluster_j | zscore | count | expected | log2_oe | group | patient | n_cells | n_i | n_j |
 |----|----|----|----|----|----|----|----|----|----|----|----|----|
 |  | \<chr\> | \<chr\> | \<chr\> | \<dbl\> | \<dbl\> | \<dbl\> | \<dbl\> | \<chr\> | \<chr\> | \<int\> | \<int\> | \<int\> |
-| 1 | case_1_img1 | cell_type_1 | cell_type_1 | -1.88681599 | 36.41652 | 39.71759 | -0.124868470 | case | case_1 | 1200 | 177 | 177 |
-| 2 | case_1_img1 | cell_type_2 | cell_type_1 | 2.90194448 | 23.76023 | 19.79145 | 0.262503495 | case | case_1 | 1200 | 154 | 177 |
-| 3 | case_1_img1 | cell_type_3 | cell_type_1 | -0.02335854 | 18.92671 | 18.95780 | -0.002356103 | case | case_1 | 1200 | 149 | 177 |
-| 4 | case_1_img1 | cell_type_4 | cell_type_1 | -0.56936269 | 14.19000 | 14.86642 | -0.066739829 | case | case_1 | 1200 | 115 | 177 |
+| 1 | case_1_img1 | cell_type_1 | cell_type_1 | -1.79535546 | 36.59245 | 39.69216 | -0.1156676619 | case | case_1 | 1200 | 177 | 177 |
+| 2 | case_1_img1 | cell_type_2 | cell_type_1 | 2.42332465 | 23.02136 | 19.78173 | 0.2210913979 | case | case_1 | 1200 | 154 | 177 |
+| 3 | case_1_img1 | cell_type_3 | cell_type_1 | -0.02485323 | 18.91202 | 18.94504 | 0.0009870095 | case | case_1 | 1200 | 149 | 177 |
+| 4 | case_1_img1 | cell_type_4 | cell_type_1 | -0.59872946 | 14.14555 | 14.84565 | -0.0647837528 | case | case_1 | 1200 | 115 | 177 |
 
 A spatialCooccurSample: 4 × 12 {.table .dataframe}
 
@@ -311,11 +311,11 @@ size_tests <- do.call(rbind, lapply(c("zscore", "log2_oe"), function(v) {
 size_tests
 ```
 
-| score   | effect  | p        |
-|---------|---------|----------|
-| \<chr\> | \<dbl\> | \<dbl\>  |
-| zscore  | 2.8700  | 0.000155 |
-| log2_oe | 0.0589  | 0.105000 |
+| score   | effect  | p       |
+|---------|---------|---------|
+| \<chr\> | \<dbl\> | \<dbl\> |
+| zscore  | 2.0600  | 0.0104  |
+| log2_oe | 0.0313  | 0.7980  |
 
 A data.frame: 2 × 3 {.table .dataframe}
 
@@ -447,14 +447,14 @@ head(res_lmm[, c(cols[1:3], "estimate", cols[4:5])], 8)
 |     | cluster_i   | cluster_j   | effect      | estimate    | p            | padj        |
 |-----|-------------|-------------|-------------|-------------|--------------|-------------|
 |     | \<chr\>     | \<chr\>     | \<dbl\>     | \<dbl\>     | \<dbl\>      | \<dbl\>     |
-| 1   | cell_type_1 | cell_type_2 | 0.22916160  | 0.22916160  | 8.049539e-05 | 0.002897834 |
-| 2   | cell_type_2 | cell_type_8 | -0.11305790 | -0.11305790 | 1.558188e-03 | 0.024180643 |
-| 3   | cell_type_2 | cell_type_3 | -0.14825217 | -0.14825217 | 2.099779e-03 | 0.024180643 |
-| 4   | cell_type_2 | cell_type_7 | -0.11053135 | -0.11053135 | 3.334536e-03 | 0.024180643 |
-| 5   | cell_type_2 | cell_type_4 | -0.09852969 | -0.09852969 | 3.358423e-03 | 0.024180643 |
-| 6   | cell_type_2 | cell_type_5 | -0.14217484 | -0.14217484 | 4.037143e-03 | 0.024222855 |
-| 7   | cell_type_1 | cell_type_3 | -0.08997157 | -0.08997157 | 8.805286e-03 | 0.044252799 |
-| 8   | cell_type_1 | cell_type_4 | -0.12369669 | -0.12369669 | 9.833955e-03 | 0.044252799 |
+| 1   | cell_type_1 | cell_type_2 | 0.23421766  | 0.23421766  | 0.0001839993 | 0.006623974 |
+| 2   | cell_type_5 | cell_type_5 | 0.07059004  | 0.07059004  | 0.0011341037 | 0.020413867 |
+| 3   | cell_type_2 | cell_type_4 | -0.09248981 | -0.09248981 | 0.0068634564 | 0.065588885 |
+| 4   | cell_type_4 | cell_type_6 | 0.08643789  | 0.08643789  | 0.0072876539 | 0.065588885 |
+| 5   | cell_type_1 | cell_type_5 | -0.07413566 | -0.07413566 | 0.0122984323 | 0.088548713 |
+| 6   | cell_type_2 | cell_type_7 | -0.06985906 | -0.06985906 | 0.0155709422 | 0.093425653 |
+| 7   | cell_type_3 | cell_type_3 | 0.05571945  | 0.05571945  | 0.0280125042 | 0.143850074 |
+| 8   | cell_type_1 | cell_type_6 | -0.08979510 | -0.08979510 | 0.0319666831 | 0.143850074 |
 
 A data.frame: 8 × 6 {.table .dataframe}
 
@@ -470,9 +470,9 @@ signif(summary_tbl, 3)
 |                              | effect  | p        | padj    |
 |------------------------------|---------|----------|---------|
 |                              | \<dbl\> | \<dbl\>  | \<dbl\> |
-| Wilcoxon, patient level      | 0.229   | 3.11e-04 | 0.0112  |
-| LMM, images in patients      | 0.229   | 8.05e-05 | 0.0029  |
-| Permutation, patient-blocked | 0.229   | 4.00e-04 | 0.0072  |
+| Wilcoxon, patient level      | 0.234   | 0.000622 | 0.01120 |
+| LMM, images in patients      | 0.234   | 0.000184 | 0.00662 |
+| Permutation, patient-blocked | 0.234   | 0.000400 | 0.00720 |
 
 A data.frame: 3 × 3 {.table .dataframe}
 
@@ -545,10 +545,10 @@ res_adj <- compare_groups(per_image_b, value = "log2_oe", method = "lmm",
 signif(tgt(res_adj)[, c("effect", "estimate", "p", "padj")], 3)
 ```
 
-|     | effect  | estimate | p        | padj     |
-|-----|---------|----------|----------|----------|
-|     | \<dbl\> | \<dbl\>  | \<dbl\>  | \<dbl\>  |
-| 1   | 0.229   | 0.242    | 1.23e-05 | 0.000444 |
+|     | effect  | estimate | p        | padj    |
+|-----|---------|----------|----------|---------|
+|     | \<dbl\> | \<dbl\>  | \<dbl\>  | \<dbl\> |
+| 1   | 0.234   | 0.241    | 0.000195 | 0.00702 |
 
 A data.frame: 1 × 4 {.table .dataframe}
 
@@ -558,8 +558,10 @@ Images from the same patient share that patient’s biology, so they are
 correlated. A Wilcoxon or t-test on all images acts as if there were 3x
 more independent observations than there are (**pseudoreplication**).
 [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
-warns when it detects this. The next experiment shows how large the
-problem is.
+therefore averages images within patients by default
+(`unit = "patient"`); the experiment below uses `unit = "image"` on
+purpose to show what goes wrong otherwise. The next experiment shows how
+large the problem is.
 
 We simulate 24 patients × 4 images from **one** population with strong
 between-patient heterogeneity, split the patients at random into two
@@ -586,7 +588,7 @@ null_p <- t(replicate(500, {
   d$group <- ifelse(d$patient %in% sample(pats, 12), "case", "control")
   q <- function(x, ...) suppressWarnings(suppressMessages(
     compare_groups(x, value = "log2_oe", ref_group = "control", ...)))$p
-  c("Wilcoxon, images as units (pseudoreplication)" = q(d, method = "wilcox"),
+  c("Wilcoxon, images as units (pseudoreplication)" = q(d, method = "wilcox", unit = "image"),
     "Wilcoxon, patient level"      = q(summarize_by_patient(d), method = "wilcox"),
     "LMM, images in patients"      = q(d, method = "lmm", patient_key = "patient"),
     "Permutation, patient-blocked" = q(d, method = "perm", patient_key = "patient", n_perms = 500))
@@ -602,10 +604,10 @@ fpr
 |  | method | rate | lo | hi |
 |----|----|----|----|----|
 |  | \<fct\> | \<dbl\> | \<dbl\> | \<dbl\> |
-| Wilcoxon, images as units (pseudoreplication) | Wilcoxon, images as units (pseudoreplication) | 0.138 | 0.10898386 | 0.17137466 |
-| Wilcoxon, patient level | Wilcoxon, patient level | 0.040 | 0.02460131 | 0.06110261 |
-| LMM, images in patients | LMM, images in patients | 0.050 | 0.03261518 | 0.07292762 |
-| Permutation, patient-blocked | Permutation, patient-blocked | 0.050 | 0.03261518 | 0.07292762 |
+| Wilcoxon, images as units (pseudoreplication) | Wilcoxon, images as units (pseudoreplication) | 0.184 | 0.15098874 | 0.22079907 |
+| Wilcoxon, patient level | Wilcoxon, patient level | 0.044 | 0.02777677 | 0.06586100 |
+| LMM, images in patients | LMM, images in patients | 0.036 | 0.02147286 | 0.05630018 |
+| Permutation, patient-blocked | Permutation, patient-blocked | 0.048 | 0.03099317 | 0.07058080 |
 
 A data.frame: 4 × 4 {.table .dataframe}
 
@@ -757,6 +759,193 @@ Practical consequences:
     depletion of others.
 8.  **Plot patient-level values** behind every significant pair.
 
+## 11. Continuous clinical variables: `associate_continuous()`
+
+Many clinical variables are continuous (CRP, disease activity, number of
+affected joints, age).
+[`associate_continuous()`](https://juninamo.github.io/spatialCooccur/reference/associate_continuous.md)
+tests, for every cell-type pair, whether a per-image score changes with
+such a variable, with the patient as the unit: Spearman correlation of
+patient means (default), a linear model with covariates (`"lm"`), a
+mixed model on images (`"lmm"`) or a permutation test (`"perm"`), then
+Benjamini–Hochberg over pairs.
+
+Below, 12 patients have 2 images each, and the share of type-2 cells
+placed next to type-1 cells rises with a patient-level variable `x`.
+
+``` r
+
+set.seed(7)
+pats <- sprintf("p%02d", 1:12); x <- setNames(runif(12), pats)
+cont <- do.call(rbind, lapply(pats, function(p) do.call(rbind, lapply(1:2, function(m) {
+  g <- generate_sim(close_ratio = min(1, 0.2 + 0.5 * x[p] + rnorm(1, 0, 0.03)), n_types = 5, n_cells = 700,
+                    max_loc = 400, test_type = "distribute", distance_param = 10, seed = sample.int(1e6, 1))
+  g$sample_id <- paste0(p, "_", m); g$patient <- p; g$group <- "all"
+  rownames(g) <- paste0(g$sample_id, "_", seq_len(nrow(g))); g }))))
+per_image_c <- nhood_enrichment_per_sample(cont, sample_key = "sample_id", group_key = "group",
+                                           cluster_key = "cell_type", patient_key = "patient",
+                                           neighbors.k = 10, n_perms = 100, n_jobs = 1)
+ac <- associate_continuous(per_image_c, x, value = "log2_oe", method = "spearman")
+head(ac, 5)
+associate_continuous(per_image_c, x, value = "log2_oe", method = "lmm")[1:3, ]
+```
+
+|  | cluster_i | cluster_j | n_patients | estimate | p | padj | method |
+|----|----|----|----|----|----|----|----|
+|  | \<chr\> | \<chr\> | \<int\> | \<dbl\> | \<dbl\> | \<dbl\> | \<chr\> |
+| 12 | cell_type_2 | cell_type_3 | 12 | -0.7482517 | 0.005124082 | 0.1280649 | spearman |
+| 10 | cell_type_5 | cell_type_2 | 12 | -0.7062937 | 0.010245194 | 0.1280649 | spearman |
+| 24 | cell_type_4 | cell_type_5 | 12 | 0.6713287 | 0.016831456 | 0.1402621 | spearman |
+| 6 | cell_type_1 | cell_type_2 | 12 | 0.6433566 | 0.024003191 | 0.1415984 | spearman |
+| 22 | cell_type_2 | cell_type_5 | 12 | -0.6293706 | 0.028319671 | 0.1415984 | spearman |
+
+A data.frame: 5 × 7 {.table .dataframe}
+
+|  | cluster_i | cluster_j | n_patients | estimate | p | padj | method |
+|----|----|----|----|----|----|----|----|
+|  | \<chr\> | \<chr\> | \<int\> | \<dbl\> | \<dbl\> | \<dbl\> | \<chr\> |
+| 6 | cell_type_1 | cell_type_2 | 12 | 0.2222628 | 0.000438941 | 0.01097352 | lmm |
+| 22 | cell_type_2 | cell_type_5 | 12 | -0.3031745 | 0.001198851 | 0.01498564 | lmm |
+| 1 | cell_type_1 | cell_type_1 | 12 | -0.1345798 | 0.003447825 | 0.02873187 | lmm |
+
+A data.frame: 3 × 7 {.table .dataframe}
+
+``` r
+
+pp <- subset(per_image_c, cluster_i == "cell_type_1" & cluster_j == "cell_type_2")
+pp$x <- x[pp$patient]
+options(repr.plot.width = 5.5, repr.plot.height = 4.5)
+ggplot(pp, aes(x, log2_oe)) + geom_point(aes(color = patient), show.legend = FALSE) +
+  geom_smooth(method = "lm", se = FALSE, color = "grey40", linetype = "dashed") +
+  labs(x = "clinical variable x", y = "log2 O/E (cell_type_1 – cell_type_2)", title = "Images of 12 patients") + theme_minimal()
+```
+
+``` output
+`geom_smooth()` using formula = 'y ~ x'
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
+```
+
+``` output
+Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+```
+
+``` output
+Warning message in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
+```
+
+``` output
+Warning message in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
+```
+
+``` output
+Warning message in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
+“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+```
+
+![](figures/case_control_tutorial/fig-10.png)
+
 ``` r
 
 sessionInfo()
@@ -781,7 +970,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.1
+[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.3
 [4] testthat_3.2.1       
 
 loaded via a namespace (and not attached):
@@ -801,34 +990,34 @@ loaded via a namespace (and not attached):
  [40] digest_0.6.33          colorspace_2.1-0       rprojroot_2.0.4       
  [43] Seurat_5.2.1           tensor_1.5             RSpectra_0.16-1       
  [46] irlba_2.3.5.1          pkgload_1.3.3          labeling_0.4.3        
- [49] progressr_0.14.0       spatstat.sparse_3.1-0  httr_1.4.7            
- [52] polyclip_1.10-6        abind_1.4-5            compiler_4.3.2        
- [55] remotes_2.4.2.1        withr_2.5.2            fastDummies_1.7.3     
- [58] pkgbuild_1.4.3         MASS_7.3-60            sessioninfo_1.2.2     
- [61] tools_4.3.2            lmtest_0.9-40          httpuv_1.6.13         
- [64] future.apply_1.11.1    goftest_1.2-3          glue_1.6.2            
- [67] nlme_3.1-163           promises_1.2.1         grid_4.3.2            
- [70] pbdZMQ_0.3-10          Rtsne_0.17             cluster_2.1.4         
- [73] reshape2_1.4.4         generics_0.1.3         gtable_0.3.4          
- [76] spatstat.data_3.1-4    tidyr_1.3.0            data.table_1.16.0     
- [79] sp_2.1-2               spatstat.geom_3.3-5    RcppAnnoy_0.0.21      
- [82] ggrepel_0.9.4          RANN_2.6.1             pillar_1.11.0         
- [85] stringr_1.5.1          spam_2.10-0            IRdisplay_1.1         
- [88] RcppHNSW_0.5.0         later_1.3.2            splines_4.3.2         
- [91] dplyr_1.1.4            moments_0.14.1         lattice_0.21-9        
- [94] survival_3.5-7         deldir_2.0-2           tidyselect_1.2.0      
- [97] miniUI_0.1.1.1         pbapply_1.7-2          gridExtra_2.3         
-[100] scattermore_1.2        brio_1.1.4             devtools_2.4.5        
-[103] matrixStats_1.2.0      stringi_1.8.3          boot_1.3-28.1         
-[106] lazyeval_0.2.2         evaluate_0.23          codetools_0.2-19      
-[109] tibble_3.2.1           cli_3.6.2              uwot_0.1.16           
-[112] IRkernel_1.3.2         xtable_1.8-4           reticulate_1.35.0     
-[115] repr_1.1.6             munsell_0.5.0          Rcpp_1.0.11           
-[118] globals_0.16.2         spatstat.random_3.3-2  png_0.1-8             
-[121] spatstat.univar_3.1-2  parallel_4.3.2         ellipsis_0.3.2        
-[124] dotCall64_1.1-1        profvis_0.3.8          urlchecker_1.0.1      
-[127] lme4_1.1-35.1          listenv_0.9.0          viridisLite_0.4.2     
-[130] lmerTest_3.1-3         scales_1.3.0           ggridges_0.5.5        
-[133] SeuratObject_5.0.2     purrr_1.0.2            crayon_1.5.2          
-[136] rlang_1.1.2            cowplot_1.1.2         
+ [49] progressr_0.14.0       spatstat.sparse_3.1-0  mgcv_1.9-0            
+ [52] httr_1.4.7             polyclip_1.10-6        abind_1.4-5           
+ [55] compiler_4.3.2         remotes_2.4.2.1        withr_2.5.2           
+ [58] fastDummies_1.7.3      pkgbuild_1.4.3         MASS_7.3-60           
+ [61] sessioninfo_1.2.2      tools_4.3.2            lmtest_0.9-40         
+ [64] httpuv_1.6.13          future.apply_1.11.1    goftest_1.2-3         
+ [67] glue_1.6.2             nlme_3.1-163           promises_1.2.1        
+ [70] grid_4.3.2             pbdZMQ_0.3-10          Rtsne_0.17            
+ [73] cluster_2.1.4          reshape2_1.4.4         generics_0.1.3        
+ [76] gtable_0.3.4           spatstat.data_3.1-4    tidyr_1.3.0           
+ [79] data.table_1.16.0      sp_2.1-2               spatstat.geom_3.3-5   
+ [82] RcppAnnoy_0.0.21       ggrepel_0.9.4          RANN_2.6.1            
+ [85] pillar_1.11.0          stringr_1.5.1          spam_2.10-0           
+ [88] IRdisplay_1.1          RcppHNSW_0.5.0         later_1.3.2           
+ [91] splines_4.3.2          dplyr_1.1.4            moments_0.14.1        
+ [94] lattice_0.21-9         survival_3.5-7         deldir_2.0-2          
+ [97] tidyselect_1.2.0       miniUI_0.1.1.1         pbapply_1.7-2         
+[100] gridExtra_2.3          scattermore_1.2        brio_1.1.4            
+[103] devtools_2.4.5         matrixStats_1.2.0      stringi_1.8.3         
+[106] boot_1.3-28.1          lazyeval_0.2.2         evaluate_0.23         
+[109] codetools_0.2-19       tibble_3.2.1           cli_3.6.2             
+[112] uwot_0.1.16            IRkernel_1.3.2         xtable_1.8-4          
+[115] reticulate_1.35.0      repr_1.1.6             munsell_0.5.0         
+[118] Rcpp_1.0.11            globals_0.16.2         spatstat.random_3.3-2 
+[121] png_0.1-8              spatstat.univar_3.1-2  parallel_4.3.2        
+[124] ellipsis_0.3.2         dotCall64_1.1-1        profvis_0.3.8         
+[127] urlchecker_1.0.1       lme4_1.1-35.1          listenv_0.9.0         
+[130] viridisLite_0.4.2      lmerTest_3.1-3         scales_1.3.0          
+[133] ggridges_0.5.5         SeuratObject_5.0.2     purrr_1.0.2           
+[136] crayon_1.5.2           rlang_1.1.2            cowplot_1.1.2         
 ```

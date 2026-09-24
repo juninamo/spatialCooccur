@@ -119,124 +119,84 @@ Run neighborhood enrichment analysis
 
 ``` r
 
-n_perm = 100
+n_perm = 200
 neighbors.k_ = 30 # Number of neighbors to search
 
-nhood_enrichment_res <- nhood_enrichment(
+nhood_res <- nhood_enrichment(
   df,
-  cluster_key = "cell_type", 
-  neighbors.k = neighbors.k_, 
-  connectivity_key = "nn", 
+  cluster_key = "cell_type",
+  neighbors.k = neighbors.k_,
+  connectivity_key = "nn",
   transformation = TRUE,
   n_perms = n_perm, seed = seed, n_jobs = 4
 )
-nhood_enrichment_res=nhood_enrichment_res$zscore
-
-nhood_enrichment_res
+names(nhood_res)   # log2_oe, padj, pvalue, ...
+round(nhood_res$log2_oe[1:4, 1:4], 2)
 ```
 
-|  | Clustercell_type_1 | Clustercell_type_2 | Clustercell_type_3 | Clustercell_type_4 | Clustercell_type_5 | Clustercell_type_6 | Clustercell_type_7 | Clustercell_type_8 | Clustercell_type_9 | Clustercell_type_10 | Clustercell_type_11 | Clustercell_type_12 | Clustercell_type_13 | Clustercell_type_14 | Clustercell_type_15 |
-|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|
-| Clustercell_type_1 | 23.9462152 | 7.55240752 | -5.3958430 | -3.82373224 | -5.80635244 | -2.26689053 | -5.43668687 | -3.84599452 | -4.5108173 | -0.35758967 | -2.28902658 | -4.29912555 | -1.92571443 | -3.32436320 | -4.2660152 |
-| Clustercell_type_2 | 11.6664396 | 10.54484214 | -3.0764086 | -0.82269048 | -3.23832605 | -3.49157735 | -3.07689551 | -4.17474364 | -2.6125001 | -3.52852118 | -0.83772671 | -3.27183402 | -1.61240564 | -2.55429496 | -3.8987714 |
-| Clustercell_type_3 | -4.7903951 | -1.31431602 | -0.1065409 | 2.03924634 | 1.49391337 | 1.38742042 | 2.06612177 | 1.10913149 | 0.7275787 | 1.27762327 | 1.40551062 | 1.20882289 | -0.07352066 | 0.04911908 | 1.7309958 |
-| Clustercell_type_4 | -2.5971542 | -0.01574833 | 0.7607068 | -0.45675781 | 0.27936360 | -0.39076603 | 0.46849941 | -0.19154561 | 0.1567979 | 0.38388104 | 1.32517014 | -0.66235798 | -1.11936001 | 0.74591614 | -0.7338555 |
-| Clustercell_type_5 | -5.9018119 | -2.49389597 | 1.4220691 | 1.63744595 | 0.17649029 | 1.57788513 | 2.15393321 | 1.64587923 | 2.3365992 | 0.26511365 | -0.13822270 | 2.82392510 | 0.52710098 | 1.78246712 | 1.9532530 |
-| Clustercell_type_6 | -0.7889704 | -2.09523368 | -0.2945250 | 0.39670465 | 0.26683303 | -0.37977428 | 0.28285391 | 0.39909189 | 1.5204003 | 1.01036955 | -1.30876962 | 1.17120012 | -0.73449688 | -0.39735893 | 2.7057134 |
-| Clustercell_type_7 | -5.3189627 | -1.57800022 | 1.5167070 | 0.97343333 | 1.14744226 | 2.52227593 | 0.91148352 | 0.04390953 | 1.5291142 | 0.84523018 | -0.60576832 | 0.80226186 | -0.17905000 | 0.55670640 | 1.0836499 |
-| Clustercell_type_8 | -4.2232122 | -3.47448344 | 0.8587543 | 0.92884826 | 1.50286681 | 0.78444010 | 0.38646304 | -0.16301631 | 0.8165288 | 0.80205192 | 1.02273357 | -0.51558702 | 1.44169053 | 2.46512023 | 1.6798632 |
-| Clustercell_type_9 | -3.7111627 | -1.87235391 | -0.1871118 | 0.08593054 | 0.54578219 | 1.81785875 | 1.59159355 | 0.93051831 | 0.4194477 | 0.73241891 | -0.31794703 | 2.01237126 | 1.22422127 | -0.03826781 | 0.7692662 |
-| Clustercell_type_10 | 1.2898659 | -2.95208987 | -0.6798872 | -0.17312173 | 0.04244105 | 1.65074606 | 0.96998256 | 0.39125354 | -0.6616165 | -1.55610914 | 0.04299035 | 0.48039933 | -1.07396824 | 0.44995656 | 1.3685586 |
-| Clustercell_type_11 | -0.8340541 | 0.56242526 | 0.9748902 | 1.04756004 | -0.98921206 | -2.17068449 | -0.30223534 | 1.46187500 | -0.6870519 | 0.96698617 | -1.21993249 | 0.13879806 | 0.11199731 | 1.18853450 | -0.1425264 |
-| Clustercell_type_12 | -3.4448219 | -1.66118506 | -0.2057989 | 0.05974900 | 0.28957481 | 0.08644692 | -0.03856619 | -0.65749684 | 0.9706269 | 0.39570032 | 0.32181942 | -0.02977462 | 0.80664099 | 0.53222064 | 0.7668497 |
-| Clustercell_type_13 | -2.5814666 | -1.68473588 | 0.7105855 | 0.23894026 | 0.30891844 | -0.99346511 | 0.60728395 | 1.58949172 | 0.8372079 | -0.09399647 | 0.16496200 | 0.99344001 | 0.70798618 | 1.26178019 | 1.1170149 |
-| Clustercell_type_14 | -2.2931761 | -0.76467865 | -0.3148586 | -0.17747055 | 1.31715287 | -1.45048262 | 0.18764913 | 1.10728429 | -1.3150995 | 0.08186561 | 0.06230033 | 0.63262575 | -0.68156380 | -0.62075647 | -0.4057012 |
-| Clustercell_type_15 | -4.3679490 | -3.06176850 | -0.6248035 | 0.41598618 | 1.15980091 | 1.52799462 | 0.64019114 | 1.77480684 | 0.5590566 | 1.11072644 | 0.60358689 | 0.79449527 | 0.82226981 | 1.29512233 | -0.2911776 |
+1.  ‘zscore’
+2.  ‘count’
+3.  ‘expected’
+4.  ‘log2_oe’
+5.  ‘log2_oe_raw’
+6.  ‘pvalue’
+7.  ‘padj’
+8.  ‘padj_bh’
 
-A matrix: 15 × 15 of type dbl {.table .dataframe}
+|  | Clustercell_type_1 | Clustercell_type_2 | Clustercell_type_3 | Clustercell_type_4 |
+|----|----|----|----|----|
+| Clustercell_type_1 | 1.65 | 0.96 | -1.55 | -0.80 |
+| Clustercell_type_2 | 1.32 | 1.07 | -0.82 | -0.18 |
+| Clustercell_type_3 | -1.34 | -0.27 | 0.00 | 0.34 |
+| Clustercell_type_4 | -0.51 | -0.01 | 0.14 | -0.07 |
 
-How to read the Z-score matrix • Row: Reference cell type (cell_type_i)
-• Column: Nearby cell type (cell_type_j) • The value of
-nhood_enrichment\[i, j\] is the Z-score of ‘how close cell_type_i is to
-cell_type_j’
+A matrix: 4 × 4 of type dbl {.table .dataframe}
 
-Therefore, • nhood_enrichment\[‘cell_type_1’, ‘cell_type_2’\] • How much
-cell_type_2 is gathered near cell_type_1 •
-nhood_enrichment\[‘cell_type_2’, ‘cell_type_1’\] • How many cell_type_1s
-are near cell_type_2?
+How to read the result
 
-Appropriate selection • When comparing a two-way relationship: check
-both nhood_enrichment\[‘cell_type_1’, ‘cell_type_2’\] and
-nhood_enrichment\[‘cell_type_2’, ‘cell_type_1’\] • When investigating
-only one-way relationships: • Is there a high concentration of
-cell_type_2 around cell_type_1? → nhood_enrichment\[‘cell_type_1’,
-‘cell_type_2’\] • Is there a high concentration of cell_type_1 around
-cell_type_2? → nhood_enrichment\[‘cell_type_2’, ‘cell_type_1’\]
+- `log2_oe[i, j]`: log2(observed / expected) contacts between cell types
+  i and j, **centred on the label shuffles** so that it is 0 without
+  interaction for any number of cells. 0 = as chance, +1 = twice, −1 =
+  half. This is the effect size to compare between samples.
+- `padj[i, j]`: within-sample significance for the unordered pair (i,
+  j), adjusted over all K(K + 1)/2 pairs by the **max-T** permutation
+  method (family-wise error). Its smallest value is 1 / (n_perms + 1).
+  `pvalue` is the unadjusted value for a single pre-specified pair.
+- Rows and columns: `log2_oe[i, j]` counts type-j cells among the
+  neighbours of type-i cells; it is nearly symmetric. `padj` is
+  symmetric (both directions are tested together).
 
-**z-score or log2 O/E?**
-[`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
-also returns `log2_oe`, log2(observed / expected). The z-score measures
-the *evidence* for enrichment within this sample and grows with the
-number of cells; `log2_oe` measures its *size*. Use the z-score within
-one sample, as here, and `log2_oe` when comparing samples or groups (see
-the case-control tutorial).
+`zscore` is still returned; it grows with the number of cells, so use it
+only inside one sample. `plot_nhood_heatmap(nhood_res)` draws the same
+heatmap in one line.
 
 ``` r
 
-colnames(nhood_enrichment_res) = gsub("^Cluster","",colnames(nhood_enrichment_res))
-rownames(nhood_enrichment_res) = gsub("^Cluster","",rownames(nhood_enrichment_res))
-pval_mat <- 1 - pnorm(nhood_enrichment_res)
-
-fdr_vec <- p.adjust(as.vector(pval_mat), method = "BH")
-fdr_mat <- matrix(fdr_vec, nrow=nrow(nhood_enrichment_res), ncol=ncol(nhood_enrichment_res),
-                  dimnames = dimnames(nhood_enrichment_res))
-
-sig_mat <- ifelse(fdr_mat < 0.05, "**", ifelse(fdr_mat > 0.05 & fdr_mat < 0.1, "*", ""))
-
-common_names <- intersect(rownames(nhood_enrichment_res), colnames(nhood_enrichment_res))
-for (nm in common_names) {
-  nhood_enrichment_res[nm, nm] <- NA
-  sig_mat[nm, nm] <- ""
-}
-
-heatmap <- Heatmap(nhood_enrichment_res,
-                   name = "Z-score",
-                   col = colorRamp2(c(-2, 0, 2), c("#0072B5FF", "white", "#BC3C29FF")), 
-                   show_row_names = TRUE, 
-                   show_column_names = TRUE,  
-                   cluster_rows = TRUE,  
-                   cluster_columns = TRUE,  
-                   #show_column_dend = FALSE,
-                   #show_row_dend = FALSE,
-                   row_title = "",  
-                   column_title = "Spatial Neigborhood Enrichment by cell types",
+L <- nhood_res$log2_oe; P <- nhood_res$padj
+dimnames(L) <- dimnames(P) <- lapply(dimnames(L), function(v) gsub("^Cluster", "", v))
+TITLE <- "Neighbourhood enrichment (* padj < 0.05, ** padj < 0.01)"
+options(repr.plot.width = 6, repr.plot.height = 6)
+sig_mat <- ifelse(P < 0.01, "**", ifelse(P < 0.05, "*", ""))
+heatmap <- Heatmap(L,
+                   name = "log2 O/E",
+                   col = colorRamp2(c(-1, 0, 1), c("#0072B5FF", "white", "#BC3C29FF")),
+                   show_row_names = TRUE, show_column_names = TRUE,
+                   cluster_rows = TRUE, cluster_columns = TRUE,
+                   column_title = TITLE,
                    rect_gp = gpar(col = "black", lwd = 0.3),
-                   na_col = "black",          # make sure cell with same cell types in the row and column be NA
-                   
                    cell_fun = function(j, i, x, y, width, height, fill) {
-                     if(sig_mat[i, j] == "**") {
-                       grid.text("**", 
-                                 x = x,
-                                 y = y - 0.2 * height,  
-                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
-                     }
-                     if(sig_mat[i, j] == "*") {
-                       grid.text("*", 
-                                 x = x,
-                                 y = y - 0.2 * height,  
-                                 gp = gpar(fontsize = 15, col = "white", fontface = "bold"))
-                     }
-                   }
-)
+                     if (sig_mat[i, j] != "") grid.text(sig_mat[i, j], x = x, y = y - 0.2 * height,
+                                                        gp = gpar(fontsize = 15, col = "black", fontface = "bold"))
+                   })
+draw(heatmap, merge_legend = TRUE, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 
-options(repr.plot.width=6, repr.plot.height=6)
-draw(heatmap, 
-     merge_legend = TRUE,
-     heatmap_legend_side = "bottom", 
-     annotation_legend_side = "bottom")
+# the same in one line
+plot_nhood_heatmap(nhood_res)
 ```
 
 ![](figures/SNA_tutorial_simulation/fig-02.png)
+
+![](figures/SNA_tutorial_simulation/fig-03.png)
 
 Run the same analysis with different distance parameters
 
@@ -269,12 +229,12 @@ head(accuracy_df_all)
 |  | test_type | seed | distance_param | zscore | zscore_false | n_types | neighbors.k\_ |
 |----|----|----|----|----|----|----|----|
 |  | \<chr\> | \<int\> | \<dbl\> | \<dbl\> | \<dbl\> | \<dbl\> | \<dbl\> |
-| 1 | circle | 8451 | 5 | 13.247010 | -1.89891730 | 15 | 30 |
-| 2 | circle | 9015 | 5 | 13.753787 | 1.28154388 | 15 | 30 |
-| 3 | circle | 8161 | 5 | 9.817993 | 0.60922574 | 15 | 30 |
-| 4 | circle | 9085 | 5 | 14.703173 | 1.49370460 | 15 | 30 |
-| 5 | circle | 8268 | 5 | 14.571439 | 0.09802873 | 15 | 30 |
-| 6 | circle | 1622 | 5 | 16.173440 | -0.39799206 | 15 | 30 |
+| 1 | circle | 8451 | 5 | 14.520796 | -1.76518826 | 15 | 30 |
+| 2 | circle | 9015 | 5 | 13.357590 | 1.39006821 | 15 | 30 |
+| 3 | circle | 8161 | 5 | 8.586912 | 0.60730654 | 15 | 30 |
+| 4 | circle | 9085 | 5 | 14.766955 | 1.51380353 | 15 | 30 |
+| 5 | circle | 8268 | 5 | 14.253751 | 0.06186447 | 15 | 30 |
+| 6 | circle | 1622 | 5 | 15.785288 | -0.42544077 | 15 | 30 |
 
 A data.frame: 6 × 7 {.table .dataframe}
 
@@ -326,7 +286,7 @@ override using the `.groups` argument.
 ℹ Please use `linewidth` instead.”
 ```
 
-![](figures/SNA_tutorial_simulation/fig-03.png)
+![](figures/SNA_tutorial_simulation/fig-04.png)
 
 ## Spatial co-localization score (sCLA, cell-cell level analysis)
 
@@ -401,7 +361,7 @@ options(repr.plot.width=8, repr.plot.height=4)
 g1|g2
 ```
 
-![](figures/SNA_tutorial_simulation/fig-04.png)
+![](figures/SNA_tutorial_simulation/fig-05.png)
 
 Run co-localization analysis
 
@@ -458,7 +418,7 @@ options(repr.plot.width=12, repr.plot.height=4)
 g1 | g2 | g3
 ```
 
-![](figures/SNA_tutorial_simulation/fig-05.png)
+![](figures/SNA_tutorial_simulation/fig-06.png)
 
 Check the relationship between the co-localization score and the
 distance between cell_type_1 and cell_type_2
@@ -522,7 +482,7 @@ Warning message in cor.test.default(na.omit(coords_df)$score, na.omit(coords_df)
 “Removed 400 rows containing missing values (`geom_point()`).”
 ```
 
-![](figures/SNA_tutorial_simulation/fig-06.png)
+![](figures/SNA_tutorial_simulation/fig-07.png)
 
 Check the ROC curve and AUC value to evaluate the performance of the
 co-localization score
@@ -544,7 +504,34 @@ coords_df %>%
   )
 ```
 
-![](figures/SNA_tutorial_simulation/fig-07.png)
+![](figures/SNA_tutorial_simulation/fig-08.png)
+
+### Where do the two cell types meet? `cooccur_local_oe()`
+
+[`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md)
+counts cluster_x–cluster_y pairs within `radius` of every cell, divides
+them by their exact expectation under label shuffling, and smooths
+observed and expected pairs with Gaussian weights of width `bandwidth`.
+With `n_perms > 0` it also tests every cell (hotspots, BH over cells).
+Unlike the mean sCLS below, the section-level value does not grow with
+the abundance of the two cell types.
+
+``` r
+
+rownames(df) <- paste0("cell", seq_len(nrow(df)))
+lo <- cooccur_local_oe(df, "cell_type_1", "cell_type_2", radius = 30, n_perms = 199, seed = 1)
+attr(lo, "section_log2_oe")
+d_lo <- cbind(df, lo)
+options(repr.plot.width = 12, repr.plot.height = 5)
+(ggplot(d_lo, aes(x, y, color = pmin(pmax(local_log2_oe, 0), 3))) + geom_point(size = 0.8) +
+   scale_color_gradient(low = "grey90", high = "#B2182B", name = "local log2 O/E") + coord_equal() + theme_void() + ggtitle("Local log2 O/E")) |
+(ggplot(d_lo, aes(x, y)) + geom_point(color = "grey85", size = 0.6) + geom_point(data = subset(d_lo, padj < 0.05), color = "#B2182B", size = 0.9) +
+   coord_equal() + theme_void() + ggtitle("Hotspots (FDR < 0.05)"))
+```
+
+1.99828623708995
+
+![](figures/SNA_tutorial_simulation/fig-09.png)
 
 ``` r
 
@@ -573,7 +560,7 @@ attached base packages:
 other attached packages:
 [1] ggrastr_1.0.2         ComplexHeatmap_2.18.0 circlize_0.4.15      
 [4] dplyr_1.1.4           magrittr_2.0.3        ggplot2_3.4.4        
-[7] patchwork_1.1.3       spatialCooccur_0.99.2 testthat_3.2.1       
+[7] patchwork_1.1.3       spatialCooccur_0.99.3 testthat_3.2.1       
 
 loaded via a namespace (and not attached):
   [1] RcppAnnoy_0.0.21       splines_4.3.2          later_1.3.2           

@@ -222,7 +222,7 @@ round(fit$L, 2)[c("A_1", "B_1", "C_1"), ]
 ```
 
 ``` output
-Time difference of 46.0359 secs
+Time difference of 3.240163 mins
 ```
 
 ``` output
@@ -322,7 +322,7 @@ cc_res[order(cc_res$score, cc_res$pair, cc_res$r), ]
 ```
 
 ``` output
-Time difference of 48.88825 secs
+Time difference of 6.687315 mins
 ```
 
 |     | score                | pair    | r       | effect  | p       | padj    |
@@ -516,7 +516,7 @@ Sys.time() - t0
 ```
 
 ``` output
-Time difference of 1.399758 mins
+Time difference of 2.328136 mins
 ```
 
 ``` r
@@ -609,7 +609,7 @@ Endothelial   Astrocyte       Oligo         OPC   Microglia         SMC
         437       13935        1656       11098 
 ```
 
-0.769038208168643
+0.775230566534914
 
 ``` r
 
@@ -657,7 +657,7 @@ cfit
 ```
 
 ``` output
-Time difference of 1.191569 mins
+Time difference of 2.077509 mins
 ```
 
 ``` output
@@ -767,6 +767,113 @@ Gaussian.
     RFLVM are not implemented yet; model-based estimates are shrunk
     towards 0 at short range.
 
+### 7. Without gene sets: co-localized transcript modules
+
+The analyses above need gene sets, and assume that every gene in a set
+marks that population.
+[`colocalization_gene_matrix()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_gene_matrix.md)
+works gene by gene: for every pair of genes it counts transcript pairs
+within `radius` and divides by the number expected if gene labels were
+shuffled over the fixed transcript positions (log2 O/E; cellularity
+cancels).
+[`colocalization_modules()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_modules.md)
+clusters genes that co-localize with one another, and
+[`module_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichment.md)
+interprets each module with any gene sets (pathways or cell-type
+markers; hypergeometric test, BH).
+[`module_enrichr()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichr.md)
+sends module gene names to the Enrichr web service (needs the enrichR
+package and internet access).
+
+First the simulated tissue from section 2, where the three gene sets are
+known:
+
+``` r
+
+Msim <- colocalization_gene_matrix(b, radius = 12)
+mods_sim <- colocalization_modules(Msim, n_modules = 3)
+mods_sim$summary
+module_enrichment(mods_sim, sets)
+```
+
+| module  | size    | mean_oe   | top_genes               |
+|---------|---------|-----------|-------------------------|
+| \<chr\> | \<int\> | \<dbl\>   | \<chr\>                 |
+| M1      | 5       | 0.9272278 | A_3, A_5, A_1, A_2, A_4 |
+| M2      | 5       | 0.8726565 | B_2, B_5, B_4, B_3, B_1 |
+| M3      | 5       | 0.4027856 | C_3, C_4, C_1, C_2, C_5 |
+
+A data.frame: 3 × 4 {.table .dataframe}
+
+|  | module | gene_set | overlap | module_size | set_size | odds_ratio | p | padj | genes |
+|----|----|----|----|----|----|----|----|----|----|
+|  | \<chr\> | \<chr\> | \<int\> | \<int\> | \<int\> | \<dbl\> | \<dbl\> | \<dbl\> | \<chr\> |
+| 1 | M1 | A | 5 | 5 | 5 | 231 | 0.0003330003 | 0.000999001 | A_3, A_5, A_1, A_2, A_4 |
+| 5 | M2 | B | 5 | 5 | 5 | 231 | 0.0003330003 | 0.000999001 | B_2, B_5, B_4, B_3, B_1 |
+| 9 | M3 | C | 5 | 5 | 5 | 231 | 0.0003330003 | 0.000999001 | C_3, C_4, C_1, C_2, C_5 |
+
+A data.frame: 3 × 9 {.table .dataframe}
+
+Then all 248 genes of the mouse brain section (4 µm bins from section
+5). The marker gene sets are used only to interpret the modules, not to
+find them.
+
+``` r
+
+t0 <- Sys.time()
+Mb <- colocalization_gene_matrix(xb, radius = 20, min_count = 200)
+difftime(Sys.time(), t0, units = "secs")
+mods_b <- colocalization_modules(Mb, n_modules = 14, min_size = 3)
+mods_b$summary
+en_b <- module_enrichment(mods_b, brain_sets)
+subset(en_b, padj < 0.05)[, c("module", "gene_set", "overlap", "module_size", "padj", "genes")]
+```
+
+``` output
+Time difference of 36.92203 secs
+```
+
+| module | size | mean_oe | top_genes |
+|----|----|----|----|
+| \<chr\> | \<int\> | \<dbl\> | \<chr\> |
+| M1 | 48 | 1.0020395 | Igf2, Slc13a4, Dcn, Cyp1b1, Col1a1, Fmod, Aldh1a2, Acta2 |
+| M2 | 43 | 0.9106521 | Ndst4, Npy2r, Slc44a5, Pip5k1b, Trpc4, Cpne6, Rasl10a, Dpyd |
+| M3 | 42 | 0.4737585 | Nxph3, Gadd45a, Arhgap25, Rspo2, Rprm, Trbc2, Myl4, Rxfp1 |
+| M4 | 28 | 1.2089635 | Chat, Tacr1, Sncg, Nwd2, Kctd8, Necab2, Calb2, Nrp2 |
+| M5 | 24 | 0.4540791 | Rspo1, Kcnh5, Cbln4, Myo16, Tmem132d, Pdzrn3, Prr16, Lamp5 |
+| M6 | 24 | 0.6625122 | Cort, Sst, Gad2, Gad1, Rab3b, Pvalb, Pthlh, Kcnmb2 |
+| M7 | 16 | 0.4964736 | Sox10, Opalin, Gjc3, Gpr17, Adamtsl1, Sema3d, Vwc2l, Sema6a |
+| M8 | 8 | 1.7045032 | Cd300c2, Ikzf1, Spi1, Cd53, Trem2, Siglech, Laptm5, Cd68 |
+| M9 | 8 | 0.9186085 | Nts, Pdyn, Penk, Ppp1r1b, Pde7b, Meis2, Mapk4, Unc13c |
+| M10 | 3 | 0.1577920 | Ntsr2, Acsbg1, Gli3 |
+
+A data.frame: 10 × 4 {.table .dataframe}
+
+|  | module | gene_set | overlap | module_size | padj | genes |
+|----|----|----|----|----|----|----|
+|  | \<chr\> | \<chr\> | \<int\> | \<int\> | \<dbl\> | \<chr\> |
+| 77 | M8 | Microglia | 5 | 8 | 6.713858e-07 | Ikzf1, Cd53, Trem2, Siglech, Laptm5 |
+| 1 | M1 | Endothelial | 8 | 48 | 5.362878e-05 | Cd93, Kdr, Pecam1, Fgd5, Emcn, Cldn5, Adgrl4, Nostrin |
+| 63 | M6 | Inhibitory | 5 | 24 | 9.527572e-04 | Sst, Gad2, Gad1, Pvalb, Vip |
+| 66 | M7 | Oligo | 3 | 16 | 5.016930e-03 | Sox10, Opalin, Gjc3 |
+| 11 | M10 | Astrocyte | 2 | 3 | 1.748759e-02 | Ntsr2, Acsbg1 |
+
+A data.frame: 5 × 6 {.table .dataframe}
+
+``` r
+
+ord <- mods_b$tree$order; gn <- rownames(Mb)[ord]
+hm <- expand.grid(i = factor(gn, levels = rev(gn)), j = factor(gn, levels = gn))
+hm$v <- Mb[cbind(as.character(hm$i), as.character(hm$j))]
+options(repr.plot.width = 7, repr.plot.height = 7)
+ggplot(hm, aes(j, i, fill = pmax(pmin(v, 2), -2))) + geom_raster() +
+  scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", name = "log2 O/E") +
+  coord_equal() + labs(title = "Mouse brain: 248 genes clustered without gene sets", x = NULL, y = NULL) +
+  theme_minimal() + theme(axis.text = element_blank(), panel.grid = element_blank())
+```
+
+![](figures/segmentation_free_tutorial/fig-12.png)
+
 ``` r
 
 sessionInfo()
@@ -791,7 +898,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.2
+[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.3
 [4] testthat_3.2.1       
 
 loaded via a namespace (and not attached):

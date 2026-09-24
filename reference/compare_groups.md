@@ -9,7 +9,7 @@ between groups and return tidy results with multiple-testing adjustment.
 ``` r
 compare_groups(
   per_sample_df,
-  value = "zscore",
+  value = "log2_oe",
   group_key = "group",
   patient_key = NULL,
   method = c("wilcox", "t", "lmm", "perm", "signrank"),
@@ -20,7 +20,8 @@ compare_groups(
   covariates = NULL,
   symmetric = FALSE,
   min_n_per_group = 2,
-  seed = 1234
+  seed = 1234,
+  unit = c("patient", "image")
 )
 ```
 
@@ -34,8 +35,9 @@ compare_groups(
 
 - value:
 
-  Name of the column to test (e.g. "log2_oe", "zscore", "ratio", "mean",
-  "spots_per_1k_cells").
+  Name of the column to test. Defaults to \`"log2_oe"\`, the effect size
+  that does not grow with the number of cells (other examples: "zscore",
+  "ratio", "mean", "spots_per_1k_cells").
 
 - group_key:
 
@@ -43,10 +45,13 @@ compare_groups(
 
 - patient_key:
 
-  Optional patient column. Required for \`method = "lmm"\` to use as a
-  random effect; used as the permutation block for \`method = "perm"\`.
-  If \`NULL\` and the data has a \`patient\` column, that column is only
-  used to detect pseudoreplication.
+  Patient column. If \`NULL\` and the data contain a \`patient\` column
+  with several images per patient, that column is used automatically (a
+  message says so). With \`"wilcox"\` / \`"t"\`, images are averaged
+  within patient (see \`unit\`); required for \`method = "lmm"\` to use
+  as a random effect; used as the permutation block for \`method =
+  "perm"\`. If \`NULL\` and the data has a \`patient\` column, that
+  column is only used to detect pseudoreplication.
 
 - method:
 
@@ -98,9 +103,10 @@ compare_groups(
 
 - symmetric:
 
-  If \`TRUE\`, test each unordered pair once (rows with \`cluster_i \<=
-  cluster_j\`). Neighborhood enrichment scores are (nearly) symmetric,
-  so testing both (i, j) and (j, i) doubles the multiple-testing burden
+  If \`TRUE\`, test each unordered pair once: the (i, j) and (j, i)
+  values of each sample are averaged and reported under \`cluster_i \<=
+  cluster_j\`. Neighborhood enrichment scores are (nearly) symmetric, so
+  testing both (i, j) and (j, i) doubles the multiple-testing burden
   without adding information.
 
 - min_n_per_group:
@@ -111,6 +117,15 @@ compare_groups(
 - seed:
 
   Random seed for the permutation test.
+
+- unit:
+
+  \`"patient"\` (default): with \`patient_key\` and \`method =
+  "wilcox"\` or \`"t"\`, images are first averaged within patient, so
+  the patient is the unit of analysis. \`"image"\` tests image-level
+  rows as given (pseudoreplication when patients have several images; a
+  warning is issued). \`"lmm"\`, \`"perm"\` and \`"signrank"\` always
+  account for patients through \`patient_key\`.
 
 ## Value
 
@@ -146,18 +161,18 @@ ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
 cmp <- compare_groups(ps, value = "log2_oe", method = "wilcox",
                       ref_group = "control", symmetric = TRUE)
 head(cmp)
-#>     cluster_i   cluster_j n_total n_control n_case mean_control  mean_case
-#> 1 cell_type_1 cell_type_3       6         3      3   0.08777052 -0.1548648
-#> 2 cell_type_1 cell_type_4       6         3      3   0.07356400 -0.4615872
-#> 3 cell_type_2 cell_type_4       6         3      3  -0.07560648 -0.4360321
-#> 4 cell_type_4 cell_type_4       6         3      3  -0.06441771  0.1496259
-#> 5 cell_type_1 cell_type_2       6         3      3   0.25911989  0.1589639
-#> 6 cell_type_2 cell_type_3       6         3      3  -0.05225977 -0.2397878
-#>       effect statistic   p      padj
-#> 1 -0.2426353         9 0.1 0.2500000
-#> 2 -0.5351512         9 0.1 0.2500000
-#> 3 -0.3604256         9 0.1 0.2500000
-#> 4  0.2140436         0 0.1 0.2500000
-#> 5 -0.1001560         8 0.2 0.3333333
-#> 6 -0.1875280         8 0.2 0.3333333
+#>     cluster_i   cluster_j n_total n_control n_case mean_control   mean_case
+#> 1 cell_type_1 cell_type_1       6         3      3 -0.002914502 -0.16112524
+#> 2 cell_type_1 cell_type_2       6         3      3 -0.035441967  0.28149556
+#> 3 cell_type_2 cell_type_3       6         3      3  0.070994838 -0.23207128
+#> 4 cell_type_2 cell_type_4       6         3      3 -0.058837919 -0.24324235
+#> 5 cell_type_3 cell_type_4       6         3      3 -0.072880627  0.27247481
+#> 6 cell_type_2 cell_type_2       6         3      3 -0.002434414  0.05194004
+#>        effect statistic   p      padj
+#> 1 -0.15821073         9 0.1 0.2000000
+#> 2  0.31693753         0 0.1 0.2000000
+#> 3 -0.30306612         9 0.1 0.2000000
+#> 4 -0.18440443         9 0.1 0.2000000
+#> 5  0.34535543         0 0.1 0.2000000
+#> 6  0.05437445         3 0.7 0.7777778
 ```

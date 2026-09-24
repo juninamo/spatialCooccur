@@ -43,8 +43,12 @@ The notebooks behind these pages are in
   [`generate_sim()`](https://juninamo.github.io/spatialCooccur/reference/generate_sim.md)
 - Neighborhood enrichment with a label-permutation null:
   [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
-  returns the z-score (evidence) and `log2_oe` = log2(observed /
-  expected) (effect size)
+  returns `log2_oe` = log2(observed / expected), centred on the shuffles
+  (effect size, 0 without interaction for any cell number), and a
+  within-sample test per pair with max-T family-wise adjustment
+  (`padj`);
+  [`plot_nhood_heatmap()`](https://juninamo.github.io/spatialCooccur/reference/plot_nhood_heatmap.md)
+  shows both
 - Radius-based co-occurrence ratio:
   [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md)
   /
@@ -71,10 +75,16 @@ The notebooks behind these pages are in
   averages images within patients
 - [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md):
   Wilcoxon (exact for small samples), Welch’s *t*, linear mixed model
-  (`lme4`, Satterthwaite df via `lmerTest`, covariates), patient-blocked
-  permutation, and paired designs such as pre- vs post-treatment
-  (`method = "signrank"`, within-patient permutation); warns on
-  pseudoreplication
+  with the patient as a random intercept
+  (`value ~ group + covariates + (1 | patient)`; `lme4`, Satterthwaite
+  df via `lmerTest`), patient-blocked permutation, and paired designs
+  such as pre- vs post-treatment (`method = "signrank"`, within-patient
+  permutation); warns on pseudoreplication
+- [`associate_continuous()`](https://juninamo.github.io/spatialCooccur/reference/associate_continuous.md):
+  association with a continuous clinical variable (CRP, disease
+  activity, age) with the patient as the unit (Spearman, linear model
+  with covariates, linear mixed model with a random patient intercept,
+  permutation)
 - Plots:
   [`plot_group_delta_heatmap()`](https://juninamo.github.io/spatialCooccur/reference/plot_group_delta_heatmap.md),
   [`plot_pair_boxplot()`](https://juninamo.github.io/spatialCooccur/reference/plot_pair_boxplot.md),
@@ -95,6 +105,15 @@ The notebooks behind these pages are in
 - [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
   feeds
   [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
+- Unsupervised, gene-level:
+  [`colocalization_gene_matrix()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_gene_matrix.md)
+  (gene x gene log2 O/E of transcript pairs within a radius),
+  [`colocalization_modules()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_modules.md)
+  (co-localizing gene modules),
+  [`module_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichment.md)
+  (any pathways or marker lists) and
+  [`module_enrichr()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichr.md)
+  (enrichR)
 
 ## How spatialCooccur fits with related tools
 
@@ -161,14 +180,16 @@ planted), repeated over many tissues or studies.
 
 ![](reference/figures/validation_calibration.png)
 
-*Neighbourhood enrichment on 250 random tissues (50 per number of cell
-types): log2 O/E stays at 0 and the within-sample test gives 5% false
-positives for 3 to 25 cell types (mean and 95% CI).*
+*Neighbourhood enrichment on 500 random tissues (100 per number of cell
+types): log2 O/E stays at 0 (grey: before centring on the shuffles),
+each pair gives 5% false positives, and the max-T adjusted `padj` keeps
+the chance of any false pair at or below 5% for 3 to 25 cell types (mean
+and 95% CI).*
 
 | Check | Setting | Result |
 |----|----|----|
-| Neighbourhood enrichment, negative control | random tissues, 3–25 cell types | false-positive rate 3–6%, 95% CI includes 5% |
-| Neighbourhood enrichment, positive control | B placed 5–100 µm from A, 20 tissues per distance | planted pair log2 O/E ≈ 0.35–0.4 up to 20 µm (detected in 90% at 10 µm), ≈ 0 beyond the neighbourhood |
+| Neighbourhood enrichment, negative control | random tissues, 3–25 cell types (even or 1–30% abundance) | log2 O/E 95% CI includes 0; per-pair false positives ≈ 5%; any pair with `padj` \< 0.05 in ≤ 6% of tissues (BH: up to 12%) |
+| Neighbourhood enrichment, positive control | B placed 5–100 µm from A, 20 tissues per distance | planted pair log2 O/E ≈ 0.3–0.4 up to 20 µm and `padj` \< 0.05 in 90–100% of tissues; 95% CI includes 0 from 40 µm |
 | Local O/E, negative control | only the abundance of A and B changes (3–24%) | section O/E 95% CI includes 0; ≤ 5% of cells with p \< 0.05; no FDR hits in 80 tissues |
 | Local O/E, positive control | ring of B around a disc of A | 74% of ring cells are hotspots, 0% far away |
 | Group comparison, negative controls | 200 studies each: no difference, or 4× larger images | 3–4.5% false positives (mixed model, patient-level Wilcoxon) |
@@ -207,8 +228,9 @@ df <- generate_sim(close_ratio = 1, n_types = 15, max_loc = 800, n_cells = 500,
 
 res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 30,
                         n_perms = 100, seed = 1234, n_jobs = 1)
-res$zscore    # evidence: grows with the number of cells
 res$log2_oe   # effect size: use this to compare samples
+res$padj      # within-sample significance, max-T adjusted over all pairs
+plot_nhood_heatmap(res)   # log2 O/E with significance stars
 ```
 
 ### 2. Local co-localization (where do A and B meet?)
@@ -253,6 +275,11 @@ plot_volcano_groups(res, label_top = 5)
 tx <- read_xenium_transcripts("path/to/xenium_outs", genes = unlist(marker_sets))
 b  <- bin_transcripts(tx, bin_size = 4)
 pcf_matrix(b, marker_sets, r_max = 100)   # log_g and log_g_rel for every pair
+
+# no gene sets: find co-localizing gene modules, then interpret them
+M    <- colocalization_gene_matrix(b, radius = 20, top_n = 300)
+mods <- colocalization_modules(M, n_modules = 15)
+module_enrichment(mods, my_pathways)      # named list of gene sets
 ```
 
 ## Figures from the paper

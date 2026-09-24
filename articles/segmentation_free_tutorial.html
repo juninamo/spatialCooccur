@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">spatialCooccur</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -293,7 +293,7 @@ have closed-form gradients.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">t0</span></span>
 <span><span class="va">fit</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">L</span>, <span class="fl">2</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A_1"</span>, <span class="st">"B_1"</span>, <span class="st">"C_1"</span><span class="op">)</span>, <span class="op">]</span></span></code></pre></div>
-<pre class="output"><code>Time difference of 46.0359 secs</code></pre>
+<pre class="output"><code>Time difference of 3.240163 mins</code></pre>
 <pre class="output"><code>&lt;spatial_rff_fit&gt; nb model, 15 genes, 10000 bins, 4 factors
   factor length scales: 10.6, 14.5, 23.2, 58.2 
   cellularity field: sd 0.18, length scale 92.3
@@ -447,7 +447,7 @@ pair × distance, ready for <code><a href="../reference/compare_groups.html">com
 <span><span class="op">}</span></span>
 <span><span class="va">cc_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">test_all</span><span class="op">(</span><span class="va">emp_cc</span>, <span class="st">"relative (empirical)"</span><span class="op">)</span>, <span class="fu">test_all</span><span class="op">(</span><span class="va">mod_cc</span>, <span class="st">"composition (model)"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">cc_res</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">cc_res</span><span class="op">$</span><span class="va">score</span>, <span class="va">cc_res</span><span class="op">$</span><span class="va">pair</span>, <span class="va">cc_res</span><span class="op">$</span><span class="va">r</span><span class="op">)</span>, <span class="op">]</span></span></code></pre></div>
-<pre class="output"><code>Time difference of 48.88825 secs</code></pre>
+<pre class="output"><code>Time difference of 6.687315 mins</code></pre>
 <div class="nb-output">
 <table class="table dataframe">
 <caption>
@@ -945,7 +945,7 @@ correlation of all transcripts is computed once and reused.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">a</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, b <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">b</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, r <span class="op">=</span> <span class="fl">12</span>, log_g_rel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/approxfun.html" class="external-link">approx</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">r</span>, <span class="va">d</span><span class="op">$</span><span class="va">log_g_rel</span>, xout <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">t0</span></span></code></pre></div>
 <pre class="output"><code>&lt;binned_transcripts&gt; 1361 x 882 bins of 4 (922805 in tissue), 248 genes, 9447344 transcripts</code></pre>
-<pre class="output"><code>Time difference of 1.399758 mins</code></pre>
+<pre class="output"><code>Time difference of 2.328136 mins</code></pre>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">show</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>pair <span class="op">=</span> <span class="st">"Endothelial-SMC"</span>,  <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">xres</span>, <span class="va">a</span> <span class="op">==</span> <span class="st">"Endothelial"</span> <span class="op">&amp;</span> <span class="va">b</span> <span class="op">==</span> <span class="st">"SMC"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -1021,7 +1021,7 @@ Endothelial   Astrocyte       Oligo         OPC   Microglia         SMC
        VLMC  Excitatory  Inhibitory       Other 
         437       13935        1656       11098 </code></pre>
 <div class="nb-output">
-<p>0.769038208168643</p>
+<p>0.775230566534914</p>
 </div>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">h12u</span>, <span class="va">kind</span> <span class="op">==</span> <span class="st">"different types"</span><span class="op">)</span></span>
@@ -1062,7 +1062,7 @@ white matter and hippocampus (8 µm bins, marker genes only).</p>
 <span>                        n_features <span class="op">=</span> <span class="fl">64</span>, max_iter <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">t0</span></span>
 <span><span class="va">cfit</span></span></code></pre></div>
-<pre class="output"><code>Time difference of 1.191569 mins</code></pre>
+<pre class="output"><code>Time difference of 2.077509 mins</code></pre>
 <pre class="output"><code>&lt;spatial_rff_fit&gt; nb model, 38 genes, 10000 bins, 6 factors
   factor length scales: 8.05, 12.1, 17.6, 36, 80.8, 96.2 
   cellularity field: sd 0.03, length scale 35.4
@@ -1225,7 +1225,650 @@ Dirichlet-process spectral mixture and Gibbs sampler of the original
 RFLVM are not implemented yet; model-based estimates are shrunk towards
 0 at short range.</li>
 </ol>
+</div>
+<div class="section level3">
+<h3 id="without-gene-sets-co-localized-transcript-modules">7. Without gene sets: co-localized transcript modules<a class="anchor" aria-label="anchor" href="#without-gene-sets-co-localized-transcript-modules"></a>
+</h3>
+<p>The analyses above need gene sets, and assume that every gene in a
+set marks that population. <code><a href="../reference/colocalization_gene_matrix.html">colocalization_gene_matrix()</a></code>
+works gene by gene: for every pair of genes it counts transcript pairs
+within <code>radius</code> and divides by the number expected if gene
+labels were shuffled over the fixed transcript positions (log2 O/E;
+cellularity cancels). <code><a href="../reference/colocalization_modules.html">colocalization_modules()</a></code> clusters
+genes that co-localize with one another, and
+<code><a href="../reference/module_enrichment.html">module_enrichment()</a></code> interprets each module with any gene
+sets (pathways or cell-type markers; hypergeometric test, BH).
+<code><a href="../reference/module_enrichr.html">module_enrichr()</a></code> sends module gene names to the Enrichr web
+service (needs the enrichR package and internet access).</p>
+<p>First the simulated tissue from section 2, where the three gene sets
+are known:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">Msim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/colocalization_gene_matrix.html">colocalization_gene_matrix</a></span><span class="op">(</span><span class="va">b</span>, radius <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span><span class="va">mods_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/colocalization_modules.html">colocalization_modules</a></span><span class="op">(</span><span class="va">Msim</span>, n_modules <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">mods_sim</span><span class="op">$</span><span class="va">summary</span></span>
+<span><span class="fu"><a href="../reference/module_enrichment.html">module_enrichment</a></span><span class="op">(</span><span class="va">mods_sim</span>, <span class="va">sets</span><span class="op">)</span></span></code></pre></div>
+<div class="nb-output">
+<table class="table dataframe">
+<caption>
+A data.frame: 3 × 4
+</caption>
+<thead>
+<tr>
+<th scope="col">
+module
+</th>
+<th scope="col">
+size
+</th>
+<th scope="col">
+mean_oe
+</th>
+<th scope="col">
+top_genes
+</th>
+</tr>
+<tr>
+<th scope="col">
+&lt;chr&gt;
+</th>
+<th scope="col">
+&lt;int&gt;
+</th>
+<th scope="col">
+&lt;dbl&gt;
+</th>
+<th scope="col">
+&lt;chr&gt;
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+M1
+</td>
+<td>
+5
+</td>
+<td>
+0.9272278
+</td>
+<td>
+A_3, A_5, A_1, A_2, A_4
+</td>
+</tr>
+<tr>
+<td>
+M2
+</td>
+<td>
+5
+</td>
+<td>
+0.8726565
+</td>
+<td>
+B_2, B_5, B_4, B_3, B_1
+</td>
+</tr>
+<tr>
+<td>
+M3
+</td>
+<td>
+5
+</td>
+<td>
+0.4027856
+</td>
+<td>
+C_3, C_4, C_1, C_2, C_5
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="nb-output">
+<table class="table dataframe">
+<caption>
+A data.frame: 3 × 9
+</caption>
+<thead>
+<tr>
+<th>
+</th>
+<th scope="col">
+module
+</th>
+<th scope="col">
+gene_set
+</th>
+<th scope="col">
+overlap
+</th>
+<th scope="col">
+module_size
+</th>
+<th scope="col">
+set_size
+</th>
+<th scope="col">
+odds_ratio
+</th>
+<th scope="col">
+p
+</th>
+<th scope="col">
+padj
+</th>
+<th scope="col">
+genes
+</th>
+</tr>
+<tr>
+<th>
+</th>
+<th scope="col">
+&lt;chr&gt;
+</th>
+<th scope="col">
+&lt;chr&gt;
+</th>
+<th scope="col">
+&lt;int&gt;
+</th>
+<th scope="col">
+&lt;int&gt;
+</th>
+<th scope="col">
+&lt;int&gt;
+</th>
+<th scope="col">
+&lt;dbl&gt;
+</th>
+<th scope="col">
+&lt;dbl&gt;
+</th>
+<th scope="col">
+&lt;dbl&gt;
+</th>
+<th scope="col">
+&lt;chr&gt;
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">
+1
+</th>
+<td>
+M1
+</td>
+<td>
+A
+</td>
+<td>
+5
+</td>
+<td>
+5
+</td>
+<td>
+5
+</td>
+<td>
+231
+</td>
+<td>
+0.0003330003
+</td>
+<td>
+0.000999001
+</td>
+<td>
+A_3, A_5, A_1, A_2, A_4
+</td>
+</tr>
+<tr>
+<th scope="row">
+5
+</th>
+<td>
+M2
+</td>
+<td>
+B
+</td>
+<td>
+5
+</td>
+<td>
+5
+</td>
+<td>
+5
+</td>
+<td>
+231
+</td>
+<td>
+0.0003330003
+</td>
+<td>
+0.000999001
+</td>
+<td>
+B_2, B_5, B_4, B_3, B_1
+</td>
+</tr>
+<tr>
+<th scope="row">
+9
+</th>
+<td>
+M3
+</td>
+<td>
+C
+</td>
+<td>
+5
+</td>
+<td>
+5
+</td>
+<td>
+5
+</td>
+<td>
+231
+</td>
+<td>
+0.0003330003
+</td>
+<td>
+0.000999001
+</td>
+<td>
+C_3, C_4, C_1, C_2, C_5
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Then all 248 genes of the mouse brain section (4 µm bins from section
+5). The marker gene sets are used only to interpret the modules, not to
+find them.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">t0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">Mb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/colocalization_gene_matrix.html">colocalization_gene_matrix</a></span><span class="op">(</span><span class="va">xb</span>, radius <span class="op">=</span> <span class="fl">20</span>, min_count <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">t0</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span></span>
+<span><span class="va">mods_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/colocalization_modules.html">colocalization_modules</a></span><span class="op">(</span><span class="va">Mb</span>, n_modules <span class="op">=</span> <span class="fl">14</span>, min_size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">mods_b</span><span class="op">$</span><span class="va">summary</span></span>
+<span><span class="va">en_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/module_enrichment.html">module_enrichment</a></span><span class="op">(</span><span class="va">mods_b</span>, <span class="va">brain_sets</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">en_b</span>, <span class="va">padj</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"module"</span>, <span class="st">"gene_set"</span>, <span class="st">"overlap"</span>, <span class="st">"module_size"</span>, <span class="st">"padj"</span>, <span class="st">"genes"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<pre class="output"><code>Time difference of 36.92203 secs</code></pre>
+<div class="nb-output">
+<table class="table dataframe">
+<caption>
+A data.frame: 10 × 4
+</caption>
+<thead>
+<tr>
+<th scope="col">
+module
+</th>
+<th scope="col">
+size
+</th>
+<th scope="col">
+mean_oe
+</th>
+<th scope="col">
+top_genes
+</th>
+</tr>
+<tr>
+<th scope="col">
+&lt;chr&gt;
+</th>
+<th scope="col">
+&lt;int&gt;
+</th>
+<th scope="col">
+&lt;dbl&gt;
+</th>
+<th scope="col">
+&lt;chr&gt;
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+M1
+</td>
+<td>
+48
+</td>
+<td>
+1.0020395
+</td>
+<td>
+Igf2, Slc13a4, Dcn, Cyp1b1, Col1a1, Fmod, Aldh1a2, Acta2
+</td>
+</tr>
+<tr>
+<td>
+M2
+</td>
+<td>
+43
+</td>
+<td>
+0.9106521
+</td>
+<td>
+Ndst4, Npy2r, Slc44a5, Pip5k1b, Trpc4, Cpne6, Rasl10a, Dpyd
+</td>
+</tr>
+<tr>
+<td>
+M3
+</td>
+<td>
+42
+</td>
+<td>
+0.4737585
+</td>
+<td>
+Nxph3, Gadd45a, Arhgap25, Rspo2, Rprm, Trbc2, Myl4, Rxfp1
+</td>
+</tr>
+<tr>
+<td>
+M4
+</td>
+<td>
+28
+</td>
+<td>
+1.2089635
+</td>
+<td>
+Chat, Tacr1, Sncg, Nwd2, Kctd8, Necab2, Calb2, Nrp2
+</td>
+</tr>
+<tr>
+<td>
+M5
+</td>
+<td>
+24
+</td>
+<td>
+0.4540791
+</td>
+<td>
+Rspo1, Kcnh5, Cbln4, Myo16, Tmem132d, Pdzrn3, Prr16, Lamp5
+</td>
+</tr>
+<tr>
+<td>
+M6
+</td>
+<td>
+24
+</td>
+<td>
+0.6625122
+</td>
+<td>
+Cort, Sst, Gad2, Gad1, Rab3b, Pvalb, Pthlh, Kcnmb2
+</td>
+</tr>
+<tr>
+<td>
+M7
+</td>
+<td>
+16
+</td>
+<td>
+0.4964736
+</td>
+<td>
+Sox10, Opalin, Gjc3, Gpr17, Adamtsl1, Sema3d, Vwc2l, Sema6a
+</td>
+</tr>
+<tr>
+<td>
+M8
+</td>
+<td>
+8
+</td>
+<td>
+1.7045032
+</td>
+<td>
+Cd300c2, Ikzf1, Spi1, Cd53, Trem2, Siglech, Laptm5, Cd68
+</td>
+</tr>
+<tr>
+<td>
+M9
+</td>
+<td>
+8
+</td>
+<td>
+0.9186085
+</td>
+<td>
+Nts, Pdyn, Penk, Ppp1r1b, Pde7b, Meis2, Mapk4, Unc13c
+</td>
+</tr>
+<tr>
+<td>
+M10
+</td>
+<td>
+3
+</td>
+<td>
+0.1577920
+</td>
+<td>
+Ntsr2, Acsbg1, Gli3
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="nb-output">
+<table class="table dataframe">
+<caption>
+A data.frame: 5 × 6
+</caption>
+<thead>
+<tr>
+<th>
+</th>
+<th scope="col">
+module
+</th>
+<th scope="col">
+gene_set
+</th>
+<th scope="col">
+overlap
+</th>
+<th scope="col">
+module_size
+</th>
+<th scope="col">
+padj
+</th>
+<th scope="col">
+genes
+</th>
+</tr>
+<tr>
+<th>
+</th>
+<th scope="col">
+&lt;chr&gt;
+</th>
+<th scope="col">
+&lt;chr&gt;
+</th>
+<th scope="col">
+&lt;int&gt;
+</th>
+<th scope="col">
+&lt;int&gt;
+</th>
+<th scope="col">
+&lt;dbl&gt;
+</th>
+<th scope="col">
+&lt;chr&gt;
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">
+77
+</th>
+<td>
+M8
+</td>
+<td>
+Microglia
+</td>
+<td>
+5
+</td>
+<td>
+8
+</td>
+<td>
+6.713858e-07
+</td>
+<td>
+Ikzf1, Cd53, Trem2, Siglech, Laptm5
+</td>
+</tr>
+<tr>
+<th scope="row">
+1
+</th>
+<td>
+M1
+</td>
+<td>
+Endothelial
+</td>
+<td>
+8
+</td>
+<td>
+48
+</td>
+<td>
+5.362878e-05
+</td>
+<td>
+Cd93, Kdr, Pecam1, Fgd5, Emcn, Cldn5, Adgrl4, Nostrin
+</td>
+</tr>
+<tr>
+<th scope="row">
+63
+</th>
+<td>
+M6
+</td>
+<td>
+Inhibitory
+</td>
+<td>
+5
+</td>
+<td>
+24
+</td>
+<td>
+9.527572e-04
+</td>
+<td>
+Sst, Gad2, Gad1, Pvalb, Vip
+</td>
+</tr>
+<tr>
+<th scope="row">
+66
+</th>
+<td>
+M7
+</td>
+<td>
+Oligo
+</td>
+<td>
+3
+</td>
+<td>
+16
+</td>
+<td>
+5.016930e-03
+</td>
+<td>
+Sox10, Opalin, Gjc3
+</td>
+</tr>
+<tr>
+<th scope="row">
+11
+</th>
+<td>
+M10
+</td>
+<td>
+Astrocyte
+</td>
+<td>
+2
+</td>
+<td>
+3
+</td>
+<td>
+1.748759e-02
+</td>
+<td>
+Ntsr2, Acsbg1
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ord</span> <span class="op">&lt;-</span> <span class="va">mods_b</span><span class="op">$</span><span class="va">tree</span><span class="op">$</span><span class="va">order</span>; <span class="va">gn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Mb</span><span class="op">)</span><span class="op">[</span><span class="va">ord</span><span class="op">]</span></span>
+<span><span class="va">hm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>i <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">gn</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">gn</span><span class="op">)</span><span class="op">)</span>, j <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">gn</span>, levels <span class="op">=</span> <span class="va">gn</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">hm</span><span class="op">$</span><span class="va">v</span> <span class="op">&lt;-</span> <span class="va">Mb</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">hm</span><span class="op">$</span><span class="va">i</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">hm</span><span class="op">$</span><span class="va">j</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width <span class="op">=</span> <span class="fl">7</span>, repr.plot.height <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hm</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="va">v</span>, <span class="fl">2</span><span class="op">)</span>, <span class="op">-</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_fill_gradient2</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"#2166AC"</span>, mid <span class="op">=</span> <span class="st">"white"</span>, high <span class="op">=</span> <span class="st">"#B2182B"</span>, name <span class="op">=</span> <span class="st">"log2 O/E"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mouse brain: 248 genes clustered without gene sets"</span>, x <span class="op">=</span> <span class="cn">NULL</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>, panel.grid <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figures/segmentation_free_tutorial/fig-12.png" style="width:100.0%"></p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>R version 4.3.2 (2023-10-31)
 Platform: aarch64-apple-darwin20 (64-bit)
@@ -1245,7 +1888,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.2
+[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.3
 [4] testthat_3.2.1       
 
 loaded via a namespace (and not attached):

@@ -19,6 +19,9 @@ Spatial neighborhood analysis (SNA), spatial co-localization score
 
 - [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
   : Neighborhood Enrichment (Generic method)
+- [`plot_nhood_heatmap()`](https://juninamo.github.io/spatialCooccur/reference/plot_nhood_heatmap.md)
+  : Heatmap of a single-sample neighbourhood enrichment with
+  significance
 - [`nhood_enrichment.Seurat()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.Seurat.md)
   : Neighborhood Enrichment (Seurat Method)
 - [`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md)
@@ -68,6 +71,14 @@ log-Gaussian Cox process factor model (after Gundersen et al. 2021).
   (segmentation-free)
 - [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md)
   : Cross pair correlation for every pair of gene sets
+- [`colocalization_gene_matrix()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_gene_matrix.md)
+  : Gene-by-gene co-localization of transcripts
+- [`colocalization_modules()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_modules.md)
+  : Cluster genes into co-localization modules
+- [`module_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichment.md)
+  : Interpret co-localization modules with gene sets
+- [`module_enrichr()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichr.md)
+  : Query enrichR for each co-localization module
 - [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
   : Fit a random-feature spatial factor model to binned transcripts
 - [`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md)
@@ -88,6 +99,8 @@ Test every cell-type pair between two groups.
 
 - [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
   : Compare disease groups across samples
+- [`associate_continuous()`](https://juninamo.github.io/spatialCooccur/reference/associate_continuous.md)
+  : Associate co-localization with a continuous clinical variable
 
 ## Visualization
 

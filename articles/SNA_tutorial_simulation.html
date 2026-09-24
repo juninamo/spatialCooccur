@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">spatialCooccur</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -294,24 +294,56 @@ cell_type_1
 <p><img src="figures/SNA_tutorial_simulation/fig-01.png" style="width:100.0%"></p>
 <p>Run neighborhood enrichment analysis</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">n_perm</span> <span class="op">=</span> <span class="fl">100</span></span>
+<code class="sourceCode R"><span><span class="va">n_perm</span> <span class="op">=</span> <span class="fl">200</span></span>
 <span><span class="va">neighbors.k_</span> <span class="op">=</span> <span class="fl">30</span> <span class="co"># Number of neighbors to search</span></span>
 <span></span>
-<span><span class="va">nhood_enrichment_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span></span>
+<span><span class="va">nhood_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span></span>
 <span>  <span class="va">df</span>,</span>
-<span>  cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, </span>
-<span>  neighbors.k <span class="op">=</span> <span class="va">neighbors.k_</span>, </span>
-<span>  connectivity_key <span class="op">=</span> <span class="st">"nn"</span>, </span>
+<span>  cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  neighbors.k <span class="op">=</span> <span class="va">neighbors.k_</span>,</span>
+<span>  connectivity_key <span class="op">=</span> <span class="st">"nn"</span>,</span>
 <span>  transformation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  n_perms <span class="op">=</span> <span class="va">n_perm</span>, seed <span class="op">=</span> <span class="va">seed</span>, n_jobs <span class="op">=</span> <span class="fl">4</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">nhood_enrichment_res</span><span class="op">=</span><span class="va">nhood_enrichment_res</span><span class="op">$</span><span class="va">zscore</span></span>
-<span></span>
-<span><span class="va">nhood_enrichment_res</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">nhood_res</span><span class="op">)</span>   <span class="co"># log2_oe, padj, pvalue, ...</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">nhood_res</span><span class="op">$</span><span class="va">log2_oe</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<div class="nb-output">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class="list-inline">
+<li>
+‘zscore’
+</li>
+<li>
+‘count’
+</li>
+<li>
+‘expected’
+</li>
+<li>
+‘log2_oe’
+</li>
+<li>
+‘log2_oe_raw’
+</li>
+<li>
+‘pvalue’
+</li>
+<li>
+‘padj’
+</li>
+<li>
+‘padj_bh’
+</li>
+</ol>
+</div>
 <div class="nb-output">
 <table class="table dataframe">
 <caption>
-A matrix: 15 × 15 of type dbl
+A matrix: 4 × 4 of type dbl
 </caption>
 <thead><tr>
 <th>
@@ -328,39 +360,6 @@ Clustercell_type_3
 <th scope="col">
 Clustercell_type_4
 </th>
-<th scope="col">
-Clustercell_type_5
-</th>
-<th scope="col">
-Clustercell_type_6
-</th>
-<th scope="col">
-Clustercell_type_7
-</th>
-<th scope="col">
-Clustercell_type_8
-</th>
-<th scope="col">
-Clustercell_type_9
-</th>
-<th scope="col">
-Clustercell_type_10
-</th>
-<th scope="col">
-Clustercell_type_11
-</th>
-<th scope="col">
-Clustercell_type_12
-</th>
-<th scope="col">
-Clustercell_type_13
-</th>
-<th scope="col">
-Clustercell_type_14
-</th>
-<th scope="col">
-Clustercell_type_15
-</th>
 </tr></thead>
 <tbody>
 <tr>
@@ -368,49 +367,16 @@ Clustercell_type_15
 Clustercell_type_1
 </th>
 <td>
-23.9462152
+1.65
 </td>
 <td>
-7.55240752
+0.96
 </td>
 <td>
--5.3958430
+-1.55
 </td>
 <td>
--3.82373224
-</td>
-<td>
--5.80635244
-</td>
-<td>
--2.26689053
-</td>
-<td>
--5.43668687
-</td>
-<td>
--3.84599452
-</td>
-<td>
--4.5108173
-</td>
-<td>
--0.35758967
-</td>
-<td>
--2.28902658
-</td>
-<td>
--4.29912555
-</td>
-<td>
--1.92571443
-</td>
-<td>
--3.32436320
-</td>
-<td>
--4.2660152
+-0.80
 </td>
 </tr>
 <tr>
@@ -418,49 +384,16 @@ Clustercell_type_1
 Clustercell_type_2
 </th>
 <td>
-11.6664396
+1.32
 </td>
 <td>
-10.54484214
+1.07
 </td>
 <td>
--3.0764086
+-0.82
 </td>
 <td>
--0.82269048
-</td>
-<td>
--3.23832605
-</td>
-<td>
--3.49157735
-</td>
-<td>
--3.07689551
-</td>
-<td>
--4.17474364
-</td>
-<td>
--2.6125001
-</td>
-<td>
--3.52852118
-</td>
-<td>
--0.83772671
-</td>
-<td>
--3.27183402
-</td>
-<td>
--1.61240564
-</td>
-<td>
--2.55429496
-</td>
-<td>
--3.8987714
+-0.18
 </td>
 </tr>
 <tr>
@@ -468,49 +401,16 @@ Clustercell_type_2
 Clustercell_type_3
 </th>
 <td>
--4.7903951
+-1.34
 </td>
 <td>
--1.31431602
+-0.27
 </td>
 <td>
--0.1065409
+0.00
 </td>
 <td>
-2.03924634
-</td>
-<td>
-1.49391337
-</td>
-<td>
-1.38742042
-</td>
-<td>
-2.06612177
-</td>
-<td>
-1.10913149
-</td>
-<td>
-0.7275787
-</td>
-<td>
-1.27762327
-</td>
-<td>
-1.40551062
-</td>
-<td>
-1.20882289
-</td>
-<td>
--0.07352066
-</td>
-<td>
-0.04911908
-</td>
-<td>
-1.7309958
+0.34
 </td>
 </tr>
 <tr>
@@ -518,679 +418,67 @@ Clustercell_type_3
 Clustercell_type_4
 </th>
 <td>
--2.5971542
+-0.51
 </td>
 <td>
--0.01574833
+-0.01
 </td>
 <td>
-0.7607068
+0.14
 </td>
 <td>
--0.45675781
-</td>
-<td>
-0.27936360
-</td>
-<td>
--0.39076603
-</td>
-<td>
-0.46849941
-</td>
-<td>
--0.19154561
-</td>
-<td>
-0.1567979
-</td>
-<td>
-0.38388104
-</td>
-<td>
-1.32517014
-</td>
-<td>
--0.66235798
-</td>
-<td>
--1.11936001
-</td>
-<td>
-0.74591614
-</td>
-<td>
--0.7338555
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_5
-</th>
-<td>
--5.9018119
-</td>
-<td>
--2.49389597
-</td>
-<td>
-1.4220691
-</td>
-<td>
-1.63744595
-</td>
-<td>
-0.17649029
-</td>
-<td>
-1.57788513
-</td>
-<td>
-2.15393321
-</td>
-<td>
-1.64587923
-</td>
-<td>
-2.3365992
-</td>
-<td>
-0.26511365
-</td>
-<td>
--0.13822270
-</td>
-<td>
-2.82392510
-</td>
-<td>
-0.52710098
-</td>
-<td>
-1.78246712
-</td>
-<td>
-1.9532530
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_6
-</th>
-<td>
--0.7889704
-</td>
-<td>
--2.09523368
-</td>
-<td>
--0.2945250
-</td>
-<td>
-0.39670465
-</td>
-<td>
-0.26683303
-</td>
-<td>
--0.37977428
-</td>
-<td>
-0.28285391
-</td>
-<td>
-0.39909189
-</td>
-<td>
-1.5204003
-</td>
-<td>
-1.01036955
-</td>
-<td>
--1.30876962
-</td>
-<td>
-1.17120012
-</td>
-<td>
--0.73449688
-</td>
-<td>
--0.39735893
-</td>
-<td>
-2.7057134
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_7
-</th>
-<td>
--5.3189627
-</td>
-<td>
--1.57800022
-</td>
-<td>
-1.5167070
-</td>
-<td>
-0.97343333
-</td>
-<td>
-1.14744226
-</td>
-<td>
-2.52227593
-</td>
-<td>
-0.91148352
-</td>
-<td>
-0.04390953
-</td>
-<td>
-1.5291142
-</td>
-<td>
-0.84523018
-</td>
-<td>
--0.60576832
-</td>
-<td>
-0.80226186
-</td>
-<td>
--0.17905000
-</td>
-<td>
-0.55670640
-</td>
-<td>
-1.0836499
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_8
-</th>
-<td>
--4.2232122
-</td>
-<td>
--3.47448344
-</td>
-<td>
-0.8587543
-</td>
-<td>
-0.92884826
-</td>
-<td>
-1.50286681
-</td>
-<td>
-0.78444010
-</td>
-<td>
-0.38646304
-</td>
-<td>
--0.16301631
-</td>
-<td>
-0.8165288
-</td>
-<td>
-0.80205192
-</td>
-<td>
-1.02273357
-</td>
-<td>
--0.51558702
-</td>
-<td>
-1.44169053
-</td>
-<td>
-2.46512023
-</td>
-<td>
-1.6798632
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_9
-</th>
-<td>
--3.7111627
-</td>
-<td>
--1.87235391
-</td>
-<td>
--0.1871118
-</td>
-<td>
-0.08593054
-</td>
-<td>
-0.54578219
-</td>
-<td>
-1.81785875
-</td>
-<td>
-1.59159355
-</td>
-<td>
-0.93051831
-</td>
-<td>
-0.4194477
-</td>
-<td>
-0.73241891
-</td>
-<td>
--0.31794703
-</td>
-<td>
-2.01237126
-</td>
-<td>
-1.22422127
-</td>
-<td>
--0.03826781
-</td>
-<td>
-0.7692662
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_10
-</th>
-<td>
-1.2898659
-</td>
-<td>
--2.95208987
-</td>
-<td>
--0.6798872
-</td>
-<td>
--0.17312173
-</td>
-<td>
-0.04244105
-</td>
-<td>
-1.65074606
-</td>
-<td>
-0.96998256
-</td>
-<td>
-0.39125354
-</td>
-<td>
--0.6616165
-</td>
-<td>
--1.55610914
-</td>
-<td>
-0.04299035
-</td>
-<td>
-0.48039933
-</td>
-<td>
--1.07396824
-</td>
-<td>
-0.44995656
-</td>
-<td>
-1.3685586
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_11
-</th>
-<td>
--0.8340541
-</td>
-<td>
-0.56242526
-</td>
-<td>
-0.9748902
-</td>
-<td>
-1.04756004
-</td>
-<td>
--0.98921206
-</td>
-<td>
--2.17068449
-</td>
-<td>
--0.30223534
-</td>
-<td>
-1.46187500
-</td>
-<td>
--0.6870519
-</td>
-<td>
-0.96698617
-</td>
-<td>
--1.21993249
-</td>
-<td>
-0.13879806
-</td>
-<td>
-0.11199731
-</td>
-<td>
-1.18853450
-</td>
-<td>
--0.1425264
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_12
-</th>
-<td>
--3.4448219
-</td>
-<td>
--1.66118506
-</td>
-<td>
--0.2057989
-</td>
-<td>
-0.05974900
-</td>
-<td>
-0.28957481
-</td>
-<td>
-0.08644692
-</td>
-<td>
--0.03856619
-</td>
-<td>
--0.65749684
-</td>
-<td>
-0.9706269
-</td>
-<td>
-0.39570032
-</td>
-<td>
-0.32181942
-</td>
-<td>
--0.02977462
-</td>
-<td>
-0.80664099
-</td>
-<td>
-0.53222064
-</td>
-<td>
-0.7668497
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_13
-</th>
-<td>
--2.5814666
-</td>
-<td>
--1.68473588
-</td>
-<td>
-0.7105855
-</td>
-<td>
-0.23894026
-</td>
-<td>
-0.30891844
-</td>
-<td>
--0.99346511
-</td>
-<td>
-0.60728395
-</td>
-<td>
-1.58949172
-</td>
-<td>
-0.8372079
-</td>
-<td>
--0.09399647
-</td>
-<td>
-0.16496200
-</td>
-<td>
-0.99344001
-</td>
-<td>
-0.70798618
-</td>
-<td>
-1.26178019
-</td>
-<td>
-1.1170149
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_14
-</th>
-<td>
--2.2931761
-</td>
-<td>
--0.76467865
-</td>
-<td>
--0.3148586
-</td>
-<td>
--0.17747055
-</td>
-<td>
-1.31715287
-</td>
-<td>
--1.45048262
-</td>
-<td>
-0.18764913
-</td>
-<td>
-1.10728429
-</td>
-<td>
--1.3150995
-</td>
-<td>
-0.08186561
-</td>
-<td>
-0.06230033
-</td>
-<td>
-0.63262575
-</td>
-<td>
--0.68156380
-</td>
-<td>
--0.62075647
-</td>
-<td>
--0.4057012
-</td>
-</tr>
-<tr>
-<th scope="row">
-Clustercell_type_15
-</th>
-<td>
--4.3679490
-</td>
-<td>
--3.06176850
-</td>
-<td>
--0.6248035
-</td>
-<td>
-0.41598618
-</td>
-<td>
-1.15980091
-</td>
-<td>
-1.52799462
-</td>
-<td>
-0.64019114
-</td>
-<td>
-1.77480684
-</td>
-<td>
-0.5590566
-</td>
-<td>
-1.11072644
-</td>
-<td>
-0.60358689
-</td>
-<td>
-0.79449527
-</td>
-<td>
-0.82226981
-</td>
-<td>
-1.29512233
-</td>
-<td>
--0.2911776
+-0.07
 </td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>How to read the Z-score matrix • Row: Reference cell type
-(cell_type_i) • Column: Nearby cell type (cell_type_j) • The value of
-nhood_enrichment[i, j] is the Z-score of ‘how close cell_type_i is to
-cell_type_j’</p>
-<p>Therefore, • nhood_enrichment[‘cell_type_1’, ‘cell_type_2’] • How
-much cell_type_2 is gathered near cell_type_1 •
-nhood_enrichment[‘cell_type_2’, ‘cell_type_1’] • How many cell_type_1s
-are near cell_type_2?</p>
-<p>Appropriate selection • When comparing a two-way relationship: check
-both nhood_enrichment[‘cell_type_1’, ‘cell_type_2’] and
-nhood_enrichment[‘cell_type_2’, ‘cell_type_1’] • When investigating only
-one-way relationships: • Is there a high concentration of cell_type_2
-around cell_type_1? → nhood_enrichment[‘cell_type_1’, ‘cell_type_2’] •
-Is there a high concentration of cell_type_1 around cell_type_2? →
-nhood_enrichment[‘cell_type_2’, ‘cell_type_1’]</p>
-<p><strong>z-score or log2 O/E?</strong> <code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code>
-also returns <code>log2_oe</code>, log2(observed / expected). The
-z-score measures the <em>evidence</em> for enrichment within this sample
-and grows with the number of cells; <code>log2_oe</code> measures its
-<em>size</em>. Use the z-score within one sample, as here, and
-<code>log2_oe</code> when comparing samples or groups (see the
-case-control tutorial).</p>
+<p>How to read the result</p>
+<ul>
+<li>
+<code>log2_oe[i, j]</code>: log2(observed / expected) contacts
+between cell types i and j, <strong>centred on the label
+shuffles</strong> so that it is 0 without interaction for any number of
+cells. 0 = as chance, +1 = twice, −1 = half. This is the effect size to
+compare between samples.</li>
+<li>
+<code>padj[i, j]</code>: within-sample significance for the
+unordered pair (i, j), adjusted over all K(K + 1)/2 pairs by the
+<strong>max-T</strong> permutation method (family-wise error). Its
+smallest value is 1 / (n_perms + 1). <code>pvalue</code> is the
+unadjusted value for a single pre-specified pair.</li>
+<li>Rows and columns: <code>log2_oe[i, j]</code> counts type-j cells
+among the neighbours of type-i cells; it is nearly symmetric.
+<code>padj</code> is symmetric (both directions are tested
+together).</li>
+</ul>
+<p><code>zscore</code> is still returned; it grows with the number of
+cells, so use it only inside one sample.
+<code>plot_nhood_heatmap(nhood_res)</code> draws the same heatmap in one
+line.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"^Cluster"</span>,<span class="st">""</span>,<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"^Cluster"</span>,<span class="st">""</span>,<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">pval_mat</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">pnorm</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fdr_vec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">p.adjust</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">pval_mat</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"BH"</span><span class="op">)</span></span>
-<span><span class="va">fdr_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">fdr_vec</span>, nrow<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span>, ncol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span>,</span>
-<span>                  dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sig_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">fdr_mat</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, <span class="st">"**"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">fdr_mat</span> <span class="op">&gt;</span> <span class="fl">0.05</span> <span class="op">&amp;</span> <span class="va">fdr_mat</span> <span class="op">&lt;</span> <span class="fl">0.1</span>, <span class="st">"*"</span>, <span class="st">""</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">common_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">nhood_enrichment_res</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="kw">for</span> <span class="op">(</span><span class="va">nm</span> <span class="kw">in</span> <span class="va">common_names</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">nhood_enrichment_res</span><span class="op">[</span><span class="va">nm</span>, <span class="va">nm</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
-<span>  <span class="va">sig_mat</span><span class="op">[</span><span class="va">nm</span>, <span class="va">nm</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">""</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">heatmap</span> <span class="op">&lt;-</span> <span class="fu">Heatmap</span><span class="op">(</span><span class="va">nhood_enrichment_res</span>,</span>
-<span>                   name <span class="op">=</span> <span class="st">"Z-score"</span>,</span>
-<span>                   col <span class="op">=</span> <span class="fu">colorRamp2</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#0072B5FF"</span>, <span class="st">"white"</span>, <span class="st">"#BC3C29FF"</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>                   show_row_names <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                   show_column_names <span class="op">=</span> <span class="cn">TRUE</span>,  </span>
-<span>                   cluster_rows <span class="op">=</span> <span class="cn">TRUE</span>,  </span>
-<span>                   cluster_columns <span class="op">=</span> <span class="cn">TRUE</span>,  </span>
-<span>                   <span class="co">#show_column_dend = FALSE,</span></span>
-<span>                   <span class="co">#show_row_dend = FALSE,</span></span>
-<span>                   row_title <span class="op">=</span> <span class="st">""</span>,  </span>
-<span>                   column_title <span class="op">=</span> <span class="st">"Spatial Neigborhood Enrichment by cell types"</span>,</span>
+<code class="sourceCode R"><span><span class="va">L</span> <span class="op">&lt;-</span> <span class="va">nhood_res</span><span class="op">$</span><span class="va">log2_oe</span>; <span class="va">P</span> <span class="op">&lt;-</span> <span class="va">nhood_res</span><span class="op">$</span><span class="va">padj</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">L</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">P</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">L</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"^Cluster"</span>, <span class="st">""</span>, <span class="va">v</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">TITLE</span> <span class="op">&lt;-</span> <span class="st">"Neighbourhood enrichment (* padj &lt; 0.05, ** padj &lt; 0.01)"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width <span class="op">=</span> <span class="fl">6</span>, repr.plot.height <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="va">sig_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">P</span> <span class="op">&lt;</span> <span class="fl">0.01</span>, <span class="st">"**"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">P</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, <span class="st">"*"</span>, <span class="st">""</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">heatmap</span> <span class="op">&lt;-</span> <span class="fu">Heatmap</span><span class="op">(</span><span class="va">L</span>,</span>
+<span>                   name <span class="op">=</span> <span class="st">"log2 O/E"</span>,</span>
+<span>                   col <span class="op">=</span> <span class="fu">colorRamp2</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#0072B5FF"</span>, <span class="st">"white"</span>, <span class="st">"#BC3C29FF"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                   show_row_names <span class="op">=</span> <span class="cn">TRUE</span>, show_column_names <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                   cluster_rows <span class="op">=</span> <span class="cn">TRUE</span>, cluster_columns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                   column_title <span class="op">=</span> <span class="va">TITLE</span>,</span>
 <span>                   rect_gp <span class="op">=</span> <span class="fu">gpar</span><span class="op">(</span>col <span class="op">=</span> <span class="st">"black"</span>, lwd <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>,</span>
-<span>                   na_col <span class="op">=</span> <span class="st">"black"</span>,          <span class="co"># make sure cell with same cell types in the row and column be NA</span></span>
-<span>                   </span>
 <span>                   cell_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">width</span>, <span class="va">height</span>, <span class="va">fill</span><span class="op">)</span> <span class="op">{</span></span>
-<span>                     <span class="kw">if</span><span class="op">(</span><span class="va">sig_mat</span><span class="op">[</span><span class="va">i</span>, <span class="va">j</span><span class="op">]</span> <span class="op">==</span> <span class="st">"**"</span><span class="op">)</span> <span class="op">{</span></span>
-<span>                       <span class="fu">grid.text</span><span class="op">(</span><span class="st">"**"</span>, </span>
-<span>                                 x <span class="op">=</span> <span class="va">x</span>,</span>
-<span>                                 y <span class="op">=</span> <span class="va">y</span> <span class="op">-</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">height</span>,  </span>
-<span>                                 gp <span class="op">=</span> <span class="fu">gpar</span><span class="op">(</span>fontsize <span class="op">=</span> <span class="fl">15</span>, col <span class="op">=</span> <span class="st">"white"</span>, fontface <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span>
-<span>                     <span class="op">}</span></span>
-<span>                     <span class="kw">if</span><span class="op">(</span><span class="va">sig_mat</span><span class="op">[</span><span class="va">i</span>, <span class="va">j</span><span class="op">]</span> <span class="op">==</span> <span class="st">"*"</span><span class="op">)</span> <span class="op">{</span></span>
-<span>                       <span class="fu">grid.text</span><span class="op">(</span><span class="st">"*"</span>, </span>
-<span>                                 x <span class="op">=</span> <span class="va">x</span>,</span>
-<span>                                 y <span class="op">=</span> <span class="va">y</span> <span class="op">-</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">height</span>,  </span>
-<span>                                 gp <span class="op">=</span> <span class="fu">gpar</span><span class="op">(</span>fontsize <span class="op">=</span> <span class="fl">15</span>, col <span class="op">=</span> <span class="st">"white"</span>, fontface <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span>
-<span>                     <span class="op">}</span></span>
-<span>                   <span class="op">}</span></span>
-<span><span class="op">)</span></span>
+<span>                     <span class="kw">if</span> <span class="op">(</span><span class="va">sig_mat</span><span class="op">[</span><span class="va">i</span>, <span class="va">j</span><span class="op">]</span> <span class="op">!=</span> <span class="st">""</span><span class="op">)</span> <span class="fu">grid.text</span><span class="op">(</span><span class="va">sig_mat</span><span class="op">[</span><span class="va">i</span>, <span class="va">j</span><span class="op">]</span>, x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span> <span class="op">-</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">height</span>,</span>
+<span>                                                        gp <span class="op">=</span> <span class="fu">gpar</span><span class="op">(</span>fontsize <span class="op">=</span> <span class="fl">15</span>, col <span class="op">=</span> <span class="st">"black"</span>, fontface <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span>
+<span>                   <span class="op">}</span><span class="op">)</span></span>
+<span><span class="fu">draw</span><span class="op">(</span><span class="va">heatmap</span>, merge_legend <span class="op">=</span> <span class="cn">TRUE</span>, heatmap_legend_side <span class="op">=</span> <span class="st">"bottom"</span>, annotation_legend_side <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width<span class="op">=</span><span class="fl">6</span>, repr.plot.height<span class="op">=</span><span class="fl">6</span><span class="op">)</span></span>
-<span><span class="fu">draw</span><span class="op">(</span><span class="va">heatmap</span>, </span>
-<span>     merge_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>     heatmap_legend_side <span class="op">=</span> <span class="st">"bottom"</span>, </span>
-<span>     annotation_legend_side <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># the same in one line</span></span>
+<span><span class="fu"><a href="../reference/plot_nhood_heatmap.html">plot_nhood_heatmap</a></span><span class="op">(</span><span class="va">nhood_res</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/SNA_tutorial_simulation/fig-02.png" style="width:100.0%"></p>
+<p><img src="figures/SNA_tutorial_simulation/fig-03.png" style="width:100.0%"></p>
 <p>Run the same analysis with different distance parameters</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="va">seed</span><span class="op">)</span></span>
@@ -1287,10 +575,10 @@ circle
 5
 </td>
 <td>
-13.247010
+14.520796
 </td>
 <td>
--1.89891730
+-1.76518826
 </td>
 <td>
 15
@@ -1313,10 +601,10 @@ circle
 5
 </td>
 <td>
-13.753787
+13.357590
 </td>
 <td>
-1.28154388
+1.39006821
 </td>
 <td>
 15
@@ -1339,10 +627,10 @@ circle
 5
 </td>
 <td>
-9.817993
+8.586912
 </td>
 <td>
-0.60922574
+0.60730654
 </td>
 <td>
 15
@@ -1365,10 +653,10 @@ circle
 5
 </td>
 <td>
-14.703173
+14.766955
 </td>
 <td>
-1.49370460
+1.51380353
 </td>
 <td>
 15
@@ -1391,10 +679,10 @@ circle
 5
 </td>
 <td>
-14.571439
+14.253751
 </td>
 <td>
-0.09802873
+0.06186447
 </td>
 <td>
 15
@@ -1417,10 +705,10 @@ circle
 5
 </td>
 <td>
-16.173440
+15.785288
 </td>
 <td>
--0.39799206
+-0.42544077
 </td>
 <td>
 15
@@ -1471,7 +759,7 @@ circle
 override using the `.groups` argument.</code></pre>
 <pre class="output"><code>“Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 ℹ Please use `linewidth` instead.”</code></pre>
-<p><img src="figures/SNA_tutorial_simulation/fig-03.png" style="width:100.0%"></p>
+<p><img src="figures/SNA_tutorial_simulation/fig-04.png" style="width:100.0%"></p>
 </div>
 <div class="section level2">
 <h2 id="spatial-co-localization-score-scla-cell-cell-level-analysis">Spatial co-localization score (sCLA, cell-cell level analysis)<a class="anchor" aria-label="anchor" href="#spatial-co-localization-score-scla-cell-cell-level-analysis"></a>
@@ -1648,7 +936,7 @@ cell_type_1
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width<span class="op">=</span><span class="fl">8</span>, repr.plot.height<span class="op">=</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">g1</span><span class="op">|</span><span class="va">g2</span></span></code></pre></div>
-<p><img src="figures/SNA_tutorial_simulation/fig-04.png" style="width:100.0%"></p>
+<p><img src="figures/SNA_tutorial_simulation/fig-05.png" style="width:100.0%"></p>
 <p>Run co-localization analysis</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_x</span> <span class="op">&lt;-</span> <span class="st">"cell_type_1"</span></span>
@@ -1693,7 +981,7 @@ cell_type_1
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width<span class="op">=</span><span class="fl">12</span>, repr.plot.height<span class="op">=</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">g1</span> <span class="op">|</span> <span class="va">g2</span> <span class="op">|</span> <span class="va">g3</span></span></code></pre></div>
-<p><img src="figures/SNA_tutorial_simulation/fig-05.png" style="width:100.0%"></p>
+<p><img src="figures/SNA_tutorial_simulation/fig-06.png" style="width:100.0%"></p>
 <p>Check the relationship between the co-localization score and the
 distance between cell_type_1 and cell_type_2</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
@@ -1737,7 +1025,7 @@ distance between cell_type_1 and cell_type_2</p>
 <pre class="output"><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
 <pre class="output"><code>“Removed 400 rows containing non-finite values (`stat_smooth()`).”</code></pre>
 <pre class="output"><code>“Removed 400 rows containing missing values (`geom_point()`).”</code></pre>
-<p><img src="figures/SNA_tutorial_simulation/fig-06.png" style="width:100.0%"></p>
+<p><img src="figures/SNA_tutorial_simulation/fig-07.png" style="width:100.0%"></p>
 <p>Check the ROC curve and AUC value to evaluate the performance of the
 co-localization score</p>
 <p>Check the distribution of the co-localization score by cell type</p>
@@ -1753,8 +1041,33 @@ co-localization score</p>
 <span>    y <span class="op">=</span> <span class="st">"Co-occurence score"</span>,</span>
 <span>    title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">test_type</span>,<span class="st">"\nEst. interacted distance = "</span>, <span class="va">distance_param</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="figures/SNA_tutorial_simulation/fig-07.png" style="width:100.0%"></p>
+<p><img src="figures/SNA_tutorial_simulation/fig-08.png" style="width:100.0%"></p>
+<div class="section level3">
+<h3 id="where-do-the-two-cell-types-meet-cooccur_local_oe">Where do the two cell types meet?
+<code>cooccur_local_oe()</code><a class="anchor" aria-label="anchor" href="#where-do-the-two-cell-types-meet-cooccur_local_oe"></a>
+</h3>
+<p><code><a href="../reference/cooccur_local_oe.html">cooccur_local_oe()</a></code> counts cluster_x–cluster_y pairs
+within <code>radius</code> of every cell, divides them by their exact
+expectation under label shuffling, and smooths observed and expected
+pairs with Gaussian weights of width <code>bandwidth</code>. With
+<code>n_perms &gt; 0</code> it also tests every cell (hotspots, BH over
+cells). Unlike the mean sCLS below, the section-level value does not
+grow with the abundance of the two cell types.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"cell"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">lo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cooccur_local_oe.html">cooccur_local_oe</a></span><span class="op">(</span><span class="va">df</span>, <span class="st">"cell_type_1"</span>, <span class="st">"cell_type_2"</span>, radius <span class="op">=</span> <span class="fl">30</span>, n_perms <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">lo</span>, <span class="st">"section_log2_oe"</span><span class="op">)</span></span>
+<span><span class="va">d_lo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">df</span>, <span class="va">lo</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width <span class="op">=</span> <span class="fl">12</span>, repr.plot.height <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">d_lo</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="va">local_log2_oe</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_color_gradient</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey90"</span>, high <span class="op">=</span> <span class="st">"#B2182B"</span>, name <span class="op">=</span> <span class="st">"local log2 O/E"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Local log2 O/E"</span><span class="op">)</span><span class="op">)</span> <span class="op">|</span></span>
+<span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">d_lo</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"grey85"</span>, size <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">d_lo</span>, <span class="va">padj</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"#B2182B"</span>, size <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op">+</span></span>
+<span>   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Hotspots (FDR &lt; 0.05)"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="nb-output">
+<p>1.99828623708995</p>
+</div>
+<p><img src="figures/SNA_tutorial_simulation/fig-09.png" style="width:100.0%"></p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>R version 4.3.2 (2023-10-31)
 Platform: aarch64-apple-darwin20 (64-bit)
@@ -1777,7 +1090,7 @@ attached base packages:
 other attached packages:
 [1] ggrastr_1.0.2         ComplexHeatmap_2.18.0 circlize_0.4.15      
 [4] dplyr_1.1.4           magrittr_2.0.3        ggplot2_3.4.4        
-[7] patchwork_1.1.3       spatialCooccur_0.99.2 testthat_3.2.1       
+[7] patchwork_1.1.3       spatialCooccur_0.99.3 testthat_3.2.1       
 
 loaded via a namespace (and not attached):
   [1] RcppAnnoy_0.0.21       splines_4.3.2          later_1.3.2           
@@ -1829,6 +1142,7 @@ loaded via a namespace (and not attached):
 [139] IRkernel_1.3.2         RcppHNSW_0.5.0         future_1.33.1         
 [142] shiny_1.8.0            ROCR_1.0-11            igraph_1.6.0          
 [145] memoise_2.0.1         </code></pre>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">spatialCooccur</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,7 +91,7 @@ in <code>R/spatialCooccur_functions.R</code> line-by-line, not a
 stylized version.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/spatialCooccur/">spatialCooccur</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading spatialCooccur v0.99.2: An R package for analyzing spatial co-occurrence.</span></span>
+<span><span class="co">#&gt; Loading spatialCooccur v0.99.3: An R package for analyzing spatial co-occurrence.</span></span>
 <span><span class="co">#&gt; To cite this package in publications, please use:</span></span>
 <span><span class="co">#&gt;   Inamo J, et al. (2026). Spatial transcriptomics reveals  immune-stromal crosstalk within the synovium of patients with  juvenile idiopathic arthritis. JCI Insight. 11(1):e198074.  doi:10.1172/jci.insight.198074</span></span>
 <span><span class="co">#&gt; Developed by: Jun Inamo &lt;juninamo@keio.jp&gt;</span></span></code></pre></div>
@@ -279,12 +279,9 @@ paired with a <code>cell_type_1</code> cell.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="nhood_enrichment-neighborhood-enrichment-z-score">
-<code>nhood_enrichment()</code> — neighborhood enrichment
-z-score<a class="anchor" aria-label="anchor" href="#nhood_enrichment-neighborhood-enrichment-z-score"></a>
+<h2 id="nhood_enrichment-neighbourhood-enrichment">
+<code>nhood_enrichment()</code> — neighbourhood enrichment<a class="anchor" aria-label="anchor" href="#nhood_enrichment-neighbourhood-enrichment"></a>
 </h2>
-<p>This is the heaviest of the core functions and the most natural to
-formalize.</p>
 <div class="section level4">
 <h4 id="step-1-build-the-knn-adjacency">Step 1 — build the kNN adjacency<a class="anchor" aria-label="anchor" href="#step-1-build-the-knn-adjacency"></a>
 </h4>
@@ -324,71 +321,99 @@ and column cell to
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><munder><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><msub><mi>𝒱</mi><msub><mi>c</mi><mi>i</mi></msub></msub></mrow></munder><munder><mo>∑</mo><mrow><mi>v</mi><mo>∈</mo><msub><mi>𝒱</mi><msub><mi>c</mi><mi>j</mi></msub></msub></mrow></munder><msub><mover><mi>A</mi><mo accent="true">̃</mo></mover><mrow><mi>u</mi><mi>v</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
 C_{ij} \;=\; \sum_{u \in \mathcal{V}_{c_i}} \sum_{v \in \mathcal{V}_{c_j}} \tilde A_{uv}.
 </annotation></semantics></math></p>
-<p>(With <code>transformation = FALSE</code> the inner term is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>𝟙</mn><mo stretchy="false" form="prefix">{</mo><msub><mi>A</mi><mrow><mi>u</mi><mi>v</mi></mrow></msub><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathbb{1}\{A_{uv} =
-1\}</annotation></semantics></math> instead — i.e. raw edge counts.)</p>
-<p>This is the observed value. Implemented in
-<code><a href="../reference/compute_count.html">compute_count()</a></code>.</p>
+<p>This is the observed value, implemented in
+<code><a href="../reference/compute_count.html">compute_count()</a></code> as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>M</mi><mi>⊤</mi></msup><mover><mi>A</mi><mo accent="true">̃</mo></mover><mi>M</mi></mrow><annotation encoding="application/x-tex">M^\top \tilde A M</annotation></semantics></math>
+with one-hot cluster indicators
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>.</p>
 </div>
 <div class="section level4">
 <h4 id="step-4-permutation-null">Step 4 — permutation null<a class="anchor" aria-label="anchor" href="#step-4-permutation-null"></a>
 </h4>
-<p><code><a href="../reference/permute_clusters.html">permute_clusters()</a></code> shuffles the cluster vector
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐜</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>v</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>…</mi><mo>,</mo><mi>c</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>v</mi><mi>N</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathbf{c} = (c(v_1),
-\dots, c(v_N))</annotation></semantics></math> twice —
-<em>independently</em> for rows and columns — and recomputes the
-count:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><munder><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><msubsup><mi>𝒱</mi><msub><mi>c</mi><mi>i</mi></msub><mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>π</mi><mi>r</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow></munder><munder><mo>∑</mo><mrow><mi>v</mi><mo>∈</mo><msubsup><mi>𝒱</mi><msub><mi>c</mi><mi>j</mi></msub><mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>π</mi><mi>c</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow></munder><msub><mover><mi>A</mi><mo accent="true">̃</mo></mover><mrow><mi>u</mi><mi>v</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mi>b</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>B</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
-C^{(b)}_{ij} \;=\; \sum_{u \in \mathcal{V}^{(\pi^{(b)}_r)}_{c_i}}
-                   \sum_{v \in \mathcal{V}^{(\pi^{(b)}_c)}_{c_j}}
+<p><code><a href="../reference/permute_clusters.html">permute_clusters()</a></code> draws <strong>one</strong> uniform
+random permutation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>π</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">\pi^{(b)}</annotation></semantics></math>
+of the cluster labels and applies it to rows and columns alike, so every
+cell keeps a single (random) label, and recomputes the count:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><munder><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><msubsup><mi>𝒱</mi><msub><mi>c</mi><mi>i</mi></msub><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>π</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow></munder><munder><mo>∑</mo><mrow><mi>v</mi><mo>∈</mo><msubsup><mi>𝒱</mi><msub><mi>c</mi><mi>j</mi></msub><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>π</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow></munder><msub><mover><mi>A</mi><mo accent="true">̃</mo></mover><mrow><mi>u</mi><mi>v</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mi>b</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>B</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+C^{(b)}_{ij} \;=\; \sum_{u \in \mathcal{V}^{(\pi^{(b)})}_{c_i}}
+                   \sum_{v \in \mathcal{V}^{(\pi^{(b)})}_{c_j}}
                    \tilde A_{uv},
-\quad b = 1, \dots, B,
+\quad b = 1, \dots, B.
 </annotation></semantics></math></p>
-<p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>π</mi><mi>r</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>π</mi><mi>c</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">\pi^{(b)}_r, \pi^{(b)}_c</annotation></semantics></math>
-are independent uniform random permutations of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>N</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{1, \dots, N\}</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>𝒱</mi><mi>c</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">\mathcal{V}^{(\pi)}_c</annotation></semantics></math>
-is the set of cells whose <em>permuted</em> label equals
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>.
-The permutations destroy any association between cluster identity and
-spatial position, giving the null distribution of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">C_{ij}</annotation></semantics></math>.</p>
+<p>Positions, the graph and the number of cells of each type are fixed;
+only which type sits where is random. (Versions
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≤</mo><annotation encoding="application/x-tex">\le</annotation></semantics></math>
+0.99.1 shuffled rows and columns independently, which inflated same-type
+z-scores.)</p>
 </div>
 <div class="section level4">
-<h4 id="step-5-z-score">Step 5 — z-score<a class="anchor" aria-label="anchor" href="#step-5-z-score"></a>
+<h4 id="step-5-effect-size-centred-log2-oe">Step 5 — effect size: centred log2 O/E<a class="anchor" aria-label="anchor" href="#step-5-effect-size-centred-log2-oe"></a>
 </h4>
-<p>Let
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>,</mo><msub><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\hat\mu_{ij}, \hat\sigma_{ij}</annotation></semantics></math>
-be the empirical mean and standard deviation of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><msubsup><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><msubsup><mo stretchy="false" form="postfix">}</mo><mrow><mi>b</mi><mo>=</mo><mn>1</mn></mrow><mi>B</mi></msubsup></mrow><annotation encoding="application/x-tex">\{C^{(b)}_{ij}\}_{b=1}^B</annotation></semantics></math>.
-The reported enrichment z-score is</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><menclose notation="box"><mrow><mspace width="0.278em"></mspace><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mfrac><mrow><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><msub><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><msub><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub></mfrac><mspace width="0.278em"></mspace><mi>.</mi></mrow></menclose><annotation encoding="application/x-tex">
-\boxed{\;
-z_{ij} \;=\; \frac{C_{ij} - \hat\mu_{ij}}{\hat\sigma_{ij}}\;.
-}
+<p>With
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mi>B</mi></mfrac><msub><mo>∑</mo><mi>b</mi></msub><msubsup><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">E_{ij} = \frac{1}{B}\sum_b C^{(b)}_{ij}</annotation></semantics></math>
+and a pseudocount
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+of one mean edge weight,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℓ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mfrac><mrow><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><mi>c</mi></mrow><mrow><msub><mi>E</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><mi>c</mi></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><menclose notation="box"><mrow><mspace width="0.278em"></mspace><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mn mathvariant="normal">2</mn><mi mathvariant="normal">_</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">e</mi></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi>ℓ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><mfrac><mn>1</mn><mi>B</mi></mfrac><munder><mo>∑</mo><mi>b</mi></munder><msub><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mfrac><mrow><msubsup><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><mi>c</mi></mrow><mrow><msub><mi>E</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><mi>c</mi></mrow></mfrac><mspace width="0.278em"></mspace></mrow></menclose></mrow><annotation encoding="application/x-tex">
+\ell_{ij} = \log_2\frac{C_{ij} + c}{E_{ij} + c},
+\qquad
+\boxed{\;\mathrm{log2\_oe}_{ij} \;=\; \ell_{ij} - \frac{1}{B}\sum_{b}\log_2\frac{C^{(b)}_{ij} + c}{E_{ij} + c}\;}
 </annotation></semantics></math></p>
-<p>Positive
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">z_{ij}</annotation></semantics></math>
-means cluster
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mi>i</mi></msub><annotation encoding="application/x-tex">c_i</annotation></semantics></math>
-and cluster
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mi>j</mi></msub><annotation encoding="application/x-tex">c_j</annotation></semantics></math>
-co-occur more than expected under shuffling; negative means
-segregation.</p>
+<p>The log of a ratio of small counts is biased below 0 (Jensen), so
+rare cell types get
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ℓ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\ell_{ij} &lt; 0</annotation></semantics></math>
+without any interaction. Subtracting the mean of the same statistic over
+the shuffles centres it at 0 under the null for any number of cells.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℓ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\ell_{ij}</annotation></semantics></math>
+is returned as <code>log2_oe_raw</code>. <code>log2_oe</code> does not
+grow with the number of cells and is the value to compare between
+samples.</p>
+</div>
+<div class="section level4">
+<h4 id="step-6-within-sample-test-pvalue-and-padj">Step 6 — within-sample test: <code>pvalue</code> and
+<code>padj</code><a class="anchor" aria-label="anchor" href="#step-6-within-sample-test-pvalue-and-padj"></a>
+</h4>
+<p>For each unordered pair the two directions are summed,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>C</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">S_{ij} = C_{ij} + C_{ji}</annotation></semantics></math>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>C</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">S_{ii} = C_{ii}</annotation></semantics></math>),
+and standardised together with the shuffles, using the mean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\mu_{ij}</annotation></semantics></math>
+and SD
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">s_{ij}</annotation></semantics></math>
+of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B + 1</annotation></semantics></math>
+values
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>,</mo><msubsup><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mi>…</mi><mo>,</mo><msubsup><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>B</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{S_{ij}, S^{(1)}_{ij}, \dots, S^{(B)}_{ij}\}</annotation></semantics></math>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><mrow><mo stretchy="false" form="prefix">|</mo><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>μ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="prefix">|</mo></mrow><msub><mi>s</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">v</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">e</mi></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mn>2</mn><mspace width="0.167em"></mspace><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><mi>−</mi><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+z_{ij} = \frac{|S_{ij} - \mu_{ij}|}{s_{ij}},
+\qquad
+\mathrm{pvalue}_{ij} = 2\,\Phi(-z_{ij}).
+</annotation></semantics></math></p>
+<p><code>pvalue</code> is accurate for a single pre-specified pair. For
+all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo stretchy="false" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">K(K+1)/2</annotation></semantics></math>
+pairs at once, <code>padj</code> is the Westfall–Young single-step max-T
+adjusted p-value</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><menclose notation="box"><mrow><mspace width="0.278em"></mspace><msub><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">j</mi></mrow><mrow><mi>i</mi><mi>j</mi></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mfrac><mrow><mn>1</mn><mo>+</mo><mi>#</mi><mo stretchy="false" form="prefix">{</mo><mi>b</mi><mo>:</mo><munder><mi mathvariant="normal">max</mi><mrow><mi>k</mi><mi>l</mi></mrow></munder><msubsup><mi>z</mi><mrow><mi>k</mi><mi>l</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≥</mo><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">}</mo></mrow><mrow><mi>B</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mspace width="0.278em"></mspace></mrow></menclose><annotation encoding="application/x-tex">
+\boxed{\;\mathrm{padj}_{ij} \;=\; \frac{1 + \#\{b : \max_{kl} z^{(b)}_{kl} \ge z_{ij}\}}{B + 1}\;}
+</annotation></semantics></math></p>
+<p>which controls the family-wise error rate and adapts to the skewed,
+dependent null of rare pairs (Benjamini–Hochberg on <code>pvalue</code>,
+returned as <code>padj_bh</code>, can exceed its level when there are
+many rare cell types). The smallest possible <code>padj</code> is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>B</mi><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">1/(B+1)</annotation></semantics></math>.
+The unsymmetrised
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>E</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z_{ij} = (C_{ij} - E_{ij}) / \mathrm{SD}(C^{(b)}_{ij})</annotation></semantics></math>
+is still returned as <code>zscore</code>; it grows with the number of
+cells.</p>
 <p>In code:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span></span>
-<span>  <span class="va">df</span>,</span>
-<span>  cluster_key  <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
-<span>  neighbors.k  <span class="op">=</span> <span class="fl">30</span>,</span>
-<span>  connectivity_key <span class="op">=</span> <span class="st">"nn"</span>,</span>
-<span>  transformation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  n_perms <span class="op">=</span> <span class="fl">100</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">res</span><span class="op">$</span><span class="va">count</span>    <span class="co"># the C_{ij} matrix</span></span>
-<span><span class="va">res</span><span class="op">$</span><span class="va">zscore</span>   <span class="co"># the z_{ij} matrix</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span><span class="va">df</span>, cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, neighbors.k <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                        n_perms <span class="op">=</span> <span class="fl">200</span>, seed <span class="op">=</span> <span class="fl">1</span>, n_jobs <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>   <span class="co"># effect size (centred)</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">padj</span>      <span class="co"># max-T adjusted, all pairs</span></span>
+<span><span class="fu"><a href="../reference/plot_nhood_heatmap.html">plot_nhood_heatmap</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -525,6 +550,198 @@ so any <code>maxnsteps &gt;= 1</code> gave the single step above.)</p>
 </div>
 </div>
 <div class="section level2">
+<h2 id="cooccur_local_oe-calibrated-local-co-localization">
+<code>cooccur_local_oe()</code> — calibrated local
+co-localization<a class="anchor" aria-label="anchor" href="#cooccur_local_oe-calibrated-local-co-localization"></a>
+</h2>
+<p>For cell
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>v</mi></msub><annotation encoding="application/x-tex">N_v</annotation></semantics></math>
+other cells within radius
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>,
+of which
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>A</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>v</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">n_A(v)</annotation></semantics></math>
+are of type A and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>B</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>v</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">n_B(v)</annotation></semantics></math>
+of type B, the number of A–B pairs is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>v</mi></msub><mo>=</mo><msub><mi>n</mi><mi>A</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>v</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>n</mi><mi>B</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>v</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">s_v = n_A(v)\, n_B(v)</annotation></semantics></math>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>A</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>n</mi><mi>A</mi></msub><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">n_A(n_A - 1)</annotation></semantics></math>
+for A = B). Its exact expectation when labels are shuffled over fixed
+positions is multivariate hypergeometric:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>v</mi></msub><mo>=</mo><msub><mi>N</mi><mi>v</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>N</mi><mi>v</mi></msub><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mfrac><mrow><msub><mi>K</mi><mi>A</mi></msub><msub><mi>K</mi><mi>B</mi></msub></mrow><mrow><mi>M</mi><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+E_v = N_v (N_v - 1)\,\frac{K_A K_B}{M (M - 1)},
+</annotation></semantics></math></p>
+<p>with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+the other cells and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>K</mi><mi>A</mi></msub><mo>,</mo><msub><mi>K</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">K_A, K_B</annotation></semantics></math>
+the A and B cells among them. Both are smoothed with Gaussian weights
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mrow><mi>v</mi><mi>u</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><msubsup><mi>d</mi><mrow><mi>v</mi><mi>u</mi></mrow><mn>2</mn></msubsup><mi>/</mi><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">w_{vu} = \exp(-d_{vu}^2 / 2\sigma^2)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>=</mo><mi>h</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\sigma = h/2</annotation></semantics></math>
+(<code>bandwidth</code>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mi>h</mi></mrow><annotation encoding="application/x-tex">= h</annotation></semantics></math>,
+truncated at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>,
+self weight 1):</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">_</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mn mathvariant="normal">2</mn><mi mathvariant="normal">_</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">e</mi></mrow><mi>v</mi></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mfrac><mrow><munder><mo>∑</mo><mi>u</mi></munder><msub><mi>w</mi><mrow><mi>v</mi><mi>u</mi></mrow></msub><msub><mi>s</mi><mi>u</mi></msub><mo>+</mo><mi>c</mi></mrow><mrow><munder><mo>∑</mo><mi>u</mi></munder><msub><mi>w</mi><mrow><mi>v</mi><mi>u</mi></mrow></msub><msub><mi>E</mi><mi>u</mi></msub><mo>+</mo><mi>c</mi></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathrm{local\_log2\_oe}_v = \log_2 \frac{\sum_u w_{vu} s_u + c}{\sum_u w_{vu} E_u + c}.
+</annotation></semantics></math></p>
+<p>The section value is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mo>∑</mo><mi>v</mi></msub><msub><mi>s</mi><mi>v</mi></msub><mi>/</mi><msub><mo>∑</mo><mi>v</mi></msub><msub><mi>E</mi><mi>v</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log_2(\sum_v s_v / \sum_v E_v)</annotation></semantics></math>.
+Hotspot p-values use
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+label shuffles:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>v</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>#</mi><mo stretchy="false" form="prefix">{</mo><mi>b</mi><mo>:</mo><msubsup><mover><mi>s</mi><mo accent="true">̃</mo></mover><mi>v</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≥</mo><msub><mover><mi>s</mi><mo accent="true">̃</mo></mover><mi>v</mi></msub><mo stretchy="false" form="postfix">}</mo><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>B</mi><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_v = (1 + \#\{b : \tilde s^{(b)}_v \ge \tilde s_v\}) / (B + 1)</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>s</mi><mo accent="true">̃</mo></mover><mi>v</mi></msub><mo>=</mo><msub><mo>∑</mo><mi>u</mi></msub><msub><mi>w</mi><mrow><mi>v</mi><mi>u</mi></mrow></msub><msub><mi>s</mi><mi>u</mi></msub></mrow><annotation encoding="application/x-tex">\tilde s_v = \sum_u w_{vu} s_u</annotation></semantics></math>,
+then BH over cells. One neighbour search,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(nk)</annotation></semantics></math>;
+each shuffle is one more pass.</p>
+</div>
+<div class="section level2">
+<h2 id="group-comparison-compare_groups">Group comparison — <code>compare_groups()</code><a class="anchor" aria-label="anchor" href="#group-comparison-compare_groups"></a>
+</h2>
+<p>Per-image scores
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mrow><mi>p</mi><mi>m</mi></mrow></msub><annotation encoding="application/x-tex">y_{pm}</annotation></semantics></math>
+(image
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+of patient
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>,
+e.g. <code>log2_oe</code>) come from
+<code><a href="../reference/nhood_enrichment_per_sample.html">nhood_enrichment_per_sample()</a></code> and related helpers. For
+every cell-type pair, with the patient as the unit:</p>
+<ul>
+<li>
+<code>"wilcox"</code>: patient means
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>y</mi><mo accent="true">‾</mo></mover><mi>p</mi></msub><mo>=</mo><mfrac><mn>1</mn><msub><mi>m</mi><mi>p</mi></msub></mfrac><msub><mo>∑</mo><mi>m</mi></msub><msub><mi>y</mi><mrow><mi>p</mi><mi>m</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\bar y_p = \frac{1}{m_p}\sum_m y_{pm}</annotation></semantics></math>,
+Wilcoxon rank-sum (exact for small samples).</li>
+<li>
+<code>"lmm"</code>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>p</mi><mi>m</mi></mrow></msub><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><mspace width="0.167em"></mspace><msub><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">e</mi></mrow><mi>p</mi></msub><mo>+</mo><msup><mi>γ</mi><mi>⊤</mi></msup><msub><mi>c</mi><mi>p</mi></msub><mo>+</mo><msub><mi>u</mi><mi>p</mi></msub><mo>+</mo><msub><mi>ε</mi><mrow><mi>p</mi><mi>m</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{pm} = \beta_0 + \beta_1\,\mathrm{case}_p + \gamma^\top c_p + u_p + \varepsilon_{pm}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>p</mi></msub><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msup><mi>τ</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_p \sim N(0, \tau^2)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mrow><mi>p</mi><mi>m</mi></mrow></msub><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon_{pm} \sim N(0, \sigma^2)</annotation></semantics></math>;
+test of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\beta_1</annotation></semantics></math>
+with Satterthwaite degrees of freedom (lmerTest). The group
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mn>0</mn></msub><mo>,</mo><msub><mi>β</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\beta_0, \beta_1</annotation></semantics></math>)
+and covariates
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>)
+are fixed effects; the patient is a random effect (random intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>p</mi></msub><annotation encoding="application/x-tex">u_p</annotation></semantics></math>,
+i.e. <code>value ~ group + covariates + (1 | patient)</code>), so the
+images of a patient are treated as correlated observations. Patient
+cannot be a fixed effect: each patient belongs to one group, so patient
+dummies would be confounded with <span class="math inline">$eta_1$</span>.</li>
+<li>
+<code>"perm"</code>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><msub><mover><mover><mi>y</mi><mo accent="true">‾</mo></mover><mo accent="true">¯</mo></mover><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">e</mi></mrow></msub><mo>−</mo><msub><mover><mover><mi>y</mi><mo accent="true">‾</mo></mover><mo accent="true">¯</mo></mover><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi></mrow></msub></mrow><annotation encoding="application/x-tex">T = \overline{\bar y}_{\mathrm{case}} - \overline{\bar y}_{\mathrm{control}}</annotation></semantics></math>
+compared with patient-level label shuffles (within-patient sign flips
+for paired data).</li>
+<li>
+<code>"signrank"</code>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>p</mi></msub><mo>=</mo><msub><mover><mi>y</mi><mo accent="true">‾</mo></mover><mrow><mi>p</mi><mo>,</mo><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow></mrow></msub><mo>−</mo><msub><mover><mi>y</mi><mo accent="true">‾</mo></mover><mrow><mi>p</mi><mo>,</mo><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi></mrow></mrow></msub></mrow><annotation encoding="application/x-tex">d_p = \bar y_{p,\mathrm{post}} - \bar y_{p,\mathrm{pre}}</annotation></semantics></math>,
+Wilcoxon signed-rank.</li>
+</ul>
+<p>Benjamini–Hochberg over pairs. <code><a href="../reference/summarize_by_patient.html">summarize_by_patient()</a></code>
+averages images within patient, pair and distance <code>r</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="continuous-variables-associate_continuous">Continuous variables — <code>associate_continuous()</code><a class="anchor" aria-label="anchor" href="#continuous-variables-associate_continuous"></a>
+</h2>
+<p>For a patient-level variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>p</mi></msub><annotation encoding="application/x-tex">x_p</annotation></semantics></math>
+(CRP, disease activity, age): Spearman correlation of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>y</mi><mo accent="true">‾</mo></mover><mi>p</mi></msub><annotation encoding="application/x-tex">\bar y_p</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>p</mi></msub><annotation encoding="application/x-tex">x_p</annotation></semantics></math>
+(default; exact p for small cohorts), linear regression
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>y</mi><mo accent="true">‾</mo></mover><mi>p</mi></msub><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><msub><mi>x</mi><mi>p</mi></msub><mo>+</mo><msup><mi>γ</mi><mi>⊤</mi></msup><msub><mi>c</mi><mi>p</mi></msub><mo>+</mo><msub><mi>ε</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">\bar y_p = \beta_0 + \beta_1 x_p + \gamma^\top c_p + \varepsilon_p</annotation></semantics></math>,
+the linear mixed model
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>p</mi><mi>m</mi></mrow></msub><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><msub><mi>x</mi><mi>p</mi></msub><mo>+</mo><msup><mi>γ</mi><mi>⊤</mi></msup><msub><mi>c</mi><mi>p</mi></msub><mo>+</mo><msub><mi>u</mi><mi>p</mi></msub><mo>+</mo><msub><mi>ε</mi><mrow><mi>p</mi><mi>m</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{pm} = \beta_0 + \beta_1 x_p + \gamma^\top c_p + u_p + \varepsilon_{pm}</annotation></semantics></math>
+(patient as a random intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>p</mi></msub><annotation encoding="application/x-tex">u_p</annotation></semantics></math>:
+<code>value ~ x + covariates + (1 | patient)</code>), or a permutation
+test that shuffles
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>p</mi></msub><annotation encoding="application/x-tex">x_p</annotation></semantics></math>
+between patients. BH over pairs.</p>
+</div>
+<div class="section level2">
+<h2 id="segmentation-free-analysis">Segmentation-free analysis<a class="anchor" aria-label="anchor" href="#segmentation-free-analysis"></a>
+</h2>
+<div class="section level4">
+<h4 id="pair-correlation-of-transcripts-pcf_cross-pcf_matrix">Pair correlation of transcripts — <code>pcf_cross()</code>,
+<code>pcf_matrix()</code><a class="anchor" aria-label="anchor" href="#pair-correlation-of-transcripts-pcf_cross-pcf_matrix"></a>
+</h4>
+<p>Transcripts are counted in square bins
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>A</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y_A(u)</annotation></semantics></math>
+= transcripts of gene set A in bin
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>,
+inside the tissue mask
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>).
+With the FFT cross-correlation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mo>∑</mo><mi>u</mi></msub><msub><mi>Y</mi><mi>A</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mi>B</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo>+</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">P_{AB}(h) = \sum_u Y_A(u)\, Y_B(u + h)</annotation></semantics></math>
+and the mask overlap
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mo>∑</mo><mi>u</mi></msub><mi>W</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mi>W</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo>+</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(h) = \sum_u W(u) W(u + h)</annotation></semantics></math>,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mrow><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="false" form="prefix">|</mo><mo>≈</mo><mi>r</mi></mrow></munder><msub><mi>P</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><msub><mi>λ</mi><mi>A</mi></msub><msub><mi>λ</mi><mi>B</mi></msub><munder><mo>∑</mo><mrow><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="false" form="prefix">|</mo><mo>≈</mo><mi>r</mi></mrow></munder><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msubsup><mi>g</mi><mrow><mi>A</mi><mi>B</mi></mrow><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow></msubsup><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mrow><msub><mi>g</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><msub><mi>g</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">l</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+g_{AB}(r) = \frac{\sum_{|h| \approx r} P_{AB}(h)}{\lambda_A \lambda_B \sum_{|h| \approx r} O(h)},
+\qquad
+g^{\mathrm{rel}}_{AB}(r) = \frac{g_{AB}(r)}{g_{\mathrm{all}}(r)},
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+are mean intensities and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>g</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">l</mi></mrow></msub><annotation encoding="application/x-tex">g_{\mathrm{all}}</annotation></semantics></math>
+is the pair correlation of all transcripts.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>g</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow></msup><annotation encoding="application/x-tex">g^{\mathrm{rel}}</annotation></semantics></math>
+equals observed / expected under gene-label shuffling over fixed
+transcript positions, the transcript counterpart of log2 O/E;
+cellularity cancels.</p>
+</div>
+<div class="section level4">
+<h4 id="random-feature-log-gaussian-cox-process-fit_spatial_rff">Random-feature log-Gaussian Cox process —
+<code>fit_spatial_rff()</code><a class="anchor" aria-label="anchor" href="#random-feature-log-gaussian-cox-process-fit_spatial_rff"></a>
+</h4>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>μ</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="1.0em"></mspace><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>μ</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>a</mi><mo>+</mo><msub><mi>α</mi><mi>j</mi></msub><mo>+</mo><msub><mi>σ</mi><mn>0</mn></msub><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msub><mi>L</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub><msub><mi>f</mi><mi>k</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="1.0em"></mspace><msub><mi>f</mi><mi>k</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>ϕ</mi><mi>k</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><msub><mi>γ</mi><mi>k</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+y_{bj} \sim \mathrm{NB}(\mu_{bj}),\quad
+\log \mu_{bj} = \log a + \alpha_j + \sigma_0 f_0(u_b) + \sum_{k=1}^K L_{jk} f_k(u_b),
+\quad f_k(u) = \phi_k(u)^\top \gamma_k,
+</annotation></semantics></math></p>
+<p>with random Fourier features
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msqrt><mrow><mn>2</mn><mi>/</mi><mi>M</mi></mrow></msqrt><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">cos</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>ω</mi><mi>m</mi><mi>⊤</mi></msubsup><mi>u</mi><mi>/</mi><mi>ℓ</mi><mo>+</mo><msub><mi>b</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo><msub><mo stretchy="false" form="postfix">]</mo><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">\phi(u) = \sqrt{2/M}\,[\cos(\omega_m^\top u / \ell + b_m)]_m</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>m</mi></msub><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\omega_m \sim N(0, I)</annotation></semantics></math>
+(Gundersen, Zhang &amp; Engelhardt, AISTATS 2021). The coordinates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>b</mi></msub><annotation encoding="application/x-tex">u_b</annotation></semantics></math>
+are observed, so only the fields and loadings are estimated (MAP,
+L-BFGS-B, analytic gradients). Model pair correlations follow from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">v</mi></mrow><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>λ</mi><mi>A</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>λ</mi><mi>B</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo>+</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">g_{AB}(r) = \exp \mathrm{Cov}[\log\lambda_A(u), \log\lambda_B(u + r)]</annotation></semantics></math>;
+removing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mn>0</mn></msub><annotation encoding="application/x-tex">f_0</annotation></semantics></math>
+gives the composition version.</p>
+</div>
+<div class="section level4">
+<h4 id="gene-level-modules-colocalization_gene_matrix-colocalization_modules-module_enrichment">Gene-level modules — <code>colocalization_gene_matrix()</code>,
+<code>colocalization_modules()</code>,
+<code>module_enrichment()</code><a class="anchor" aria-label="anchor" href="#gene-level-modules-colocalization_gene_matrix-colocalization_modules-module_enrichment"></a>
+</h4>
+<p>With a disc kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mi>r</mi></msub><annotation encoding="application/x-tex">K_r</annotation></semantics></math>
+(one FFT convolution per gene),</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mrow><mi>a</mi><mi>b</mi></mrow></msub><mo>=</mo><munder><mo>∑</mo><mi>u</mi></munder><msub><mi>Y</mi><mi>a</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">(</mo><msub><mi>K</mi><mi>r</mi></msub><mo>*</mo><msub><mi>Y</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo stretchy="false" form="prefix">(</mo><mi>−</mi><msub><mi>n</mi><mi>a</mi></msub><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> if </mtext><mspace width="0.333em"></mspace></mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>E</mi><mrow><mi>a</mi><mi>b</mi></mrow></msub><mo>=</mo><mfrac><mrow><msub><mi>n</mi><mi>a</mi></msub><msub><mi>n</mi><mi>b</mi></msub></mrow><mrow><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mspace width="0.167em"></mspace><msub><mi>P</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">l</mi></mrow></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+P_{ab} = \sum_u Y_a(u)\, (K_r * Y_b)(u) \;(- n_a \text{ if } a = b),
+\qquad
+E_{ab} = \frac{n_a n_b}{N (N - 1)}\, P_{\mathrm{all}},
+</annotation></semantics></math></p>
+<p>and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>P</mi><mrow><mi>a</mi><mi>b</mi></mrow></msub><mo>+</mo><mi>c</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>E</mi><mrow><mi>a</mi><mi>b</mi></mrow></msub><mo>+</mo><mi>c</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log_2((P_{ab} + c) / (E_{ab} + c))</annotation></semantics></math>
+is 0 without co-localization. Genes are clustered (average linkage,
+distance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mi>M</mi><mo>−</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">\max M - M</annotation></semantics></math>)
+into modules; <code><a href="../reference/module_enrichment.html">module_enrichment()</a></code> tests any gene sets per
+module with the hypergeometric test and BH.</p>
+</div>
+</div>
+<div class="section level2">
 <h2 id="search_interaction_spot-connected-component-spots">
 <code>search_interaction_spot()</code> — connected-component
 spots<a class="anchor" aria-label="anchor" href="#search_interaction_spot-connected-component-spots"></a>
@@ -602,7 +819,7 @@ data.frame of surviving cells, one row per cell, with columns
 </colgroup>
 <thead><tr class="header">
 <th>Function</th>
-<th>Per-cell or pairwise</th>
+<th>Unit</th>
 <th>Local geometry</th>
 <th>Statistic</th>
 <th>Test</th>
@@ -610,70 +827,105 @@ data.frame of surviving cells, one row per cell, with columns
 <tbody>
 <tr class="odd">
 <td><code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code></td>
-<td>Cluster pair
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(i, j)</annotation></semantics></math>
-</td>
+<td>cell-type pair</td>
 <td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-NN
-graph
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+graph</td>
+<td>centred log2 O/E</td>
+<td>shuffles: <code>pvalue</code>, max-T <code>padj</code>
 </td>
-<td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>-score
-of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">C_{ij}</annotation></semantics></math>
-</td>
-<td>Permutation null</td>
 </tr>
 <tr class="even">
+<td><code><a href="../reference/cooccur_local_oe.html">cooccur_local_oe()</a></code></td>
+<td>cell, for a pair</td>
+<td>radius
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
++ Gaussian smoothing</td>
+<td>local log2 O/E</td>
+<td>shuffles per cell, BH</td>
+</tr>
+<tr class="odd">
 <td>
 <code><a href="../reference/calc_co_occurrence_for_radius.html">calc_co_occurrence_for_radius()</a></code> /
 <code><a href="../reference/compute_co_occurrence_ratio.html">compute_co_occurrence_ratio()</a></code>
 </td>
-<td>Cluster pair
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(i, j)</annotation></semantics></math>
+<td>cell-type pair</td>
+<td>radius
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
 </td>
-<td>Radius-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
-neighbors</td>
-<td>Ratio
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mo>∣</mo><mi>i</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">P(j\mid i)/P(j)</annotation></semantics></math>
-</td>
-<td>Deterministic</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mo>∣</mo><mi>i</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">P(j \mid i) / P(j)</annotation></semantics></math></td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code><a href="../reference/cooccur_local.html">cooccur_local()</a></code></td>
+<td>cell, for a pair</td>
+<td>radius
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
++ graph diffusion</td>
+<td>0/1 indicator (sCLS)</td>
+<td>—</td>
 </tr>
 <tr class="odd">
-<td><code><a href="../reference/cooccur_local.html">cooccur_local()</a></code></td>
-<td>Per cell, for fixed
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>c</mi><mi>x</mi></msub><mo>,</mo><msub><mi>c</mi><mi>y</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(c_x, c_y)</annotation></semantics></math>
+<td><code><a href="../reference/search_interaction_spot.html">search_interaction_spot()</a></code></td>
+<td>cell</td>
+<td>radius
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
++ components</td>
+<td>component size</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code><a href="../reference/compare_groups.html">compare_groups()</a></code></td>
+<td>patient</td>
+<td>per-image scores</td>
+<td>group difference</td>
+<td>Wilcoxon, LMM, permutation, signed-rank</td>
+</tr>
+<tr class="odd">
+<td><code><a href="../reference/associate_continuous.html">associate_continuous()</a></code></td>
+<td>patient</td>
+<td>per-image scores</td>
+<td>slope / Spearman
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 </td>
-<td>Radius-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
-+ kNN diffusion</td>
-<td>Real-valued score
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>s</mi><mi>v</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">s_v^{(1)}</annotation></semantics></math>
+<td>Spearman, lm, LMM, permutation</td>
+</tr>
+<tr class="even">
+<td>
+<code><a href="../reference/pcf_cross.html">pcf_cross()</a></code> / <code><a href="../reference/pcf_matrix.html">pcf_matrix()</a></code>
+</td>
+<td>gene-set pair ×
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+</td>
+<td>bins + FFT</td>
+<td>(relative)
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(r)</annotation></semantics></math>
+</td>
+<td>via <code><a href="../reference/compare_groups.html">compare_groups()</a></code>
+</td>
+</tr>
+<tr class="odd">
+<td><code><a href="../reference/fit_spatial_rff.html">fit_spatial_rff()</a></code></td>
+<td>genes</td>
+<td>random-feature LGCP</td>
+<td>model
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g(r)</annotation></semantics></math>
 </td>
 <td>—</td>
 </tr>
 <tr class="even">
-<td><code><a href="../reference/search_interaction_spot.html">search_interaction_spot()</a></code></td>
-<td>Per cell, group label</td>
-<td>Radius-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
-+ connected comp.</td>
-<td>Component size</td>
-<td>—</td>
-</tr>
-<tr class="odd">
-<td><code><a href="../reference/generate_sim.html">generate_sim()</a></code></td>
-<td>—</td>
-<td>Generative</td>
-<td>Spatial layout</td>
-<td>—</td>
+<td><code><a href="../reference/colocalization_gene_matrix.html">colocalization_gene_matrix()</a></code></td>
+<td>gene pair</td>
+<td>disc of radius
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+</td>
+<td>log2 O/E</td>
+<td>modules + hypergeometric</td>
 </tr>
 </tbody>
 </table>
-<p>The disease-group extension (<code>*_per_sample()</code>,
-<code><a href="../reference/compare_groups.html">compare_groups()</a></code>) sits on top of these by running them per
-sample and testing the resulting per-sample scalars between groups. See
-the <a href="disease_comparison.html">disease comparison vignette</a>
-for the group-comparison side of the story.</p>
+<p>The multi-sample functions run the single-sample statistics per image
+and test the per-image values with the patient as the unit; see the <a href="case_control_tutorial.html">case-control tutorial</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
@@ -701,7 +953,7 @@ for the group-comparison side of the story.</p>
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] spatialCooccur_0.99.2</span></span>
+<span><span class="co">#&gt; [1] spatialCooccur_0.99.3</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] deldir_2.0-4           pbapply_1.7-5          gridExtra_2.3.1       </span></span>

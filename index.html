@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="index.html">spatialCooccur</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -134,7 +134,7 @@
 <ul>
 <li>Simulate spatial layouts with a planted interaction: <code><a href="reference/generate_sim.html">generate_sim()</a></code>
 </li>
-<li>Neighborhood enrichment with a label-permutation null: <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> returns the z-score (evidence) and <code>log2_oe</code> = log2(observed / expected) (effect size)</li>
+<li>Neighborhood enrichment with a label-permutation null: <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> returns <code>log2_oe</code> = log2(observed / expected), centred on the shuffles (effect size, 0 without interaction for any cell number), and a within-sample test per pair with max-T family-wise adjustment (<code>padj</code>); <code><a href="reference/plot_nhood_heatmap.html">plot_nhood_heatmap()</a></code> shows both</li>
 <li>Radius-based co-occurrence ratio: <code><a href="reference/calc_co_occurrence_for_radius.html">calc_co_occurrence_for_radius()</a></code> / <code><a href="reference/compute_co_occurrence_ratio.html">compute_co_occurrence_ratio()</a></code>
 </li>
 <li>Local co-localization: <code><a href="reference/cooccur_local_oe.html">cooccur_local_oe()</a></code> counts A-B pairs around each cell, divides by their exact expectation under label permutation and smooths with a Gaussian kernel (abundance-adjusted local log2 O/E, optional permutation hotspots, O(n k)); the original diffusion sCLS is kept as <code><a href="reference/cooccur_local.html">cooccur_local()</a></code>
@@ -146,7 +146,9 @@
 <ul>
 <li>Per-image scores for Seurat objects, lists of Seurat objects or plain tables: <code><a href="reference/nhood_enrichment_per_sample.html">nhood_enrichment_per_sample()</a></code>, <code><a href="reference/cooccur_ratio_per_sample.html">cooccur_ratio_per_sample()</a></code>, <code><a href="reference/cooccur_local_per_sample.html">cooccur_local_per_sample()</a></code>, <code><a href="reference/interaction_spot_per_sample.html">interaction_spot_per_sample()</a></code>; <code><a href="reference/summarize_by_patient.html">summarize_by_patient()</a></code> averages images within patients</li>
 <li>
-<code><a href="reference/compare_groups.html">compare_groups()</a></code>: Wilcoxon (exact for small samples), Welch’s <em>t</em>, linear mixed model (<code>lme4</code>, Satterthwaite df via <code>lmerTest</code>, covariates), patient-blocked permutation, and paired designs such as pre- vs post-treatment (<code>method = "signrank"</code>, within-patient permutation); warns on pseudoreplication</li>
+<code><a href="reference/compare_groups.html">compare_groups()</a></code>: Wilcoxon (exact for small samples), Welch’s <em>t</em>, linear mixed model with the patient as a random intercept (<code>value ~ group + covariates + (1 | patient)</code>; <code>lme4</code>, Satterthwaite df via <code>lmerTest</code>), patient-blocked permutation, and paired designs such as pre- vs post-treatment (<code>method = "signrank"</code>, within-patient permutation); warns on pseudoreplication</li>
+<li>
+<code><a href="reference/associate_continuous.html">associate_continuous()</a></code>: association with a continuous clinical variable (CRP, disease activity, age) with the patient as the unit (Spearman, linear model with covariates, linear mixed model with a random patient intercept, permutation)</li>
 <li>Plots: <code><a href="reference/plot_group_delta_heatmap.html">plot_group_delta_heatmap()</a></code>, <code><a href="reference/plot_pair_boxplot.html">plot_pair_boxplot()</a></code>, <code><a href="reference/plot_volcano_groups.html">plot_volcano_groups()</a></code>
 </li>
 </ul>
@@ -162,6 +164,7 @@
 <li>
 <code><a href="reference/colocalization_per_sample.html">colocalization_per_sample()</a></code> feeds <code><a href="reference/compare_groups.html">compare_groups()</a></code>
 </li>
+<li>Unsupervised, gene-level: <code><a href="reference/colocalization_gene_matrix.html">colocalization_gene_matrix()</a></code> (gene x gene log2 O/E of transcript pairs within a radius), <code><a href="reference/colocalization_modules.html">colocalization_modules()</a></code> (co-localizing gene modules), <code><a href="reference/module_enrichment.html">module_enrichment()</a></code> (any pathways or marker lists) and <code><a href="reference/module_enrichr.html">module_enrichr()</a></code> (enrichR)</li>
 </ul>
 </div>
 <div class="section level2">
@@ -220,7 +223,7 @@
 </h2>
 <p>Every module is checked on simulated positive controls (a planted interaction or group difference) and negative controls (nothing planted), repeated over many tissues or studies.</p>
 <p><img src="reference/figures/validation_calibration.png" width="100%"></p>
-<p><em>Neighbourhood enrichment on 250 random tissues (50 per number of cell types): log2 O/E stays at 0 and the within-sample test gives 5% false positives for 3 to 25 cell types (mean and 95% CI).</em></p>
+<p><em>Neighbourhood enrichment on 500 random tissues (100 per number of cell types): log2 O/E stays at 0 (grey: before centring on the shuffles), each pair gives 5% false positives, and the max-T adjusted <code>padj</code> keeps the chance of any false pair at or below 5% for 3 to 25 cell types (mean and 95% CI).</em></p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -235,13 +238,13 @@
 <tbody>
 <tr>
 <td>Neighbourhood enrichment, negative control</td>
-<td>random tissues, 3–25 cell types</td>
-<td>false-positive rate 3–6%, 95% CI includes 5%</td>
+<td>random tissues, 3–25 cell types (even or 1–30% abundance)</td>
+<td>log2 O/E 95% CI includes 0; per-pair false positives ≈ 5%; any pair with <code>padj</code> &lt; 0.05 in ≤ 6% of tissues (BH: up to 12%)</td>
 </tr>
 <tr>
 <td>Neighbourhood enrichment, positive control</td>
 <td>B placed 5–100 µm from A, 20 tissues per distance</td>
-<td>planted pair log2 O/E ≈ 0.35–0.4 up to 20 µm (detected in 90% at 10 µm), ≈ 0 beyond the neighbourhood</td>
+<td>planted pair log2 O/E ≈ 0.3–0.4 up to 20 µm and <code>padj</code> &lt; 0.05 in 90–100% of tissues; 95% CI includes 0 from 40 µm</td>
 </tr>
 <tr>
 <td>Local O/E, negative control</td>
@@ -339,8 +342,9 @@
 <span></span>
 <span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nhood_enrichment.html">nhood_enrichment</a></span><span class="op">(</span><span class="va">df</span>, cluster_key <span class="op">=</span> <span class="st">"cell_type"</span>, neighbors.k <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>                        n_perms <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="fl">1234</span>, n_jobs <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">res</span><span class="op">$</span><span class="va">zscore</span>    <span class="co"># evidence: grows with the number of cells</span></span>
-<span><span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>   <span class="co"># effect size: use this to compare samples</span></span></code></pre></div>
+<span><span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>   <span class="co"># effect size: use this to compare samples</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">padj</span>      <span class="co"># within-sample significance, max-T adjusted over all pairs</span></span>
+<span><span class="fu"><a href="reference/plot_nhood_heatmap.html">plot_nhood_heatmap</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span>   <span class="co"># log2 O/E with significance stars</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="id_2-local-co-localization-where-do-a-and-b-meet">2. Local co-localization (where do A and B meet?)<a class="anchor" aria-label="anchor" href="#id_2-local-co-localization-where-do-a-and-b-meet"></a>
@@ -381,7 +385,12 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tx</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_xenium_transcripts.html">read_xenium_transcripts</a></span><span class="op">(</span><span class="st">"path/to/xenium_outs"</span>, genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">marker_sets</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">b</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/bin_transcripts.html">bin_transcripts</a></span><span class="op">(</span><span class="va">tx</span>, bin_size <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/pcf_matrix.html">pcf_matrix</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">marker_sets</span>, r_max <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>   <span class="co"># log_g and log_g_rel for every pair</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/pcf_matrix.html">pcf_matrix</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">marker_sets</span>, r_max <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>   <span class="co"># log_g and log_g_rel for every pair</span></span>
+<span></span>
+<span><span class="co"># no gene sets: find co-localizing gene modules, then interpret them</span></span>
+<span><span class="va">M</span>    <span class="op">&lt;-</span> <span class="fu"><a href="reference/colocalization_gene_matrix.html">colocalization_gene_matrix</a></span><span class="op">(</span><span class="va">b</span>, radius <span class="op">=</span> <span class="fl">20</span>, top_n <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
+<span><span class="va">mods</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/colocalization_modules.html">colocalization_modules</a></span><span class="op">(</span><span class="va">M</span>, n_modules <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/module_enrichment.html">module_enrichment</a></span><span class="op">(</span><span class="va">mods</span>, <span class="va">my_pathways</span><span class="op">)</span>      <span class="co"># named list of gene sets</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

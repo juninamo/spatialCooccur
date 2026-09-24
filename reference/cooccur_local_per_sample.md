@@ -101,18 +101,18 @@ cooccur_local_per_sample(df, sample_key = "sample_id", group_key = "group",
                          cluster_x = "cell_type_1", cluster_y = "cell_type_2",
                          patient_key = "patient", neighbors.k = 10,
                          radius = 20)
-#>   sample_id   cluster_i   cluster_j  mean       q90 pos_rate    log2_oe n_cells
-#> 1    case_1 cell_type_1 cell_type_2 0.530 0.8663170    0.920  0.7945891     200
-#> 2    case_2 cell_type_1 cell_type_2 0.545 0.8285827    0.960  0.8763038     200
-#> 3    case_3 cell_type_1 cell_type_2 0.525 0.8651515    0.950  0.8153353     200
-#> 4 control_1 cell_type_1 cell_type_2 0.335 0.6922113    0.870  0.1839814     200
-#> 5 control_2 cell_type_1 cell_type_2 0.395 0.6866178    0.935 -0.2220844     200
-#> 6 control_3 cell_type_1 cell_type_2 0.270 0.6303030    0.750 -0.2984772     200
+#>   sample_id   cluster_i   cluster_j  mean       q90 pos_rate   log2_oe n_cells
+#> 1    case_1 cell_type_1 cell_type_2 0.515 0.8639856    0.920 0.7979486     200
+#> 2    case_2 cell_type_1 cell_type_2 0.490 0.8304980    0.905 0.8257222     200
+#> 3    case_3 cell_type_1 cell_type_2 0.580 0.8342458    0.995 0.5510706     200
+#> 4 control_1 cell_type_1 cell_type_2 0.340 0.6934894    0.915 0.1526131     200
+#> 5 control_2 cell_type_1 cell_type_2 0.410 0.7322789    0.875 0.3825044     200
+#> 6 control_3 cell_type_1 cell_type_2 0.345 0.7429332    0.860 0.2173352     200
 #>   n_i n_j   group   patient
 #> 1  41  63    case    case_1
-#> 2  49  52    case    case_2
-#> 3  51  44    case    case_3
-#> 4  42  42 control control_1
-#> 5  53  52 control control_2
-#> 6  53  42 control control_3
+#> 2  44  48    case    case_2
+#> 3  49  55    case    case_3
+#> 4  47  46 control control_1
+#> 5  46  55 control control_2
+#> 6  46  40 control control_3
 ```

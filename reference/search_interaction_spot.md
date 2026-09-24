@@ -68,5 +68,5 @@ spots <- search_interaction_spot(seu, fov = "fov1", radius = 15, n_min = 3,
                                  cluster_col = "cell_type",
                                  target_cluster = c("cell_type_1", "cell_type_2"))
 length(unique(spots$cluster_id))
-#> [1] 23
+#> [1] 21
 ```

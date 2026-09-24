@@ -11,9 +11,12 @@
 <url><loc>https://juninamo.github.io/spatialCooccur/authors.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/index.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/news/index.html</loc></url>
+<url><loc>https://juninamo.github.io/spatialCooccur/reference/associate_continuous.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/bin_transcripts.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/build_sample_design.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.html</loc></url>
+<url><loc>https://juninamo.github.io/spatialCooccur/reference/colocalization_gene_matrix.html</loc></url>
+<url><loc>https://juninamo.github.io/spatialCooccur/reference/colocalization_modules.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/compare_groups.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.html</loc></url>
@@ -30,6 +33,8 @@
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/interaction_spot_per_sample.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/lgcp_true_pair_correlation.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/manual_colors.html</loc></url>
+<url><loc>https://juninamo.github.io/spatialCooccur/reference/module_enrichment.html</loc></url>
+<url><loc>https://juninamo.github.io/spatialCooccur/reference/module_enrichr.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.Seurat.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment_per_sample.html</loc></url>
@@ -37,6 +42,7 @@
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/permute_clusters.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/plot_group_delta_heatmap.html</loc></url>
+<url><loc>https://juninamo.github.io/spatialCooccur/reference/plot_nhood_heatmap.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/plot_pair_boxplot.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/plot_volcano_groups.html</loc></url>
 <url><loc>https://juninamo.github.io/spatialCooccur/reference/read_xenium_transcripts.html</loc></url>

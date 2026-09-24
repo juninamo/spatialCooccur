@@ -53,13 +53,13 @@ res <- calc_co_occurrence_for_radius(seu, radius = 20,
                                      cluster_key = "cell_type")
 round(res$ratio_mat, 2)
 #>                    Clustercell_type_1 Clustercell_type_2 Clustercell_type_3
-#> Clustercell_type_1               0.79               1.12               1.14
-#> Clustercell_type_2               1.12               1.06               0.87
-#> Clustercell_type_3               1.14               0.87               1.08
-#> Clustercell_type_4               0.92               0.91               0.93
+#> Clustercell_type_1               0.79               1.10               1.15
+#> Clustercell_type_2               1.10               1.10               0.86
+#> Clustercell_type_3               1.15               0.86               1.08
+#> Clustercell_type_4               0.93               0.89               0.94
 #>                    Clustercell_type_4
-#> Clustercell_type_1               0.92
-#> Clustercell_type_2               0.91
-#> Clustercell_type_3               0.93
-#> Clustercell_type_4               1.31
+#> Clustercell_type_1               0.93
+#> Clustercell_type_2               0.89
+#> Clustercell_type_3               0.94
+#> Clustercell_type_4               1.33
 ```
