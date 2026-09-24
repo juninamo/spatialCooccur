@@ -524,8 +524,13 @@ nhood_enrichment_per_sample <- function(obj, sample_key, group_key, cluster_key,
 #' @param unit "image" or "patient" (averaged across images of the same
 #'   patient).
 #' @param summarize Character vector of summary statistics to compute:
-#'   "mean", "q90" (90th percentile), and / or "pos_rate" (fraction of
-#'   cells with score > 0).
+#'   "mean", "q90" (90th percentile), "pos_rate" (fraction of cells with
+#'   score > 0), and / or "log2_oe": log2 of the number of `cluster_x`-
+#'   `cluster_y` pairs within `radius` of each cell, summed over cells, over
+#'   its expectation under label permutation (see [cooccur_local_oe()]). `log2_oe` is adjusted for the
+#'   abundance of the two cell types and for cell density and is the
+#'   recommended summary for group comparison; "mean" is unchanged by the
+#'   (mass-conserving) diffusion and grows with abundance.
 #'
 #' @return A data.frame with one row per sample carrying the requested
 #'   summary statistics, plus `n_cells`, `n_i` and `n_j` (cells of
@@ -554,7 +559,7 @@ cooccur_local_per_sample <- function(obj, sample_key, group_key, cluster_key,
                                      patient_key = NULL,
                                      unit = c("image", "patient"),
                                      neighbors.k = 20, radius = 30, maxnsteps = 1,
-                                     summarize = c("mean", "q90", "pos_rate")) {
+                                     summarize = c("mean", "q90", "pos_rate", "log2_oe")) {
   unit <- match.arg(unit)
   summarize <- match.arg(summarize, several.ok = TRUE)
   sl <- .as_sample_list(obj, sample_key = sample_key,
@@ -593,6 +598,11 @@ cooccur_local_per_sample <- function(obj, sample_key, group_key, cluster_key,
     if ("mean" %in% summarize) row$mean <- mean(sc, na.rm = TRUE)
     if ("q90" %in% summarize) row$q90 <- as.numeric(quantile(sc, 0.9, na.rm = TRUE))
     if ("pos_rate" %in% summarize) row$pos_rate <- mean(sc > 0, na.rm = TRUE)
+    if ("log2_oe" %in% summarize) {
+      nb <- .radius_neighbours(as.matrix(df_in[, c("x", "y")]), radius, neighbors.k)
+      ie <- .pairs_expected(df_in$cell_type, nb$idx, cluster_x, cluster_y)
+      row$log2_oe <- log2(sum(ie$pairs) / max(sum(ie$expected), .Machine$double.eps))
+    }
     row$n_cells <- nrow(coords)
     row$n_i <- sum(coords$cluster == cluster_x)
     row$n_j <- sum(coords$cluster == cluster_y)

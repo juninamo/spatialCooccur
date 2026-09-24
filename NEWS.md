@@ -27,6 +27,15 @@
 
 ## New features
 
+* `cooccur_local_oe()`: abundance-adjusted local co-localization. For every
+  cell, the number of cluster_x-cluster_y pairs within `radius` is divided by
+  its exact expectation under label permutation (closed form), smoothed with
+  a Gaussian kernel of explicit width, with optional permutation hotspot
+  p-values (O(n k) per permutation). `cooccur_local_per_sample()` gains the
+  corresponding `log2_oe` summary, recommended for group comparison: the
+  mean diffusion sCLS is unchanged by diffusion (mass-conserving) and grows
+  with cell-type abundance.
+
 * **Experimental segmentation-free analysis** of transcript coordinates
   (e.g. Xenium `transcripts.parquet`): `bin_transcripts()`, model-free cross
   pair correlation of gene sets `pcf_cross()` (the relative version is the

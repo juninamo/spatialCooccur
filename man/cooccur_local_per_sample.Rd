@@ -16,7 +16,7 @@ cooccur_local_per_sample(
   neighbors.k = 20,
   radius = 30,
   maxnsteps = 1,
-  summarize = c("mean", "q90", "pos_rate")
+  summarize = c("mean", "q90", "pos_rate", "log2_oe")
 )
 }
 \arguments{
@@ -43,8 +43,13 @@ the kurtosis of the scores decreases by less than 3 between steps
 <= 0.99.1 always performed a single step regardless of `maxnsteps`.}
 
 \item{summarize}{Character vector of summary statistics to compute:
-"mean", "q90" (90th percentile), and / or "pos_rate" (fraction of
-cells with score > 0).}
+"mean", "q90" (90th percentile), "pos_rate" (fraction of cells with
+score > 0), and / or "log2_oe": log2 of the number of `cluster_x`-
+`cluster_y` pairs within `radius` of each cell, summed over cells, over
+its expectation under label permutation (see [cooccur_local_oe()]). `log2_oe` is adjusted for the
+abundance of the two cell types and for cell density and is the
+recommended summary for group comparison; "mean" is unchanged by the
+(mass-conserving) diffusion and grows with abundance.}
 }
 \value{
 A data.frame with one row per sample carrying the requested

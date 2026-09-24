@@ -78,6 +78,7 @@ reference:
   - nhood_enrichment.Seurat
   - cooccur_local
   - cooccur_local.Seurat
+  - cooccur_local_oe
   - calc_co_occurrence_for_radius
   - compute_co_occurrence_ratio
   - search_interaction_spot
