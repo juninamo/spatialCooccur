@@ -8,3 +8,9 @@ README.html
 docs
 *.BiocCheck
 ppt/
+# local tool settings and stray outputs
+.claude/
+Rplots.pdf
+*.Rcheck/
+~$*
+.ipynb_checkpoints/
