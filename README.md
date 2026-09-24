@@ -12,7 +12,7 @@ groups** with statistics that treat the patient as the unit of analysis,
 and (experimentally) measures co-localization **directly from transcript
 coordinates** without cell segmentation.
 
-**Documentation, tutorials and function reference (searchable):
+**Documentation, tutorials and function reference:
 <https://juninamo.github.io/spatialCooccur/>**
 
 ## Installation
