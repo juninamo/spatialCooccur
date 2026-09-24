@@ -122,3 +122,15 @@ test_that("directional contact / dominance statistics separate the two points of
   expect_false(isSymmetric(unname(round(nm(r$dominance), 3))))
   expect_true(all(r$contact_padj >= 1 / 100, na.rm = TRUE))
 })
+
+test_that("plot_nhood_heatmap() draws symmetric pair-level values once and directional values in full", {
+  skip_if_not_installed("ggplot2")
+  d <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 400, max_loc = 300,
+                    test_type = "distribute", distance_param = 10, seed = 1)
+  rownames(d) <- paste0("c", seq_len(nrow(d)))
+  r <- nhood_enrichment(d, "cell_type", neighbors.k = 10, n_perms = 19, seed = 1, n_jobs = 1)
+  K <- nrow(r$log2_oe)
+  expect_equal(nrow(plot_nhood_heatmap(r)$data), K * (K + 1) / 2)
+  expect_equal(nrow(plot_nhood_heatmap(r, triangle = "full")$data), K * K)
+  expect_equal(nrow(plot_nhood_heatmap(r, value = "dominance_log2_oe")$data), K * K)
+})

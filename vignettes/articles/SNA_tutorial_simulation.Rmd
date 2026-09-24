@@ -18,7 +18,7 @@ format(Sys.time(), '%d %B, %Y')
 ```
 
 <div class="nb-output">
-'24 September, 2026'
+'25 September, 2026'
 </div>
 
 ## Spatial neighborhood analysis (SNA, cell type level analysis)

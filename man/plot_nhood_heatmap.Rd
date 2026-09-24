@@ -12,7 +12,7 @@ plot_nhood_heatmap(
   breaks = c(0.05, 0.01, 0.001),
   limits = NULL,
   show_values = TRUE,
-  triangle = c("full", "lower")
+  triangle = c("auto", "lower", "full")
 )
 }
 \arguments{
@@ -39,7 +39,10 @@ symmetric range around 0.}
 
 \item{show_values}{Print the value in each tile.}
 
-\item{triangle}{`"full"`, or `"lower"` to show each pair once.}
+\item{triangle}{`"auto"` (default): pair-level values, which are symmetric,
+are shown once (lower triangle with the diagonal); directional values are
+shown in full. `"lower"` or `"full"` force one layout (`"lower"` is
+ignored for directional values, whose two triangles differ).}
 }
 \value{
 A ggplot object.
@@ -48,7 +51,8 @@ A ggplot object.
 Plot the `log2_oe` matrix returned by [nhood_enrichment()] and mark the
 cell-type pairs that pass the within-sample test after
 Benjamini-Hochberg correction over all K (K + 1) / 2 unordered pairs
-(`padj`). The matrix is symmetrised (mean of i -> j and j -> i).
+(`padj`). The matrix is symmetrised (mean of i -> j and j -> i), so by
+default only one triangle is drawn.
 }
 \examples{
 if (requireNamespace("ggplot2", quietly = TRUE)) {

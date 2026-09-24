@@ -321,7 +321,8 @@ plot_volcano_groups <- function(compare_df,
 #' Plot the `log2_oe` matrix returned by [nhood_enrichment()] and mark the
 #' cell-type pairs that pass the within-sample test after
 #' Benjamini-Hochberg correction over all K (K + 1) / 2 unordered pairs
-#' (`padj`). The matrix is symmetrised (mean of i -> j and j -> i).
+#' (`padj`). The matrix is symmetrised (mean of i -> j and j -> i), so by
+#' default only one triangle is drawn.
 #'
 #' @param res Output of [nhood_enrichment()] (or the list stored by
 #'   [nhood_enrichment.Seurat()] in `misc`).
@@ -340,7 +341,10 @@ plot_volcano_groups <- function(compare_df,
 #' @param limits Fill limits; values outside are squished. Defaults to a
 #'   symmetric range around 0.
 #' @param show_values Print the value in each tile.
-#' @param triangle `"full"`, or `"lower"` to show each pair once.
+#' @param triangle `"auto"` (default): pair-level values, which are symmetric,
+#'   are shown once (lower triangle with the diagonal); directional values are
+#'   shown in full. `"lower"` or `"full"` force one layout (`"lower"` is
+#'   ignored for directional values, whose two triangles differ).
 #'
 #' @return A ggplot object.
 #' @export
@@ -361,7 +365,7 @@ plot_nhood_heatmap <- function(res,
                                breaks = c(0.05, 0.01, 0.001),
                                limits = NULL,
                                show_values = TRUE,
-                               triangle = c("full", "lower")) {
+                               triangle = c("auto", "lower", "full")) {
   .require_ggplot2()
   value <- match.arg(value)
   triangle <- match.arg(triangle)
@@ -382,7 +386,7 @@ plot_nhood_heatmap <- function(res,
     if (grepl("padj$", significance)) breaks <- breaks[breaks > min(p, na.rm = TRUE) | seq_along(breaks) == 1]
     g$star <- vapply(p, function(v) if (is.na(v)) "" else strrep("*", sum(v < breaks)), "")
   }
-  if (triangle == "lower" && !directional) g <- g[g$i >= g$j, ]
+  if (triangle %in% c("auto", "lower") && !directional) g <- g[g$i >= g$j, ]
   g$x <- factor(lab[g$j], levels = lab)
   g$y <- factor(lab[g$i], levels = rev(lab))
   if (is.null(limits)) limits <- c(-1, 1) * max(abs(g$v), na.rm = TRUE)

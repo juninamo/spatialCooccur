@@ -56,6 +56,9 @@
   ordered pairs. `plot_nhood_heatmap(value = "dominance_log2_oe")` draws them
   without symmetrising; the pair-level heatmap is labelled as the average of
   both directions.
+* `plot_nhood_heatmap()`: new default `triangle = "auto"` draws symmetric
+  pair-level values once (lower triangle with the diagonal) and directional
+  values in full; `triangle = "full"` restores the previous layout.
 * Tutorials use `log2_oe` with the max-T adjusted `padj`; new sections on
   `cooccur_local_oe()`, `associate_continuous()` and gene-level modules. The
   algorithm reference covers all current methods.
