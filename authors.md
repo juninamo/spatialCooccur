@@ -7,16 +7,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/juninamo/spatialCooccur/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/juninamo/cohalu/blob/master/DESCRIPTION)
 
-Inamo J (2026). *spatialCooccur: Neighborhood Co-Occurrence and Spatial
-Interaction Analysis for Spatial Transcriptomics*. R package version
-0.99.3, <https://juninamo.github.io/spatialCooccur/>.
+Inamo J (2026). *cohalu: CO-localization, Hotspots And Sample-Level
+Units for Spatial Omics*. R package version 0.99.3,
+<https://juninamo.github.io/cohalu/>.
 
     @Manual{,
-      title = {spatialCooccur: Neighborhood Co-Occurrence and Spatial Interaction Analysis for Spatial Transcriptomics},
+      title = {cohalu: CO-localization, Hotspots And Sample-Level Units for Spatial Omics},
       author = {Jun Inamo},
       year = {2026},
       note = {R package version 0.99.3},
-      url = {https://juninamo.github.io/spatialCooccur/},
+      url = {https://juninamo.github.io/cohalu/},
     }

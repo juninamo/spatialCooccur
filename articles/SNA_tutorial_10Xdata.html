@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Tutorial for spatial neighborhood analysis (SNA) &amp; spatial co-localization score (sCLS) using 10X public data • spatialCooccur</title>
+<title>Tutorial for spatial neighborhood analysis (SNA) &amp; spatial co-localization score (sCLS) using 10X public data • cohalu</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Tutorial for spatial neighborhood analysis (SNA) &amp; spatial co-localization score (sCLS) using 10X public data">
-<meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
+<meta name="description" content="COHALU: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -25,7 +25,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">spatialCooccur</a>
+    <a class="navbar-brand me-2" href="../index.html">cohalu</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
@@ -63,7 +63,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/juninamo/spatialCooccur/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/juninamo/cohalu/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -79,14 +79,14 @@
       <img src="../logo.png" class="logo" alt=""><h1>Tutorial for spatial neighborhood analysis (SNA) &amp; spatial co-localization score (sCLS) using 10X public data</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/juninamo/spatialCooccur/blob/master/vignettes/articles/SNA_tutorial_10Xdata.Rmd" class="external-link"><code>vignettes/articles/SNA_tutorial_10Xdata.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/juninamo/cohalu/blob/master/vignettes/articles/SNA_tutorial_10Xdata.Rmd" class="external-link"><code>vignettes/articles/SNA_tutorial_10Xdata.Rmd</code></a></small>
       <div class="d-none name"><code>SNA_tutorial_10Xdata.Rmd</code></div>
     </div>
 
     
     
 <div class="nb-source">
-<p>This article is a rendered copy of the Jupyter notebook <a href="https://github.com/juninamo/spatialCooccur/blob/master/vignettes/SNA_tutorial_10Xdata.ipynb" class="external-link"><code>vignettes/SNA_tutorial_10Xdata.ipynb</code></a>;
+<p>This article is a rendered copy of the Jupyter notebook <a href="https://github.com/juninamo/cohalu/blob/master/vignettes/SNA_tutorial_10Xdata.ipynb" class="external-link"><code>vignettes/SNA_tutorial_10Xdata.ipynb</code></a>;
 download it to run the code yourself.</p>
 </div>
 <p><strong>Author:</strong><br><strong>Jun Inamo</strong><br><em>Computational Omics and Systems Immunology (COSI) Lab</em><br><em>Division of Rheumatology and Center for Health AI</em><br><em>University of Colorado School of Medicine, CO, USA</em><br>
@@ -106,7 +106,7 @@ download it to run the code yourself.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/circlize" class="external-link">circlize</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">ComplexHeatmap</span><span class="op">)</span></span>
 <span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="st">"../DESCRIPTION"</span><span class="op">)</span><span class="op">)</span> <span class="fu">devtools</span><span class="fu">::</span><span class="fu">load_all</span><span class="op">(</span><span class="st">".."</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="kw">else</span> <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/spatialCooccur/">spatialCooccur</a></span><span class="op">)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="st">"../DESCRIPTION"</span><span class="op">)</span><span class="op">)</span> <span class="fu">devtools</span><span class="fu">::</span><span class="fu">load_all</span><span class="op">(</span><span class="st">".."</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="kw">else</span> <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/cohalu/">cohalu</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">BuildSNNSeurat</span> <span class="op">&lt;-</span> <span class="kw">function</span> <span class="op">(</span><span class="va">data.use</span>, <span class="va">k.param</span> <span class="op">=</span> <span class="fl">30</span>, <span class="va">prune.SNN</span> <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">15</span>, <span class="va">nn.eps</span> <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">my.knn</span> <span class="op">&lt;-</span> <span class="fu">nn2</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data.use</span>, k <span class="op">=</span> <span class="va">k.param</span>, searchtype <span class="op">=</span> <span class="st">"standard"</span>, eps <span class="op">=</span> <span class="va">nn.eps</span><span class="op">)</span></span>
@@ -3998,7 +3998,7 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] spacexr_2.2.1         spatialCooccur_0.99.3 testthat_3.2.1       
+ [1] spacexr_2.2.1         cohalu_0.99.3 testthat_3.2.1       
  [4] ComplexHeatmap_2.18.0 circlize_0.4.15       ggplot2_3.4.4        
  [7] SCP_0.5.6             dplyr_1.1.4           magrittr_2.0.3       
 [10] Seurat_5.2.1          SeuratObject_5.0.2    sp_2.1-2             

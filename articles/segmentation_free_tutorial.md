@@ -1,15 +1,15 @@
 # Segmentation-free co-localization analysis of transcript coordinates (experimental)
 
 This article is a rendered copy of the Jupyter notebook
-[`vignettes/segmentation_free_tutorial.ipynb`](https://github.com/juninamo/spatialCooccur/blob/master/vignettes/segmentation_free_tutorial.ipynb);
+[`vignettes/segmentation_free_tutorial.ipynb`](https://github.com/juninamo/cohalu/blob/master/vignettes/segmentation_free_tutorial.ipynb);
 download it to run the code yourself.
 
 **Author:** Jun Inamo (<juninamo@keio.jp>)
 
 Imaging-based platforms such as Xenium record the coordinates of every
 transcript. Cell-level analyses
-([`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md),
-[`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md))
+([`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md),
+[`cooccur_local()`](https://juninamo.github.io/cohalu/reference/cooccur_local.md))
 depend on cell segmentation and on assigning each cell a type, and
 errors in either step propagate into the co-localization estimate. This
 tutorial works on the **transcripts directly**, without segmentation.
@@ -26,7 +26,7 @@ tutorial works on the **transcripts directly**, without segmentation.
   transcripts. This equals the observed / expected ratio when gene
   labels are permuted over the fixed transcript positions, the same
   logic as the label permutation behind `log2_oe` in
-  [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md),
+  [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md),
   but continuous in distance and free of segmentation.
 - A **model-based** version fits a log-Gaussian Cox process in which
   each gene’s log-intensity is a mixture of a shared *cellularity* field
@@ -68,15 +68,15 @@ co-localization**:
   transcript-level counterpart of `log2_oe`; it stays at zero when only
   cellularity differs (Section 5).
 - **Distance as an explicit axis.**
-  [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md)
+  [`pcf_matrix()`](https://juninamo.github.io/cohalu/reference/pcf_matrix.md)
   gives a co-localization curve over distance for every pair at once
   (FFT).
 - **Patient-level case-control and paired designs.**
-  [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
+  [`colocalization_per_sample()`](https://juninamo.github.io/cohalu/reference/colocalization_per_sample.md)
   feeds
-  [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md).
+  [`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md).
 - **A generative model when needed.**
-  [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+  [`fit_spatial_rff()`](https://juninamo.github.io/cohalu/reference/fit_spatial_rff.md)
   learns spatial length scales and separates cellularity from
   composition.
 - **Any labelled points as input.** Marker transcripts, or pixel-level
@@ -97,7 +97,7 @@ suppressPackageStartupMessages(suppressWarnings({
   if (file.exists("../DESCRIPTION")) {
     devtools::load_all("..", quiet = TRUE)
   } else {
-    library(spatialCooccur)
+    library(cohalu)
   }
   library(ggplot2)
   library(patchwork)
@@ -115,7 +115,7 @@ theme_tut <- theme_minimal(base_size = 12) +
 
 ### 2. A simulated tissue with known truth
 
-[`simulate_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/simulate_transcripts.md)
+[`simulate_transcripts()`](https://juninamo.github.io/cohalu/reference/simulate_transcripts.md)
 draws transcripts from a multivariate log-Gaussian Cox process. There
 are three gene sets (A, B, C; five genes each). Each set has its own
 “territory” field, all genes share a slowly varying cellularity field,
@@ -145,9 +145,9 @@ ggplot(subset(tx, x < 200 & y < 200), aes(x, y)) +
 
 ![](figures/segmentation_free_tutorial/fig-01.png)
 
-[`bin_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/bin_transcripts.md)
+[`bin_transcripts()`](https://juninamo.github.io/cohalu/reference/bin_transcripts.md)
 counts transcripts per gene in square bins (4 µm here).
-[`pcf_cross()`](https://juninamo.github.io/spatialCooccur/reference/pcf_cross.md)
+[`pcf_cross()`](https://juninamo.github.io/cohalu/reference/pcf_cross.md)
 estimates $`g_{AB}(r)`$ from the binned counts with FFTs and edge
 correction. Compare it with the closed-form truth for the relative pair
 correlation:
@@ -197,7 +197,7 @@ is how this value **changes** between groups (section 4).
 
 ### 3. The random-feature model
 
-[`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+[`fit_spatial_rff()`](https://juninamo.github.io/cohalu/reference/fit_spatial_rff.md)
 fits
 
 ``` math
@@ -240,7 +240,7 @@ Time difference of 3.240163 mins
 
 A matrix: 3 × 4 of type dbl {.table .dataframe}
 
-[`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md)
+[`rff_pair_correlation()`](https://juninamo.github.io/cohalu/reference/rff_pair_correlation.md)
 turns the fit into pair correlations. `type = "composition"` removes the
 cellularity field. `method = "intensity"` (the default) applies the same
 FFT estimator to the fitted intensity surfaces, a denoised empirical
@@ -283,13 +283,13 @@ miscalibrated. `"intensity"` is therefore the default.
 
 ### 4. Case-control comparison
 
-[`simulate_transcripts_groups()`](https://juninamo.github.io/spatialCooccur/reference/simulate_transcripts_groups.md)
+[`simulate_transcripts_groups()`](https://juninamo.github.io/cohalu/reference/simulate_transcripts_groups.md)
 simulates 6 control and 6 case samples with **8 gene sets** (closer to a
 real panel with many cell types). The niche loading of A and B is 0.3 in
 controls and 0.9 in cases, so A–B co-localize more strongly in cases.
-[`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
+[`colocalization_per_sample()`](https://juninamo.github.io/cohalu/reference/colocalization_per_sample.md)
 returns one row per sample × pair × distance, ready for
-[`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
+[`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md)
 with `pair_keys = c("cluster_i", "cluster_j", "r")`.
 
 ``` r
@@ -429,13 +429,13 @@ did not.
 We use the public 10x Genomics dataset *Xenium FF Mouse Brain Coronal
 Subset (CTX + HP)* (248-gene panel). Only the transcript table is needed
 (183 MB). It is downloaded once into the user cache directory.
-[`read_xenium_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/read_xenium_transcripts.md)
+[`read_xenium_transcripts()`](https://juninamo.github.io/cohalu/reference/read_xenium_transcripts.md)
 handles older outputs that store gene names as binary, filters on
 `qv >= 20`, and drops control probes.
 
 ``` r
 
-cache <- tools::R_user_dir("spatialCooccur", "cache")
+cache <- tools::R_user_dir("COHALU", "cache")
 dir.create(cache, recursive = TRUE, showWarnings = FALSE)
 pq <- file.path(cache, "Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_transcripts.parquet")
 if (!file.exists(pq)) {
@@ -573,7 +573,7 @@ ggplot(h12, aes(a, b, fill = log_g_rel)) +
 The same dataset comes with Xenium’s cell segmentation (`cell_id`). We
 assign each cell the cell type whose markers dominate its transcripts,
 run
-[`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
+[`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)
 on the cell centroids, and compare its `log2_oe` with the
 segmentation-free relative log g for every pair.
 
@@ -753,7 +753,7 @@ Gaussian.
 3.  **Compare groups at the patient level.** Use
     `compare_groups(..., pair_keys = c("cluster_i", "cluster_j", "r"))`.
     With several sections per patient, apply
-    [`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
+    [`summarize_by_patient()`](https://juninamo.github.io/cohalu/reference/summarize_by_patient.md)
     or use `method = "lmm"` with `patient_key`, as in the case-control
     tutorial.
 4.  **Use the model for composition and spatial scales.**
@@ -771,17 +771,17 @@ Gaussian.
 
 The analyses above need gene sets, and assume that every gene in a set
 marks that population.
-[`colocalization_gene_matrix()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_gene_matrix.md)
+[`colocalization_gene_matrix()`](https://juninamo.github.io/cohalu/reference/colocalization_gene_matrix.md)
 works gene by gene: for every pair of genes it counts transcript pairs
 within `radius` and divides by the number expected if gene labels were
 shuffled over the fixed transcript positions (log2 O/E; cellularity
 cancels).
-[`colocalization_modules()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_modules.md)
+[`colocalization_modules()`](https://juninamo.github.io/cohalu/reference/colocalization_modules.md)
 clusters genes that co-localize with one another, and
-[`module_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichment.md)
+[`module_enrichment()`](https://juninamo.github.io/cohalu/reference/module_enrichment.md)
 interprets each module with any gene sets (pathways or cell-type
 markers; hypergeometric test, BH).
-[`module_enrichr()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichr.md)
+[`module_enrichr()`](https://juninamo.github.io/cohalu/reference/module_enrichr.md)
 sends module gene names to the Enrichr web service (needs the enrichR
 package and internet access).
 
@@ -898,7 +898,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.3
+[1] patchwork_1.1.3       ggplot2_3.4.4         cohalu_0.99.3
 [4] testthat_3.2.1       
 
 loaded via a namespace (and not attached):

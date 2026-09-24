@@ -1,7 +1,7 @@
 # Tutorial for Spatial Neighborhood Analysis (SNA) & Spatial Co-localization Score (sCLS) Using Simulation Data
 
 This article is a rendered copy of the Jupyter notebook
-[`vignettes/SNA_tutorial_simulation.ipynb`](https://github.com/juninamo/spatialCooccur/blob/master/vignettes/SNA_tutorial_simulation.ipynb);
+[`vignettes/SNA_tutorial_simulation.ipynb`](https://github.com/juninamo/cohalu/blob/master/vignettes/SNA_tutorial_simulation.ipynb);
 download it to run the code yourself.
 
 **Author:**  
@@ -36,7 +36,7 @@ circles), for a fraction `close_ratio` of the cells.
 ``` r
 
 suppressPackageStartupMessages(suppressWarnings({
-  if (file.exists("../DESCRIPTION")) devtools::load_all("..", quiet = TRUE) else library(spatialCooccur)
+  if (file.exists("../DESCRIPTION")) devtools::load_all("..", quiet = TRUE) else library(cohalu)
   library(patchwork)
   library(ggplot2)
   library(magrittr)
@@ -212,10 +212,10 @@ plot_nhood_heatmap(nhood_res)
 
 Every A-B contact is also a B-A contact, so the pair-level `log2_oe` is
 (nearly) symmetric and
-[`plot_nhood_heatmap()`](https://juninamo.github.io/spatialCooccur/reference/plot_nhood_heatmap.md)
+[`plot_nhood_heatmap()`](https://juninamo.github.io/cohalu/reference/plot_nhood_heatmap.md)
 shows the average of both directions. It cannot tell “A is surrounded by
 B” from “B is surrounded by A”.
-[`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
+[`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)
 also returns two directional statistics, with row = centre cell type and
 column = neighbour cell type:
 
@@ -520,7 +520,7 @@ coords_df %>%
 
 ### Where do the two cell types meet? `cooccur_local_oe()`
 
-[`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md)
+[`cooccur_local_oe()`](https://juninamo.github.io/cohalu/reference/cooccur_local_oe.md)
 counts cluster_x–cluster_y pairs within `radius` of every cell, divides
 them by their exact expectation under label shuffling, and smooths
 observed and expected pairs with Gaussian weights of width `bandwidth`.
@@ -572,7 +572,7 @@ attached base packages:
 other attached packages:
 [1] ggrastr_1.0.2         ComplexHeatmap_2.18.0 circlize_0.4.15      
 [4] dplyr_1.1.4           magrittr_2.0.3        ggplot2_3.4.4        
-[7] patchwork_1.1.3       spatialCooccur_0.99.3 testthat_3.2.1       
+[7] patchwork_1.1.3       cohalu_0.99.3 testthat_3.2.1       
 
 loaded via a namespace (and not attached):
   [1] RcppAnnoy_0.0.21       splines_4.3.2          later_1.3.2           

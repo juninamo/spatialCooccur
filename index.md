@@ -1,9 +1,17 @@
-# spatialCooccur
+# COHALU
+
+**CO-localization, Hotspots And sample-Level Units** (read *koharu*,
+小春).
+
+> COHALU is the updated version of **spatialCooccur**, renamed in
+> v0.99.3. Function names and arguments are unchanged: replace
+> [`library(spatialCooccur)`](https://juninamo.github.io/spatialCooccur/)
+> with [`library(cohalu)`](https://juninamo.github.io/cohalu/).
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17498341.svg)](https://doi.org/10.5281/zenodo.17498341)
-[![Website](https://img.shields.io/badge/docs-juninamo.github.io%2FspatialCooccur-4a3aa7)](https://juninamo.github.io/spatialCooccur/)
+[![Website](https://img.shields.io/badge/docs-juninamo.github.io%2Fcohalu-4a3aa7)](https://juninamo.github.io/cohalu/)
 
-`spatialCooccur` is an R package for analyzing spatial co-occurrence and
+COHALU is an R package for analyzing spatial co-occurrence and
 neighborhood interactions in spatial transcriptomics data. It quantifies
 whether cell types sit together more (or less) often than expected by
 chance, maps where they meet, **compares these scores between patient
@@ -12,119 +20,119 @@ and (experimentally) measures co-localization **directly from transcript
 coordinates** without cell segmentation.
 
 **Documentation, tutorials and function reference:
-<https://juninamo.github.io/spatialCooccur/>**
+<https://juninamo.github.io/cohalu/>**
 
 ## Installation
 
 ``` r
 
 # install.packages("devtools")
-devtools::install_github("juninamo/spatialCooccur")
+devtools::install_github("juninamo/cohalu")
 ```
 
 ## Tutorials
 
 | Tutorial | What it covers |
 |----|----|
-| [Simulation data: SNA & sCLS](https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_simulation.html) | Neighborhood enrichment and the local co-localization score on simulated tissue |
-| [10x Xenium data: SNA & sCLS](https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_10Xdata.html) | The same analyses on public Xenium human breast and mouse brain data |
-| [Case-control comparison](https://juninamo.github.io/spatialCooccur/articles/case_control_tutorial.html) | Several images per patient: choosing the score, patient-level tests (Wilcoxon / LMM / blocked permutation), pseudoreplication, covariates, power |
-| [Segmentation-free co-localization](https://juninamo.github.io/spatialCooccur/articles/segmentation_free_tutorial.html) (experimental) | Cross pair correlation of marker transcripts, a random-feature log-Gaussian Cox process model, case-control testing, Xenium mouse brain |
-| [Algorithm reference](https://juninamo.github.io/spatialCooccur/articles/algorithms.html) | The mathematics behind every core function |
+| [Simulation data: SNA & sCLS](https://juninamo.github.io/cohalu/articles/SNA_tutorial_simulation.html) | Neighborhood enrichment and the local co-localization score on simulated tissue |
+| [10x Xenium data: SNA & sCLS](https://juninamo.github.io/cohalu/articles/SNA_tutorial_10Xdata.html) | The same analyses on public Xenium human breast and mouse brain data |
+| [Case-control comparison](https://juninamo.github.io/cohalu/articles/case_control_tutorial.html) | Several images per patient: choosing the score, patient-level tests (Wilcoxon / LMM / blocked permutation), pseudoreplication, covariates, power |
+| [Segmentation-free co-localization](https://juninamo.github.io/cohalu/articles/segmentation_free_tutorial.html) (experimental) | Cross pair correlation of marker transcripts, a random-feature log-Gaussian Cox process model, case-control testing, Xenium mouse brain |
+| [Algorithm reference](https://juninamo.github.io/cohalu/articles/algorithms.html) | The mathematics behind every core function |
 
 The notebooks behind these pages are in
-[`vignettes/`](https://juninamo.github.io/spatialCooccur/vignettes/).
+[`vignettes/`](https://juninamo.github.io/cohalu/vignettes/).
 
 ## Features
 
 **Single-sample analysis**
 
 - Simulate spatial layouts with a planted interaction:
-  [`generate_sim()`](https://juninamo.github.io/spatialCooccur/reference/generate_sim.md)
+  [`generate_sim()`](https://juninamo.github.io/cohalu/reference/generate_sim.md)
 - Neighborhood enrichment with a label-permutation null:
-  [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
+  [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)
   returns `log2_oe` = log2(observed / expected), centred on the shuffles
   (effect size, 0 without interaction for any cell number), and a
   within-sample test per pair with max-T family-wise adjustment
   (`padj`);
-  [`plot_nhood_heatmap()`](https://juninamo.github.io/spatialCooccur/reference/plot_nhood_heatmap.md)
+  [`plot_nhood_heatmap()`](https://juninamo.github.io/cohalu/reference/plot_nhood_heatmap.md)
   shows both. Directional statistics (`contact`, `dominance`; row =
   centre cell type) tell “A is surrounded by B” apart from “B is
   surrounded by A”, which the symmetric pair-level O/E cannot
 - Radius-based co-occurrence ratio:
-  [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md)
+  [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/cohalu/reference/calc_co_occurrence_for_radius.md)
   /
-  [`compute_co_occurrence_ratio()`](https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.md)
+  [`compute_co_occurrence_ratio()`](https://juninamo.github.io/cohalu/reference/compute_co_occurrence_ratio.md)
 - Local co-localization:
-  [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md)
+  [`cooccur_local_oe()`](https://juninamo.github.io/cohalu/reference/cooccur_local_oe.md)
   counts A-B pairs around each cell, divides by their exact expectation
   under label permutation and smooths with a Gaussian kernel
   (abundance-adjusted local log2 O/E, optional permutation hotspots, O(n
   k)); the original diffusion sCLS is kept as
-  [`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md)
+  [`cooccur_local()`](https://juninamo.github.io/cohalu/reference/cooccur_local.md)
 - Connected interaction spots:
-  [`search_interaction_spot()`](https://juninamo.github.io/spatialCooccur/reference/search_interaction_spot.md)
+  [`search_interaction_spot()`](https://juninamo.github.io/cohalu/reference/search_interaction_spot.md)
 
 **Multi-sample / disease-group comparison**
 
 - Per-image scores for Seurat objects, lists of Seurat objects or plain
   tables:
-  [`nhood_enrichment_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment_per_sample.md),
-  [`cooccur_ratio_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_ratio_per_sample.md),
-  [`cooccur_local_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_per_sample.md),
-  [`interaction_spot_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/interaction_spot_per_sample.md);
-  [`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
+  [`nhood_enrichment_per_sample()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment_per_sample.md),
+  [`cooccur_ratio_per_sample()`](https://juninamo.github.io/cohalu/reference/cooccur_ratio_per_sample.md),
+  [`cooccur_local_per_sample()`](https://juninamo.github.io/cohalu/reference/cooccur_local_per_sample.md),
+  [`interaction_spot_per_sample()`](https://juninamo.github.io/cohalu/reference/interaction_spot_per_sample.md);
+  [`summarize_by_patient()`](https://juninamo.github.io/cohalu/reference/summarize_by_patient.md)
   averages images within patients
-- [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md):
+- [`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md):
   Wilcoxon (exact for small samples), Welch’s *t*, linear mixed model
   with the patient as a random intercept
   (`value ~ group + covariates + (1 | patient)`; `lme4`, Satterthwaite
   df via `lmerTest`), patient-blocked permutation, and paired designs
   such as pre- vs post-treatment (`method = "signrank"`, within-patient
   permutation); warns on pseudoreplication
-- [`associate_continuous()`](https://juninamo.github.io/spatialCooccur/reference/associate_continuous.md):
+- [`associate_continuous()`](https://juninamo.github.io/cohalu/reference/associate_continuous.md):
   association with a continuous clinical variable (CRP, disease
   activity, age) with the patient as the unit (Spearman, linear model
   with covariates, linear mixed model with a random patient intercept,
   permutation)
 - Plots:
-  [`plot_group_delta_heatmap()`](https://juninamo.github.io/spatialCooccur/reference/plot_group_delta_heatmap.md),
-  [`plot_pair_boxplot()`](https://juninamo.github.io/spatialCooccur/reference/plot_pair_boxplot.md),
-  [`plot_volcano_groups()`](https://juninamo.github.io/spatialCooccur/reference/plot_volcano_groups.md)
+  [`plot_group_delta_heatmap()`](https://juninamo.github.io/cohalu/reference/plot_group_delta_heatmap.md),
+  [`plot_pair_boxplot()`](https://juninamo.github.io/cohalu/reference/plot_pair_boxplot.md),
+  [`plot_volcano_groups()`](https://juninamo.github.io/cohalu/reference/plot_volcano_groups.md)
 
 **Segmentation-free analysis of transcript coordinates (experimental)**
 
-- [`read_xenium_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/read_xenium_transcripts.md),
-  [`bin_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/bin_transcripts.md)
+- [`read_xenium_transcripts()`](https://juninamo.github.io/cohalu/reference/read_xenium_transcripts.md),
+  [`bin_transcripts()`](https://juninamo.github.io/cohalu/reference/bin_transcripts.md)
 - Model-free cross pair correlation of gene sets:
-  [`pcf_cross()`](https://juninamo.github.io/spatialCooccur/reference/pcf_cross.md),
-  [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md);
+  [`pcf_cross()`](https://juninamo.github.io/cohalu/reference/pcf_cross.md),
+  [`pcf_matrix()`](https://juninamo.github.io/cohalu/reference/pcf_matrix.md);
   the relative version is the transcript-level counterpart of `log2_oe`
 - Random-feature log-Gaussian Cox process factor model after Gundersen,
   Zhang & Engelhardt (AISTATS 2021):
-  [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md),
-  [`rff_pair_correlation()`](https://juninamo.github.io/spatialCooccur/reference/rff_pair_correlation.md);
-  [`rff_fields()`](https://juninamo.github.io/spatialCooccur/reference/rff_fields.md)
+  [`fit_spatial_rff()`](https://juninamo.github.io/cohalu/reference/fit_spatial_rff.md),
+  [`rff_pair_correlation()`](https://juninamo.github.io/cohalu/reference/rff_pair_correlation.md);
+  [`rff_fields()`](https://juninamo.github.io/cohalu/reference/rff_fields.md)
   returns the fitted latent fields (cellularity and factors) per cell,
   transcript or any point
-- [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
+- [`colocalization_per_sample()`](https://juninamo.github.io/cohalu/reference/colocalization_per_sample.md)
   feeds
-  [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
+  [`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md)
 - Unsupervised, gene-level:
-  [`colocalization_gene_matrix()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_gene_matrix.md)
+  [`colocalization_gene_matrix()`](https://juninamo.github.io/cohalu/reference/colocalization_gene_matrix.md)
   (gene x gene log2 O/E of transcript pairs within a radius),
-  [`colocalization_modules()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_modules.md)
+  [`colocalization_modules()`](https://juninamo.github.io/cohalu/reference/colocalization_modules.md)
   (co-localizing gene modules),
-  [`module_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichment.md)
+  [`module_enrichment()`](https://juninamo.github.io/cohalu/reference/module_enrichment.md)
   (any pathways or marker lists) and
-  [`module_enrichr()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichr.md)
+  [`module_enrichr()`](https://juninamo.github.io/cohalu/reference/module_enrichr.md)
   (enrichR)
 
-## How spatialCooccur fits with related tools
+## How COHALU fits with related tools
 
 Spatial transcriptomics now has excellent tools for discovering
-structure directly from the data. spatialCooccur is designed to sit next
-to them and focuses on one question: **how strongly do two defined cell
+structure directly from the data. COHALU is designed to sit next to them
+and focuses on one question: **how strongly do two defined cell
 populations or gene programmes co-localize, at which distance, and does
 this differ between groups of patients?**
 
@@ -133,9 +141,9 @@ this differ between groups of patients?**
 | [FICTURE](https://github.com/seqscope/ficture) (Si *et al.*, *Nat Methods* 2024) | Segmentation-free inference of spatial factors at submicron, pixel-level resolution with a multilayer Dirichlet model; scales to billions of transcripts |
 | [punkst](https://github.com/Yichen-Si/punkst) | Scalable toolkit implementing the FICTURE pixel-level factor pipeline and preparing results for visualization |
 | [MultiScale_ComplementMacrophage](https://github.com/fanzhanglab/MultiScale_ComplementMacrophage) (Guo *et al.*, in submission) | Spatial neighbourhood-based regression of gene-level associations (Gaussian-kernel neighbourhood exposure, adjusted for self expression and cell density) to define complement-associated niches in RA synovium |
-| **spatialCooccur** | Calibrated co-localization between labelled populations (cells, transcripts or factors) and **patient-level comparison across groups** |
+| **COHALU** | Calibrated co-localization between labelled populations (cells, transcripts or factors) and **patient-level comparison across groups** |
 
-What spatialCooccur adds:
+What COHALU adds:
 
 - **A calibrated effect size.** Every score is observed / expected under
   label permutation with positions fixed (`log2_oe`, relative pair
@@ -144,17 +152,17 @@ What spatialCooccur adds:
   so values can be compared between samples.
 
 - **Distance as an explicit axis.**
-  [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md)
+  [`pcf_matrix()`](https://juninamo.github.io/cohalu/reference/pcf_matrix.md)
   returns co-localization as a curve over distance for all pairs at once
   (FFT; 45 pairs over a whole Xenium section in about 1.5 minutes), so
   short-range contact and tissue-scale compartments are separated.
 
 - **Where, not only whether.**
-  [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md)
+  [`cooccur_local_oe()`](https://juninamo.github.io/cohalu/reference/cooccur_local_oe.md)
   maps local O/E and permutation hotspots for any pair.
 
 - **Case-control and paired designs.**
-  [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
+  [`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md)
   treats the patient as the unit (exact Wilcoxon, mixed models, blocked
   permutation, signed-rank and sign-flip for pre / post treatment), with
   power guidance and a pseudoreplication warning.
@@ -172,7 +180,7 @@ What spatialCooccur adds:
   ```
 
 - **A generative model when needed.**
-  [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+  [`fit_spatial_rff()`](https://juninamo.github.io/cohalu/reference/fit_spatial_rff.md)
   fits a random-feature log-Gaussian Cox process (Gundersen, Zhang &
   Engelhardt, AISTATS 2021) that learns spatial length scales and
   separates cellularity from composition.
@@ -207,20 +215,19 @@ Xenium 5K):
 
 | Task | Size | Time | Peak memory |
 |----|----|----|----|
-| [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md), 100 shuffles | 18k / 63k / 100k / 140k cells | 3 / 11 / 17 / 24 s | 0.7–1.4 GB |
-| [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md), no / 99 shuffles | 140k cells | 1.4 s / 15 s | 1.6 GB |
-| [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md) | 34 sections × 105 pairs | 0.2 s (signed-rank), 1.7 s (mixed model) | \< 0.6 GB |
-| [`read_xenium_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/read_xenium_transcripts.md) + [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md) | 1 section, 8 marker sets, 1.8M transcripts | 40 s | 5.5 GB (reading the 5K parquet) |
-| [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md), 6 factors | 1 mm × 1 mm | 2.9 min | 5.5 GB |
+| [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md), 100 shuffles | 18k / 63k / 100k / 140k cells | 3 / 11 / 17 / 24 s | 0.7–1.4 GB |
+| [`cooccur_local_oe()`](https://juninamo.github.io/cohalu/reference/cooccur_local_oe.md), no / 99 shuffles | 140k cells | 1.4 s / 15 s | 1.6 GB |
+| [`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md) | 34 sections × 105 pairs | 0.2 s (signed-rank), 1.7 s (mixed model) | \< 0.6 GB |
+| [`read_xenium_transcripts()`](https://juninamo.github.io/cohalu/reference/read_xenium_transcripts.md) + [`pcf_matrix()`](https://juninamo.github.io/cohalu/reference/pcf_matrix.md) | 1 section, 8 marker sets, 1.8M transcripts | 40 s | 5.5 GB (reading the 5K parquet) |
+| [`fit_spatial_rff()`](https://juninamo.github.io/cohalu/reference/fit_spatial_rff.md), 6 factors | 1 mm × 1 mm | 2.9 min | 5.5 GB |
 
 > **Note for users of versions \<= 0.99.1.** Version 0.99.2 fixes the
 > permutation null of
-> [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
+> [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)
 > (same-type z-scores were inflated) and the diffusion of
-> [`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md)
+> [`cooccur_local()`](https://juninamo.github.io/cohalu/reference/cooccur_local.md)
 > for `maxnsteps > 1`. Results from earlier versions are not directly
-> comparable; see
-> [NEWS](https://juninamo.github.io/spatialCooccur/NEWS.md).
+> comparable; see [NEWS](https://juninamo.github.io/cohalu/NEWS.md).
 
 ## Quick start
 
@@ -228,7 +235,7 @@ Xenium 5K):
 
 ``` r
 
-library(spatialCooccur)
+library(cohalu)
 df <- generate_sim(close_ratio = 1, n_types = 15, max_loc = 800, n_cells = 500,
                    test_type = "circle", distance_param = 20, seed = 1234)
 
@@ -291,14 +298,14 @@ module_enrichment(mods, my_pathways)      # named list of gene sets
 ## How the methods work
 
 - Neighbourhood enrichment
-  ([`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md))
+  ([`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md))
 
 ![](reference/figures/method_nhood.png)
 
   
 
 - Local co-localization and hotspots
-  ([`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md))
+  ([`cooccur_local_oe()`](https://juninamo.github.io/cohalu/reference/cooccur_local_oe.md))
 
 ![](reference/figures/method_local.png)
 
@@ -308,7 +315,7 @@ The JCI Insight paper below used an earlier version of these methods
 (neighbourhood enrichment reported as z-scores, and a random-walk
 co-localization score). Since 0.99.3 the package reports log2 O/E with
 permutation-based multiple-testing correction and the local O/E; see
-[NEWS](https://juninamo.github.io/spatialCooccur/news/index.html).
+[NEWS](https://juninamo.github.io/cohalu/news/index.html).
 
 ## 📝 Citation
 

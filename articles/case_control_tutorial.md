@@ -1,7 +1,7 @@
-# Case-control comparison of spatial co-localization with spatialCooccur
+# Case-control comparison of spatial co-localization with COHALU
 
 This article is a rendered copy of the Jupyter notebook
-[`vignettes/case_control_tutorial.ipynb`](https://github.com/juninamo/spatialCooccur/blob/master/vignettes/case_control_tutorial.ipynb);
+[`vignettes/case_control_tutorial.ipynb`](https://github.com/juninamo/cohalu/blob/master/vignettes/case_control_tutorial.ipynb);
 download it to run the code yourself.
 
 **Author:** Jun Inamo (<juninamo@keio.jp>)
@@ -44,8 +44,8 @@ controls, and nothing else differs.
 
 Inside a clone of the repository, the development version is loaded with
 `devtools::load_all()`. Otherwise, install the package with
-`devtools::install_github("juninamo/spatialCooccur")` and call
-[`library(spatialCooccur)`](https://juninamo.github.io/spatialCooccur/).
+`devtools::install_github("juninamo/COHALU")` and call
+[`library(cohalu)`](https://juninamo.github.io/cohalu/).
 
 ``` r
 
@@ -53,7 +53,7 @@ suppressPackageStartupMessages(suppressWarnings({
   if (file.exists("../DESCRIPTION")) {
     devtools::load_all("..", quiet = TRUE)
   } else {
-    library(spatialCooccur)
+    library(cohalu)
   }
   library(ggplot2)
   library(patchwork)
@@ -74,7 +74,7 @@ theme_tut <- theme_minimal(base_size = 12) +
 
 ### A quick check of the permutation null
 
-[`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
+[`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)
 compares the observed number of neighbor edges between two cell types
 with a label-permutation null. If cells are placed completely at random,
 the z-scores should look like draws from N(0, 1) for **every** pair,
@@ -86,7 +86,7 @@ tissues give 640 same-type and 4,480 different-type values, and the
 actual test (`pvalue < 0.05`) is checked as well: it should be about 5%
 for both.
 
-> **Note.** spatialCooccur ≤ 0.99.1 shuffled the row and column labels
+> **Note.** COHALU ≤ 0.99.1 shuffled the row and column labels
 > *independently*, so each cell had two different labels in the null.
 > Under spatial randomness that inflated same-type z-scores to about +11
 > and pushed different-type z-scores to about −2. The current version
@@ -149,7 +149,7 @@ A data.frame: 2 × 2 {.table .dataframe}
 
 ## 2. Simulate a case-control cohort
 
-[`generate_sim_groups()`](https://juninamo.github.io/spatialCooccur/reference/generate_sim_groups.md)
+[`generate_sim_groups()`](https://juninamo.github.io/cohalu/reference/generate_sim_groups.md)
 simulates **8 case and 8 control patients with 3 images each** (48
 images). With `test_type = "distribute"`, a fraction `close_ratio` of
 `cell_type_2` cells is placed about `distance_param` away from a
@@ -238,7 +238,7 @@ ggplot(map_df, aes(x, y)) +
 
 ## 3. Per-image neighborhood enrichment
 
-[`nhood_enrichment_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment_per_sample.md)
+[`nhood_enrichment_per_sample()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment_per_sample.md)
 runs the permutation test separately in every image. Labels are shuffled
 **within** an image, so the null keeps that image’s cell-type
 composition. Cell-type levels are harmonized across images, so a cell
@@ -279,7 +279,7 @@ Time difference of 14.26745 secs
 | 3 | case_1_img1 | cell_type_3 | cell_type_1 | -0.02485323 | 18.91202 | 18.94504 | 0.0009870095 | case | case_1 | 1200 | 149 | 177 |
 | 4 | case_1_img1 | cell_type_4 | cell_type_1 | -0.59872946 | 14.14555 | 14.84565 | -0.0647837528 | case | case_1 | 1200 | 115 | 177 |
 
-A spatialCooccurSample: 4 × 12 {.table .dataframe}
+A cohaluSample: 4 × 12 {.table .dataframe}
 
 One row per `image x cluster_i x cluster_j`:
 
@@ -384,7 +384,7 @@ abundance yourself with `n_i` / `n_j`.
 
 ## 5. Patient-level summaries and sanity checks
 
-[`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
+[`summarize_by_patient()`](https://juninamo.github.io/cohalu/reference/summarize_by_patient.md)
 averages image-level scores within each patient. It gives one value per
 patient for each pair and recomputes no permutations. This is what
 `unit = "patient"` does inside the `*_per_sample()` helpers.
@@ -431,7 +431,7 @@ ggplot(hm, aes(cluster_i, cluster_j, fill = log2_oe)) +
 
 Three strategies respect the fact that patients, not images, are
 independent. Each is one call to
-[`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md):
+[`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md):
 
 | strategy | input | call |
 |----|----|----|
@@ -593,7 +593,7 @@ A data.frame: 1 × 4 {.table .dataframe}
 Images from the same patient share that patient’s biology, so they are
 correlated. A Wilcoxon or t-test on all images acts as if there were 3x
 more independent observations than there are (**pseudoreplication**).
-[`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
+[`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md)
 therefore averages images within patients by default
 (`unit = "patient"`); the experiment below uses `unit = "image"` on
 purpose to show what goes wrong otherwise. The next experiment shows how
@@ -672,18 +672,18 @@ stay at or below 5%.
 ## 8. Other co-localization metrics
 
 The same `*_per_sample()` →
-[`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
+[`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md)
 pattern works for the other scores in the package:
 
-- [`cooccur_ratio_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_ratio_per_sample.md):
+- [`cooccur_ratio_per_sample()`](https://juninamo.github.io/cohalu/reference/cooccur_ratio_per_sample.md):
   radius-based co-occurrence ratio p(j \| neighbor of i) / p(j). It is
   normalized by composition but has no permutation null.
-- [`cooccur_local_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_per_sample.md):
+- [`cooccur_local_per_sample()`](https://juninamo.github.io/cohalu/reference/cooccur_local_per_sample.md):
   per-cell local co-occurrence score (sCLS), summarized per image. It
   has **no null model**, so its level rises with the abundance of the
   two cell types. Check `n_i` / `n_j`, or adjust for them as covariates,
   when groups differ in composition.
-- [`interaction_spot_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/interaction_spot_per_sample.md)
+- [`interaction_spot_per_sample()`](https://juninamo.github.io/cohalu/reference/interaction_spot_per_sample.md)
   (Seurat input): number of connected interaction spots. Compare
   `spots_per_1k_cells` rather than raw `n_spots` when images differ in
   size.
@@ -778,7 +778,7 @@ Practical consequences:
 ## 10. Checklist
 
 1.  **Unit of analysis = patient.** Aggregate with
-    [`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
+    [`summarize_by_patient()`](https://juninamo.github.io/cohalu/reference/summarize_by_patient.md)
     / `unit = "patient"`, or keep images and use `method = "lmm"` or
     `"perm"` with `patient_key`.
 2.  **Compare `log2_oe`, not `zscore` or `count`.** z-scores scale with
@@ -799,7 +799,7 @@ Practical consequences:
 
 Many clinical variables are continuous (CRP, disease activity, number of
 affected joints, age).
-[`associate_continuous()`](https://juninamo.github.io/spatialCooccur/reference/associate_continuous.md)
+[`associate_continuous()`](https://juninamo.github.io/cohalu/reference/associate_continuous.md)
 tests, for every cell-type pair, whether a per-image score changes with
 such a variable, with the patient as the unit: Spearman correlation of
 patient means (default), a linear model with covariates (`"lm"`), a
@@ -882,7 +882,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.3
+[1] patchwork_1.1.3       ggplot2_3.4.4         cohalu_0.99.3
 [4] testthat_3.2.1       
 
 loaded via a namespace (and not attached):

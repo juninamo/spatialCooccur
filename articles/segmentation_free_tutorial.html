@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Segmentation-free co-localization analysis of transcript coordinates (experimental) • spatialCooccur</title>
+<title>Segmentation-free co-localization analysis of transcript coordinates (experimental) • cohalu</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Segmentation-free co-localization analysis of transcript coordinates (experimental)">
-<meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
+<meta name="description" content="COHALU: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -25,7 +25,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">spatialCooccur</a>
+    <a class="navbar-brand me-2" href="../index.html">cohalu</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
@@ -63,7 +63,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/juninamo/spatialCooccur/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/juninamo/cohalu/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -79,14 +79,14 @@
       <img src="../logo.png" class="logo" alt=""><h1>Segmentation-free co-localization analysis of transcript coordinates (experimental)</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/juninamo/spatialCooccur/blob/master/vignettes/articles/segmentation_free_tutorial.Rmd" class="external-link"><code>vignettes/articles/segmentation_free_tutorial.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/juninamo/cohalu/blob/master/vignettes/articles/segmentation_free_tutorial.Rmd" class="external-link"><code>vignettes/articles/segmentation_free_tutorial.Rmd</code></a></small>
       <div class="d-none name"><code>segmentation_free_tutorial.Rmd</code></div>
     </div>
 
     
     
 <div class="nb-source">
-<p>This article is a rendered copy of the Jupyter notebook <a href="https://github.com/juninamo/spatialCooccur/blob/master/vignettes/segmentation_free_tutorial.ipynb" class="external-link"><code>vignettes/segmentation_free_tutorial.ipynb</code></a>;
+<p>This article is a rendered copy of the Jupyter notebook <a href="https://github.com/juninamo/cohalu/blob/master/vignettes/segmentation_free_tutorial.ipynb" class="external-link"><code>vignettes/segmentation_free_tutorial.ipynb</code></a>;
 download it to run the code yourself.</p>
 </div>
 <p><strong>Author:</strong> Jun Inamo (<a href="mailto:juninamo@keio.jp" class="email">juninamo@keio.jp</a>)</p>
@@ -180,7 +180,7 @@ or pixel-level factors, for example from FICTURE / punkst:</li>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="st">"../DESCRIPTION"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu">devtools</span><span class="fu">::</span><span class="fu">load_all</span><span class="op">(</span><span class="st">".."</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>    <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/spatialCooccur/">spatialCooccur</a></span><span class="op">)</span></span>
+<span>    <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/cohalu/">cohalu</a></span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
@@ -866,7 +866,7 @@ directory. <code><a href="../reference/read_xenium_transcripts.html">read_xenium
 that store gene names as binary, filters on <code>qv &gt;= 20</code>,
 and drops control probes.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cache</span> <span class="op">&lt;-</span> <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/userdir.html" class="external-link">R_user_dir</a></span><span class="op">(</span><span class="st">"spatialCooccur"</span>, <span class="st">"cache"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">cache</span> <span class="op">&lt;-</span> <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/userdir.html" class="external-link">R_user_dir</a></span><span class="op">(</span><span class="st">"COHALU"</span>, <span class="st">"cache"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">cache</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">pq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">cache</span>, <span class="st">"Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_transcripts.parquet"</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">pq</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -1888,7 +1888,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.3
+[1] patchwork_1.1.3       ggplot2_3.4.4         cohalu_0.99.3
 [4] testthat_3.2.1       
 
 loaded via a namespace (and not attached):

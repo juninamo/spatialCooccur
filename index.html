@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>spatialCooccur: calibrated co-localization for spatial transcriptomics • spatialCooccur</title>
+<title>COHALU: CO-localization, Hotspots And sample-Level Units • cohalu</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -16,11 +16,11 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
-<meta property="og:title" content="spatialCooccur: calibrated co-localization for spatial transcriptomics">
-<meta name="description" content="spatialCooccur quantifies how cell types are arranged relative to each other in spatial transcriptomics data. It provides a permutation-based neighborhood enrichment test (z-score and observed-over-expected effect size), radius-based co-occurrence ratios, a per-cell local co-localization score smoothed over the neighbor graph, and detection of connected interaction spots. Scores can be computed for each image of a multi-sample study and compared between disease groups with Wilcoxon, t, linear mixed model or patient-blocked permutation tests that treat the patient as the unit of analysis. Seurat objects and plain coordinate tables are supported as input, and simulators with a planted cell-cell interaction are included for benchmarking.">
-<meta property="og:description" content="spatialCooccur quantifies how cell types are arranged relative to each other in spatial transcriptomics data. It provides a permutation-based neighborhood enrichment test (z-score and observed-over-expected effect size), radius-based co-occurrence ratios, a per-cell local co-localization score smoothed over the neighbor graph, and detection of connected interaction spots. Scores can be computed for each image of a multi-sample study and compared between disease groups with Wilcoxon, t, linear mixed model or patient-blocked permutation tests that treat the patient as the unit of analysis. Seurat objects and plain coordinate tables are supported as input, and simulators with a planted cell-cell interaction are included for benchmarking.">
-<meta property="og:image" content="https://juninamo.github.io/spatialCooccur/logo.png">
-<meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
+<meta property="og:title" content="COHALU: CO-localization, Hotspots And sample-Level Units">
+<meta name="description" content='COHALU (CO-localization, Hotspots And sample-Level Units; read "koharu") quantifies how cell types, transcripts or other labelled populations are arranged relative to each other in spatial omics data. It provides a permutation-based neighborhood enrichment test (z-score and observed-over-expected effect size), radius-based co-occurrence ratios, a per-cell local co-localization score smoothed over the neighbor graph, and detection of connected interaction spots. Scores can be computed for each image of a multi-sample study and compared between disease groups with Wilcoxon, t, linear mixed model or blocked permutation tests that treat the biological unit (patient, donor, animal) as the unit of analysis. Seurat objects and plain coordinate tables are supported as input, and simulators with a planted cell-cell interaction are included for benchmarking.'>
+<meta property="og:description" content='COHALU (CO-localization, Hotspots And sample-Level Units; read "koharu") quantifies how cell types, transcripts or other labelled populations are arranged relative to each other in spatial omics data. It provides a permutation-based neighborhood enrichment test (z-score and observed-over-expected effect size), radius-based co-occurrence ratios, a per-cell local co-localization score smoothed over the neighbor graph, and detection of connected interaction spots. Scores can be computed for each image of a multi-sample study and compared between disease groups with Wilcoxon, t, linear mixed model or blocked permutation tests that treat the biological unit (patient, donor, animal) as the unit of analysis. Seurat objects and plain coordinate tables are supported as input, and simulators with a planted cell-cell interaction are included for benchmarking.'>
+<meta property="og:image" content="https://juninamo.github.io/cohalu/logo.png">
+<meta name="description" content="COHALU: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -28,7 +28,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">spatialCooccur</a>
+    <a class="navbar-brand me-2" href="index.html">cohalu</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.3</small>
 
@@ -66,7 +66,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/juninamo/spatialCooccur/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/juninamo/cohalu/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -76,18 +76,22 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="spatialcooccur-">spatialCooccur <a class="anchor" aria-label="anchor" href="#spatialcooccur-"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="cohalu-">COHALU <a class="anchor" aria-label="anchor" href="#cohalu-"></a>
 </h1>
 </div>
-<p><a href="https://doi.org/10.5281/zenodo.17498341" class="external-link"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17498341.svg" alt="DOI"></a> <a href="https://juninamo.github.io/spatialCooccur/"><img src="https://img.shields.io/badge/docs-juninamo.github.io%2FspatialCooccur-4a3aa7" alt="Website"></a></p>
-<p><code>spatialCooccur</code> is an R package for analyzing spatial co-occurrence and neighborhood interactions in spatial transcriptomics data. It quantifies whether cell types sit together more (or less) often than expected by chance, maps where they meet, <strong>compares these scores between patient groups</strong> with statistics that treat the patient as the unit of analysis, and (experimentally) measures co-localization <strong>directly from transcript coordinates</strong> without cell segmentation.</p>
-<p><strong>Documentation, tutorials and function reference: <a href="https://juninamo.github.io/spatialCooccur/" class="uri">https://juninamo.github.io/spatialCooccur/</a></strong></p>
+<p><strong>CO-localization, Hotspots And sample-Level Units</strong> (read <em>koharu</em>, 小春).</p>
+<blockquote>
+<p>COHALU is the updated version of <strong>spatialCooccur</strong>, renamed in v0.99.3. Function names and arguments are unchanged: replace <code><a href="https://juninamo.github.io/spatialCooccur/" class="external-link">library(spatialCooccur)</a></code> with <code><a href="https://juninamo.github.io/cohalu/">library(cohalu)</a></code>.</p>
+</blockquote>
+<p><a href="https://doi.org/10.5281/zenodo.17498341" class="external-link"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17498341.svg" alt="DOI"></a> <a href="https://juninamo.github.io/cohalu/"><img src="https://img.shields.io/badge/docs-juninamo.github.io%2Fcohalu-4a3aa7" alt="Website"></a></p>
+<p>COHALU is an R package for analyzing spatial co-occurrence and neighborhood interactions in spatial transcriptomics data. It quantifies whether cell types sit together more (or less) often than expected by chance, maps where they meet, <strong>compares these scores between patient groups</strong> with statistics that treat the patient as the unit of analysis, and (experimentally) measures co-localization <strong>directly from transcript coordinates</strong> without cell segmentation.</p>
+<p><strong>Documentation, tutorials and function reference: <a href="https://juninamo.github.io/cohalu/" class="uri">https://juninamo.github.io/cohalu/</a></strong></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"juninamo/spatialCooccur"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"juninamo/cohalu"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="tutorials">Tutorials<a class="anchor" aria-label="anchor" href="#tutorials"></a>
@@ -103,24 +107,24 @@
 </tr></thead>
 <tbody>
 <tr>
-<td><a href="https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_simulation.html">Simulation data: SNA &amp; sCLS</a></td>
+<td><a href="https://juninamo.github.io/cohalu/articles/SNA_tutorial_simulation.html">Simulation data: SNA &amp; sCLS</a></td>
 <td>Neighborhood enrichment and the local co-localization score on simulated tissue</td>
 </tr>
 <tr>
-<td><a href="https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_10Xdata.html">10x Xenium data: SNA &amp; sCLS</a></td>
+<td><a href="https://juninamo.github.io/cohalu/articles/SNA_tutorial_10Xdata.html">10x Xenium data: SNA &amp; sCLS</a></td>
 <td>The same analyses on public Xenium human breast and mouse brain data</td>
 </tr>
 <tr>
-<td><a href="https://juninamo.github.io/spatialCooccur/articles/case_control_tutorial.html">Case-control comparison</a></td>
+<td><a href="https://juninamo.github.io/cohalu/articles/case_control_tutorial.html">Case-control comparison</a></td>
 <td>Several images per patient: choosing the score, patient-level tests (Wilcoxon / LMM / blocked permutation), pseudoreplication, covariates, power</td>
 </tr>
 <tr>
 <td>
-<a href="https://juninamo.github.io/spatialCooccur/articles/segmentation_free_tutorial.html">Segmentation-free co-localization</a> (experimental)</td>
+<a href="https://juninamo.github.io/cohalu/articles/segmentation_free_tutorial.html">Segmentation-free co-localization</a> (experimental)</td>
 <td>Cross pair correlation of marker transcripts, a random-feature log-Gaussian Cox process model, case-control testing, Xenium mouse brain</td>
 </tr>
 <tr>
-<td><a href="https://juninamo.github.io/spatialCooccur/articles/algorithms.html">Algorithm reference</a></td>
+<td><a href="https://juninamo.github.io/cohalu/articles/algorithms.html">Algorithm reference</a></td>
 <td>The mathematics behind every core function</td>
 </tr>
 </tbody>
@@ -167,9 +171,9 @@
 </ul>
 </div>
 <div class="section level2">
-<h2 id="how-spatialcooccur-fits-with-related-tools">How spatialCooccur fits with related tools<a class="anchor" aria-label="anchor" href="#how-spatialcooccur-fits-with-related-tools"></a>
+<h2 id="how-cohalu-fits-with-related-tools">How COHALU fits with related tools<a class="anchor" aria-label="anchor" href="#how-cohalu-fits-with-related-tools"></a>
 </h2>
-<p>Spatial transcriptomics now has excellent tools for discovering structure directly from the data. spatialCooccur is designed to sit next to them and focuses on one question: <strong>how strongly do two defined cell populations or gene programmes co-localize, at which distance, and does this differ between groups of patients?</strong></p>
+<p>Spatial transcriptomics now has excellent tools for discovering structure directly from the data. COHALU is designed to sit next to them and focuses on one question: <strong>how strongly do two defined cell populations or gene programmes co-localize, at which distance, and does this differ between groups of patients?</strong></p>
 <table class="table">
 <colgroup>
 <col width="50%">
@@ -195,13 +199,13 @@
 <td>Spatial neighbourhood-based regression of gene-level associations (Gaussian-kernel neighbourhood exposure, adjusted for self expression and cell density) to define complement-associated niches in RA synovium</td>
 </tr>
 <tr>
-<td><strong>spatialCooccur</strong></td>
+<td><strong>COHALU</strong></td>
 <td>Calibrated co-localization between labelled populations (cells, transcripts or factors) and <strong>patient-level comparison across groups</strong>
 </td>
 </tr>
 </tbody>
 </table>
-<p>What spatialCooccur adds:</p>
+<p>What COHALU adds:</p>
 <ul>
 <li><p><strong>A calibrated effect size.</strong> Every score is observed / expected under label permutation with positions fixed (<code>log2_oe</code>, relative pair correlation). It is verified on negative controls to stay at zero for any number of cell types, cell abundance, image size or cellularity, so values can be compared between samples.</p></li>
 <li><p><strong>Distance as an explicit axis.</strong> <code><a href="reference/pcf_matrix.html">pcf_matrix()</a></code> returns co-localization as a curve over distance for all pairs at once (FFT; 45 pairs over a whole Xenium section in about 1.5 minutes), so short-range contact and tissue-scale compartments are separated.</p></li>
@@ -340,7 +344,7 @@
 <h3 id="id_1-spatial-neighborhood-analysis-sna">1. Spatial Neighborhood Analysis (SNA)<a class="anchor" aria-label="anchor" href="#id_1-spatial-neighborhood-analysis-sna"></a>
 </h3>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/spatialCooccur/">spatialCooccur</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/cohalu/">cohalu</a></span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_sim.html">generate_sim</a></span><span class="op">(</span>close_ratio <span class="op">=</span> <span class="fl">1</span>, n_types <span class="op">=</span> <span class="fl">15</span>, max_loc <span class="op">=</span> <span class="fl">800</span>, n_cells <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>                   test_type <span class="op">=</span> <span class="st">"circle"</span>, distance_param <span class="op">=</span> <span class="fl">20</span>, seed <span class="op">=</span> <span class="fl">1234</span><span class="op">)</span></span>
 <span></span>
@@ -422,7 +426,7 @@ Jun Inamo, Roselyn Fierkens, Michael R CLay, Anna Helena Jonsson, Clara Lin, Kar
 </ul>
 <p><kbd> <img src="reference/figures/method_local.png" width="800" align="center"></kbd></p>
 <p>  </p>
-<p>The JCI Insight paper below used an earlier version of these methods (neighbourhood enrichment reported as z-scores, and a random-walk co-localization score). Since 0.99.3 the package reports log2 O/E with permutation-based multiple-testing correction and the local O/E; see <a href="https://juninamo.github.io/spatialCooccur/news/index.html">NEWS</a>.</p>
+<p>The JCI Insight paper below used an earlier version of these methods (neighbourhood enrichment reported as z-scores, and a random-walk co-localization score). Since 0.99.3 the package reports log2 O/E with permutation-based multiple-testing correction and the local O/E; see <a href="https://juninamo.github.io/cohalu/news/index.html">NEWS</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="pencil-citation">📝 Citation<a class="anchor" aria-label="anchor" href="#pencil-citation"></a>
@@ -449,8 +453,8 @@ This work was supported by the Uehara Memorial Foundation Postdoctoral Fellowshi
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/juninamo/spatialCooccur/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/juninamo/spatialCooccur/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/juninamo/cohalu/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/juninamo/cohalu/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -465,7 +469,7 @@ This work was supported by the Uehara Memorial Foundation Postdoctoral Fellowshi
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing spatialCooccur</a></li>
+<li><a href="authors.html#citation">Citing cohalu</a></li>
 </ul>
 </div>
 

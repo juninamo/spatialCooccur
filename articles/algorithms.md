@@ -1,13 +1,13 @@
-# Algorithm reference: core spatialCooccur functions
+# Algorithm reference: core COHALU functions
 
 This vignette documents the mathematics behind each core function in
-**spatialCooccur**. The formulas mirror the implementation in
-`R/spatialCooccur_functions.R` line-by-line, not a stylized version.
+**COHALU**. The formulas mirror the implementation in
+`R/cohalu_functions.R` line-by-line, not a stylized version.
 
 ``` r
 
-library(spatialCooccur)
-#> Loading spatialCooccur v0.99.3: An R package for analyzing spatial co-occurrence.
+library(cohalu)
+#> Loading cohalu v0.99.3: COHALU - CO-localization, Hotspots And sample-Level Units (formerly spatialCooccur).
 #> To cite this package in publications, please use:
 #>   Inamo J, et al. (2026). Spatial transcriptomics reveals  immune-stromal crosstalk within the synovium of patients with  juvenile idiopathic arthritis. JCI Insight. 11(1):e198074.  doi:10.1172/jci.insight.198074
 #> Developed by: Jun Inamo <juninamo@keio.jp>
@@ -39,7 +39,7 @@ cluster label (e.g. cell type). For each function we additionally use:
 
 ## `generate_sim()` — synthetic spatial layouts
 
-[`generate_sim()`](https://juninamo.github.io/spatialCooccur/reference/generate_sim.md)
+[`generate_sim()`](https://juninamo.github.io/cohalu/reference/generate_sim.md)
 produces a single sample under one of three generative schemes. The user
 supplies `close_ratio` $`\rho`$, `distance_param` $`\Delta`$, `n_cells`
 $`N`$, `n_types` $`K`$, and `max_loc` $`L`$ (the side length of the
@@ -83,7 +83,7 @@ pair is.
 
 ### `test_type = "circle"`
 
-[`generate_sim()`](https://juninamo.github.io/spatialCooccur/reference/generate_sim.md)
+[`generate_sim()`](https://juninamo.github.io/cohalu/reference/generate_sim.md)
 sets the disk centre at $`\mathbf{c} = (L/2, L/2)`$ and the radius at
 $`R = \lceil L/6 \rceil`$. Of $`n_1 = \lceil N/K \rceil`$`cell_type_1`
 cells, a fraction $`\rho`$ is placed inside / on the disk:
@@ -161,12 +161,12 @@ C_{ij} \;=\; \sum_{u \in \mathcal{V}_{c_i}} \sum_{v \in \mathcal{V}_{c_j}} \tild
 ```
 
 This is the observed value, implemented in
-[`compute_count()`](https://juninamo.github.io/spatialCooccur/reference/compute_count.md)
+[`compute_count()`](https://juninamo.github.io/cohalu/reference/compute_count.md)
 as $`M^\top \tilde A M`$ with one-hot cluster indicators $`M`$.
 
 #### Step 4 — permutation null
 
-[`permute_clusters()`](https://juninamo.github.io/spatialCooccur/reference/permute_clusters.md)
+[`permute_clusters()`](https://juninamo.github.io/cohalu/reference/permute_clusters.md)
 draws **one** uniform random permutation $`\pi^{(b)}`$ of the cluster
 labels and applies it to rows and columns alike, so every cell keeps a
 single (random) label, and recomputes the count:
@@ -275,7 +275,7 @@ plot_nhood_heatmap(res, value = "dominance_log2_oe")  # directional
 ## `calc_co_occurrence_for_radius()` and `compute_co_occurrence_ratio()`
 
 Where
-[`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
+[`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)
 works on a fixed-$`k`$ graph, these two functions work on a
 fixed-*radius* neighborhood and report a conditional-probability ratio
 instead of a z-score.
@@ -297,7 +297,7 @@ when accumulated over all cells. The matrix is stored under
 
 #### Step 2 — enrichment ratio
 
-[`compute_co_occurrence_ratio()`](https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.md)
+[`compute_co_occurrence_ratio()`](https://juninamo.github.io/cohalu/reference/compute_co_occurrence_ratio.md)
 then converts $`C`$ to a ratio of empirical probabilities (Lifshitz /
 Giotto convention):
 
@@ -316,7 +316,7 @@ r_{ij} \;=\; \frac{P(j \mid i)}{P(j)}\;.
 $`r_{ij} > 1`$ means a cell in cluster $`c_i`$ is more likely to have a
 cluster-$`c_j`$ neighbor than chance predicts from the overall pair
 composition. Unlike the z-score in
-§[`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md),
+§[`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md),
 this ratio is deterministic — no permutation is run.
 
 ## `cooccur_local()` — per-cell local co-occurrence
@@ -346,9 +346,9 @@ excluded). The score is symmetric in $`(c_x, c_y)`$.
 #### Step 2 — single graph-diffusion step
 
 The raw indicator is sparse.
-[`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md)
+[`cooccur_local()`](https://juninamo.github.io/cohalu/reference/cooccur_local.md)
 smooths it once over the kNN graph $`A`$ (same construction as in
-[`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)).
+[`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)).
 With $`D = \mathrm{diag}(d_v + 1)`$:
 
 ``` math
@@ -406,7 +406,7 @@ search, $`O(nk)`$; each shuffle is one more pass.
 
 Per-image scores $`y_{pm}`$ (image $`m`$ of patient $`p`$,
 e.g. `log2_oe`) come from
-[`nhood_enrichment_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment_per_sample.md)
+[`nhood_enrichment_per_sample()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment_per_sample.md)
 and related helpers. For every cell-type pair, with the patient as the
 unit:
 
@@ -431,7 +431,7 @@ unit:
   signed-rank.
 
 Benjamini–Hochberg over pairs.
-[`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
+[`summarize_by_patient()`](https://juninamo.github.io/cohalu/reference/summarize_by_patient.md)
 averages images within patient, pair and distance `r`.
 
 ## Continuous variables — `associate_continuous()`
@@ -483,7 +483,7 @@ correlations follow from
 $`g_{AB}(r) = \exp \mathrm{Cov}[\log\lambda_A(u), \log\lambda_B(u + r)]`$;
 removing $`f_0`$ gives the composition version. Because each $`f_k`$ is
 a function of the coordinates,
-[`rff_fields()`](https://juninamo.github.io/spatialCooccur/reference/rff_fields.md)
+[`rff_fields()`](https://juninamo.github.io/cohalu/reference/rff_fields.md)
 evaluates the fitted (unit-variance) fields at any point - cell
 centroids or transcripts - and averages them per cell when a cell id is
 given.
@@ -501,7 +501,7 @@ E_{ab} = \frac{n_a n_b}{N (N - 1)}\, P_{\mathrm{all}},
 and $`\log_2((P_{ab} + c) / (E_{ab} + c))`$ is 0 without
 co-localization. Genes are clustered (average linkage, distance
 $`\max M - M`$) into modules;
-[`module_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/module_enrichment.md)
+[`module_enrichment()`](https://juninamo.github.io/cohalu/reference/module_enrichment.md)
 tests any gene sets per module with the hypergeometric test and BH.
 
 ## `search_interaction_spot()` — connected-component spots
@@ -553,21 +553,21 @@ columns `cluster_id`, `x_min`, `x_max`, `y_min`, `y_max`, and
 
 | Function | Unit | Local geometry | Statistic | Test |
 |----|----|----|----|----|
-| [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md) | cell-type pair (and ordered pair) | $`k`$-NN graph | centred log2 O/E; directional `contact`, `dominance` | shuffles: `pvalue`, max-T `padj` |
-| [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md) | cell, for a pair | radius $`r`$ + Gaussian smoothing | local log2 O/E | shuffles per cell, BH |
-| [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md) / [`compute_co_occurrence_ratio()`](https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.md) | cell-type pair | radius $`r`$ | $`P(j \mid i) / P(j)`$ | — |
-| [`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md) | cell, for a pair | radius $`r`$ + graph diffusion | 0/1 indicator (sCLS) | — |
-| [`search_interaction_spot()`](https://juninamo.github.io/spatialCooccur/reference/search_interaction_spot.md) | cell | radius $`r`$ + components | component size | — |
-| [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md) | patient | per-image scores | group difference | Wilcoxon, LMM, permutation, signed-rank |
-| [`associate_continuous()`](https://juninamo.github.io/spatialCooccur/reference/associate_continuous.md) | patient | per-image scores | slope / Spearman $`\rho`$ | Spearman, lm, LMM, permutation |
-| [`pcf_cross()`](https://juninamo.github.io/spatialCooccur/reference/pcf_cross.md) / [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md) | gene-set pair × $`r`$ | bins + FFT | (relative) $`g(r)`$ | via [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md) |
-| [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md) | genes | random-feature LGCP | model $`g(r)`$ | — |
-| [`colocalization_gene_matrix()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_gene_matrix.md) | gene pair | disc of radius $`r`$ | log2 O/E | modules + hypergeometric |
+| [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md) | cell-type pair (and ordered pair) | $`k`$-NN graph | centred log2 O/E; directional `contact`, `dominance` | shuffles: `pvalue`, max-T `padj` |
+| [`cooccur_local_oe()`](https://juninamo.github.io/cohalu/reference/cooccur_local_oe.md) | cell, for a pair | radius $`r`$ + Gaussian smoothing | local log2 O/E | shuffles per cell, BH |
+| [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/cohalu/reference/calc_co_occurrence_for_radius.md) / [`compute_co_occurrence_ratio()`](https://juninamo.github.io/cohalu/reference/compute_co_occurrence_ratio.md) | cell-type pair | radius $`r`$ | $`P(j \mid i) / P(j)`$ | — |
+| [`cooccur_local()`](https://juninamo.github.io/cohalu/reference/cooccur_local.md) | cell, for a pair | radius $`r`$ + graph diffusion | 0/1 indicator (sCLS) | — |
+| [`search_interaction_spot()`](https://juninamo.github.io/cohalu/reference/search_interaction_spot.md) | cell | radius $`r`$ + components | component size | — |
+| [`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md) | patient | per-image scores | group difference | Wilcoxon, LMM, permutation, signed-rank |
+| [`associate_continuous()`](https://juninamo.github.io/cohalu/reference/associate_continuous.md) | patient | per-image scores | slope / Spearman $`\rho`$ | Spearman, lm, LMM, permutation |
+| [`pcf_cross()`](https://juninamo.github.io/cohalu/reference/pcf_cross.md) / [`pcf_matrix()`](https://juninamo.github.io/cohalu/reference/pcf_matrix.md) | gene-set pair × $`r`$ | bins + FFT | (relative) $`g(r)`$ | via [`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md) |
+| [`fit_spatial_rff()`](https://juninamo.github.io/cohalu/reference/fit_spatial_rff.md) | genes | random-feature LGCP | model $`g(r)`$ | — |
+| [`colocalization_gene_matrix()`](https://juninamo.github.io/cohalu/reference/colocalization_gene_matrix.md) | gene pair | disc of radius $`r`$ | log2 O/E | modules + hypergeometric |
 
 The multi-sample functions run the single-sample statistics per image
 and test the per-image values with the patient as the unit; see the
 [case-control
-tutorial](https://juninamo.github.io/spatialCooccur/articles/case_control_tutorial.md).
+tutorial](https://juninamo.github.io/cohalu/articles/case_control_tutorial.md).
 
 ## Session information
 
@@ -595,7 +595,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] spatialCooccur_0.99.3
+#> [1] cohalu_0.99.3
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] deldir_2.0-4           pbapply_1.7-5          gridExtra_2.3.1       
