@@ -14,3 +14,5 @@ Rplots.pdf
 *.Rcheck/
 ~$*
 .ipynb_checkpoints/
+# local analysis backup (scripts, summary tables, figures; never pushed)
+analysis_backup/
