@@ -1,10 +1,10 @@
 ---
-title: "Algorithm reference: core spatialCooccur functions"
+title: "Algorithm reference: core COHALU functions"
 output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Algorithm reference: core spatialCooccur functions}
+  %\VignetteIndexEntry{Algorithm reference: core COHALU functions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -20,11 +20,11 @@ knitr::opts_chunk$set(
 ```
 
 This vignette documents the mathematics behind each core function in
-**spatialCooccur**. The formulas mirror the implementation in
-`R/spatialCooccur_functions.R` line-by-line, not a stylized version.
+**COHALU**. The formulas mirror the implementation in
+`R/cohalu_functions.R` line-by-line, not a stylized version.
 
 ```{r load}
-library(spatialCooccur)
+library(cohalu)
 ```
 
 # Notation

@@ -1,4 +1,4 @@
-url: https://juninamo.github.io/spatialCooccur/
+url: https://juninamo.github.io/cohalu/
 
 template:
   bootstrap: 5
@@ -10,10 +10,10 @@ template:
     btn-border-radius: 0.4rem
   includes:
     in_header: |
-      <meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
+      <meta name="description" content="COHALU: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
 
 home:
-  title: "spatialCooccur: calibrated co-localization for spatial transcriptomics"
+  title: "COHALU: CO-localization, Hotspots And sample-Level Units"
   sidebar:
     structure: [links, license, citation, authors, dev]
 

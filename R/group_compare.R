@@ -1,7 +1,7 @@
 # ---- Disease / condition group comparison utilities ----
 #
 # These functions add a sample-aware layer on top of the single-object
-# analyses in spatialCooccur_functions.R, so that scores can be computed
+# analyses in cohalu_functions.R, so that scores can be computed
 # per image (or aggregated per patient) and then compared between disease
 # groups using standard or mixed-effects statistics, or a group-label
 # permutation test.
@@ -394,7 +394,7 @@ summarize_by_patient <- function(per_sample_df, pair_keys = NULL) {
   out <- .aggregate_to_patient(as.data.frame(per_sample_df), pair_keys)
   attr(out, "spatial_design") <- attr(per_sample_df, "spatial_design")
   attr(out, "value_columns") <- attr(per_sample_df, "value_columns")
-  class(out) <- unique(c("spatialCooccurSample", class(out)))
+  class(out) <- unique(c("cohaluSample", class(out)))
   out
 }
 
@@ -421,7 +421,7 @@ summarize_by_patient <- function(per_sample_df, pair_keys = NULL) {
 #'   as common dimnames across samples. Defaults to the union across all
 #'   samples.
 #'
-#' @return A data.frame (also tagged with class `spatialCooccurSample`) with
+#' @return A data.frame (also tagged with class `cohaluSample`) with
 #'   columns `sample_id`, `cluster_i`, `cluster_j`, `zscore`, `count`,
 #'   `expected`, `log2_oe`, `group`, `patient`, plus `n_cells` (cells in the
 #'   sample) and `n_i` / `n_j` (cells of `cluster_i` / `cluster_j`).
@@ -509,7 +509,7 @@ nhood_enrichment_per_sample <- function(obj, sample_key, group_key, cluster_key,
   if (unit == "patient") tidy_df <- .aggregate_to_patient(tidy_df)
   attr(tidy_df, "spatial_design") <- design
   attr(tidy_df, "value_columns") <- c("zscore", "log2_oe", "count", "expected")
-  class(tidy_df) <- c("spatialCooccurSample", class(tidy_df))
+  class(tidy_df) <- c("cohaluSample", class(tidy_df))
   tidy_df
 }
 
@@ -621,7 +621,7 @@ cooccur_local_per_sample <- function(obj, sample_key, group_key, cluster_key,
   if (unit == "patient") tidy_df <- .aggregate_to_patient(tidy_df)
   attr(tidy_df, "spatial_design") <- design
   attr(tidy_df, "value_columns") <- intersect(summarize, colnames(tidy_df))
-  class(tidy_df) <- c("spatialCooccurSample", class(tidy_df))
+  class(tidy_df) <- c("cohaluSample", class(tidy_df))
   tidy_df
 }
 
@@ -718,7 +718,7 @@ cooccur_ratio_per_sample <- function(obj, sample_key, group_key, cluster_key,
   if (unit == "patient") tidy_df <- .aggregate_to_patient(tidy_df)
   attr(tidy_df, "spatial_design") <- design
   attr(tidy_df, "value_columns") <- c("ratio", "count")
-  class(tidy_df) <- c("spatialCooccurSample", class(tidy_df))
+  class(tidy_df) <- c("cohaluSample", class(tidy_df))
   tidy_df
 }
 
@@ -814,7 +814,7 @@ interaction_spot_per_sample <- function(seurat_object, sample_key, group_key,
   out <- do.call(rbind, rows)
   attr(out, "spatial_design") <- design
   attr(out, "value_columns") <- c("spots_per_1k_cells", "n_spots", "mean_spot_size")
-  class(out) <- c("spatialCooccurSample", class(out))
+  class(out) <- c("cohaluSample", class(out))
   out
 }
 

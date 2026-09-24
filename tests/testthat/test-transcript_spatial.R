@@ -1,6 +1,6 @@
 test_that(".grf_fft gives unit-variance fields with an RBF covariance", {
   set.seed(1)
-  f <- spatialCooccur:::.grf_fft(200, 200, delta = 1, ell = 5)
+  f <- cohalu:::.grf_fft(200, 200, delta = 1, ell = 5)
   expect_equal(var(as.vector(f)), 1, tolerance = 0.15)
   lag_cor <- cor(as.vector(f[1:195, ]), as.vector(f[6:200, ]))
   expect_equal(lag_cor, exp(-0.5), tolerance = 0.08)

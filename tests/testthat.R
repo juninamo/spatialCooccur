@@ -1,4 +1,4 @@
 library(testthat)
-library(spatialCooccur)
+library(cohalu)
 
-test_check("spatialCooccur")
+test_check("cohalu")

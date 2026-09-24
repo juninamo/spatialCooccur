@@ -1,24 +1,25 @@
-Package: spatialCooccur
+Package: cohalu
 Type: Package
-Title: Neighborhood Co-Occurrence and Spatial Interaction Analysis for Spatial Transcriptomics
+Title: CO-localization, Hotspots And Sample-Level Units for Spatial Omics
 Version: 0.99.3
 Authors@R: person("Jun", "Inamo",
                   email = "juninamo@keio.jp",
                   role = c("aut", "cre"))
-Description: spatialCooccur quantifies how cell types are arranged relative
-    to each other in spatial transcriptomics data. It provides a
+Description: COHALU (CO-localization, Hotspots And sample-Level Units; read
+    "koharu") quantifies how cell types, transcripts or other labelled
+    populations are arranged relative to each other in spatial omics data. It provides a
     permutation-based neighborhood enrichment test (z-score and
     observed-over-expected effect size), radius-based co-occurrence ratios, a
     per-cell local co-localization score smoothed over the neighbor graph, and
     detection of connected interaction spots. Scores can be computed for each
     image of a multi-sample study and compared between disease groups with
-    Wilcoxon, t, linear mixed model or patient-blocked permutation tests that
-    treat the patient as the unit of analysis. Seurat objects and plain
+    Wilcoxon, t, linear mixed model or blocked permutation tests that treat
+    the biological unit (patient, donor, animal) as the unit of analysis. Seurat objects and plain
     coordinate tables are supported as input, and simulators with a planted
     cell-cell interaction are included for benchmarking.
 License: MIT + file LICENSE
-URL: https://juninamo.github.io/spatialCooccur/, https://github.com/juninamo/spatialCooccur
-BugReports: https://github.com/juninamo/spatialCooccur/issues
+URL: https://juninamo.github.io/cohalu/, https://github.com/juninamo/cohalu
+BugReports: https://github.com/juninamo/cohalu/issues
 Encoding: UTF-8
 RoxygenNote: 7.3.1
 Depends: R (>= 4.3.0)

@@ -1,10 +1,16 @@
 
-# spatialCooccur <img src="man/figures/logo.png" align="right" height="138" />
+# COHALU <img src="man/figures/logo.png" align="right" height="138" />
+
+**CO-localization, Hotspots And sample-Level Units** (read *koharu*, 小春).
+
+> COHALU is the updated version of **spatialCooccur**, renamed in v0.99.3.
+> Function names and arguments are unchanged: replace
+> `library(spatialCooccur)` with `library(cohalu)`.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17498341.svg)](https://doi.org/10.5281/zenodo.17498341)
-[![Website](https://img.shields.io/badge/docs-juninamo.github.io%2FspatialCooccur-4a3aa7)](https://juninamo.github.io/spatialCooccur/)
+[![Website](https://img.shields.io/badge/docs-juninamo.github.io%2Fcohalu-4a3aa7)](https://juninamo.github.io/cohalu/)
 
-`spatialCooccur` is an R package for analyzing spatial co-occurrence and
+COHALU is an R package for analyzing spatial co-occurrence and
 neighborhood interactions in spatial transcriptomics data. It quantifies
 whether cell types sit together more (or less) often than expected by
 chance, maps where they meet, **compares these scores between patient
@@ -13,24 +19,24 @@ and (experimentally) measures co-localization **directly from transcript
 coordinates** without cell segmentation.
 
 **Documentation, tutorials and function reference:
-<https://juninamo.github.io/spatialCooccur/>**
+<https://juninamo.github.io/cohalu/>**
 
 ## Installation
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("juninamo/spatialCooccur")
+devtools::install_github("juninamo/cohalu")
 ```
 
 ## Tutorials
 
 | Tutorial | What it covers |
 |---|---|
-| [Simulation data: SNA & sCLS](https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_simulation.html) | Neighborhood enrichment and the local co-localization score on simulated tissue |
-| [10x Xenium data: SNA & sCLS](https://juninamo.github.io/spatialCooccur/articles/SNA_tutorial_10Xdata.html) | The same analyses on public Xenium human breast and mouse brain data |
-| [Case-control comparison](https://juninamo.github.io/spatialCooccur/articles/case_control_tutorial.html) | Several images per patient: choosing the score, patient-level tests (Wilcoxon / LMM / blocked permutation), pseudoreplication, covariates, power |
-| [Segmentation-free co-localization](https://juninamo.github.io/spatialCooccur/articles/segmentation_free_tutorial.html) (experimental) | Cross pair correlation of marker transcripts, a random-feature log-Gaussian Cox process model, case-control testing, Xenium mouse brain |
-| [Algorithm reference](https://juninamo.github.io/spatialCooccur/articles/algorithms.html) | The mathematics behind every core function |
+| [Simulation data: SNA & sCLS](https://juninamo.github.io/cohalu/articles/SNA_tutorial_simulation.html) | Neighborhood enrichment and the local co-localization score on simulated tissue |
+| [10x Xenium data: SNA & sCLS](https://juninamo.github.io/cohalu/articles/SNA_tutorial_10Xdata.html) | The same analyses on public Xenium human breast and mouse brain data |
+| [Case-control comparison](https://juninamo.github.io/cohalu/articles/case_control_tutorial.html) | Several images per patient: choosing the score, patient-level tests (Wilcoxon / LMM / blocked permutation), pseudoreplication, covariates, power |
+| [Segmentation-free co-localization](https://juninamo.github.io/cohalu/articles/segmentation_free_tutorial.html) (experimental) | Cross pair correlation of marker transcripts, a random-feature log-Gaussian Cox process model, case-control testing, Xenium mouse brain |
+| [Algorithm reference](https://juninamo.github.io/cohalu/articles/algorithms.html) | The mathematics behind every core function |
 
 The notebooks behind these pages are in [`vignettes/`](vignettes/).
 
@@ -91,10 +97,10 @@ The notebooks behind these pages are in [`vignettes/`](vignettes/).
   (co-localizing gene modules), `module_enrichment()` (any pathways or
   marker lists) and `module_enrichr()` (enrichR)
 
-## How spatialCooccur fits with related tools
+## How COHALU fits with related tools
 
 Spatial transcriptomics now has excellent tools for discovering structure
-directly from the data. spatialCooccur is designed to sit next to them and
+directly from the data. COHALU is designed to sit next to them and
 focuses on one question: **how strongly do two defined cell populations or
 gene programmes co-localize, at which distance, and does this differ between
 groups of patients?**
@@ -104,9 +110,9 @@ groups of patients?**
 | [FICTURE](https://github.com/seqscope/ficture) (Si *et al.*, *Nat Methods* 2024) | Segmentation-free inference of spatial factors at submicron, pixel-level resolution with a multilayer Dirichlet model; scales to billions of transcripts |
 | [punkst](https://github.com/Yichen-Si/punkst) | Scalable toolkit implementing the FICTURE pixel-level factor pipeline and preparing results for visualization |
 | [MultiScale_ComplementMacrophage](https://github.com/fanzhanglab/MultiScale_ComplementMacrophage) (Guo *et al.*, in submission) | Spatial neighbourhood-based regression of gene-level associations (Gaussian-kernel neighbourhood exposure, adjusted for self expression and cell density) to define complement-associated niches in RA synovium |
-| **spatialCooccur** | Calibrated co-localization between labelled populations (cells, transcripts or factors) and **patient-level comparison across groups** |
+| **COHALU** | Calibrated co-localization between labelled populations (cells, transcripts or factors) and **patient-level comparison across groups** |
 
-What spatialCooccur adds:
+What COHALU adds:
 
 - **A calibrated effect size.** Every score is observed / expected under
   label permutation with positions fixed (`log2_oe`, relative pair
@@ -185,7 +191,7 @@ Xenium 5K):
 ### 1. Spatial Neighborhood Analysis (SNA)
 
 ```r
-library(spatialCooccur)
+library(cohalu)
 df <- generate_sim(close_ratio = 1, n_types = 15, max_loc = 800, n_cells = 500,
                    test_type = "circle", distance_param = 20, seed = 1234)
 
@@ -277,7 +283,7 @@ The JCI Insight paper below used an earlier version of these methods
 (neighbourhood enrichment reported as z-scores, and a random-walk
 co-localization score). Since 0.99.3 the package reports log2 O/E with
 permutation-based multiple-testing correction and the local O/E; see
-[NEWS](https://juninamo.github.io/spatialCooccur/news/index.html).
+[NEWS](https://juninamo.github.io/cohalu/news/index.html).
 
 ## 📝 Citation 
 Jun Inamo, Roselyn Fierkens, Michael R. Clay, Anna Helena Jonsson, Clara Lin, Kari Hayes, Nathan Rogers, Heather Leach, Kentaro Yomogida. Spatial transcriptomics reveals immune–stromal crosstalk within the synovium of patients with juvenile idiopathic arthritis. [*JCI Insight* 2026;11(1):e198074](https://doi.org/10.1172/jci.insight.198074). doi:[10.1172/jci.insight.198074](https://doi.org/10.1172/jci.insight.198074)

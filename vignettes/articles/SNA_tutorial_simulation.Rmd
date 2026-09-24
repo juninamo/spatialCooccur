@@ -3,7 +3,7 @@ title: "Tutorial for Spatial Neighborhood Analysis (SNA) & Spatial Co-localizati
 ---
 
 <div class="nb-source">
-This article is a rendered copy of the Jupyter notebook [`vignettes/SNA_tutorial_simulation.ipynb`](https://github.com/juninamo/spatialCooccur/blob/master/vignettes/SNA_tutorial_simulation.ipynb); download it to run the code yourself.
+This article is a rendered copy of the Jupyter notebook [`vignettes/SNA_tutorial_simulation.ipynb`](https://github.com/juninamo/cohalu/blob/master/vignettes/SNA_tutorial_simulation.ipynb); download it to run the code yourself.
 </div>
 
 **Author:**  
@@ -29,7 +29,7 @@ First generate dummy data where two cell types (cell_type_1 and cell_type_2 in t
 
 ```r
 suppressPackageStartupMessages(suppressWarnings({
-  if (file.exists("../DESCRIPTION")) devtools::load_all("..", quiet = TRUE) else library(spatialCooccur)
+  if (file.exists("../DESCRIPTION")) devtools::load_all("..", quiet = TRUE) else library(cohalu)
   library(patchwork)
   library(ggplot2)
   library(magrittr)
@@ -524,7 +524,7 @@ attached base packages:
 other attached packages:
 [1] ggrastr_1.0.2         ComplexHeatmap_2.18.0 circlize_0.4.15      
 [4] dplyr_1.1.4           magrittr_2.0.3        ggplot2_3.4.4        
-[7] patchwork_1.1.3       spatialCooccur_0.99.3 testthat_3.2.1       
+[7] patchwork_1.1.3       cohalu_0.99.3 testthat_3.2.1       
 
 loaded via a namespace (and not attached):
   [1] RcppAnnoy_0.0.21       splines_4.3.2          later_1.3.2           

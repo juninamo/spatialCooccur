@@ -22,14 +22,14 @@ import shutil
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "vignettes"
 OUT = SRC / "articles"
-REPO = "https://github.com/juninamo/spatialCooccur/blob/master/vignettes"
+REPO = "https://github.com/juninamo/cohalu/blob/master/vignettes"
 
 # stderr lines that are package-loading noise rather than tutorial content
 NOISE = [
     r"^Warning messages?:?$",
     r"replacing previous import",
     r"^\d+: replacing",
-    r"^Loading spatialCooccur",
+    r"^Loading cohalu",
     r"^To cite this package",
     r"^\s+Inamo J, et al\.",
     r"^\s*(juvenile idiopathic|arthritis|immune-stromal|doi:)",

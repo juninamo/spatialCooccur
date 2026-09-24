@@ -5,7 +5,7 @@
   
   # 1. Brief Description
   packageStartupMessage(
-    "Loading spatialCooccur v", version, ": An R package for analyzing spatial co-occurrence."
+    "Loading cohalu v", version, ": COHALU - CO-localization, Hotspots And sample-Level Units (formerly spatialCooccur)."
   )
   
   # 2. Citation Information

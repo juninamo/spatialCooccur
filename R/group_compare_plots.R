@@ -372,7 +372,7 @@ plot_nhood_heatmap <- function(res,
   directional <- grepl("^(contact|dominance)", value)
   if (missing(significance)) significance <- if (directional) paste0(sub("_.*$", "", value), "_padj") else "padj"
   M <- res[[value]]
-  if (is.null(M)) stop("`res` has no '", value, "' matrix; re-run nhood_enrichment() with a current spatialCooccur.")
+  if (is.null(M)) stop("`res` has no '", value, "' matrix; re-run nhood_enrichment() with a current cohalu.")
   if (!directional) M <- (M + t(M)) / 2
   lab <- sub("^Cluster", "", rownames(M))
   n <- length(lab)

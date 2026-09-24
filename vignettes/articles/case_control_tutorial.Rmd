@@ -1,9 +1,9 @@
 ---
-title: "Case-control comparison of spatial co-localization with spatialCooccur"
+title: "Case-control comparison of spatial co-localization with COHALU"
 ---
 
 <div class="nb-source">
-This article is a rendered copy of the Jupyter notebook [`vignettes/case_control_tutorial.ipynb`](https://github.com/juninamo/spatialCooccur/blob/master/vignettes/case_control_tutorial.ipynb); download it to run the code yourself.
+This article is a rendered copy of the Jupyter notebook [`vignettes/case_control_tutorial.ipynb`](https://github.com/juninamo/cohalu/blob/master/vignettes/case_control_tutorial.ipynb); download it to run the code yourself.
 </div>
 
 **Author:** Jun Inamo (juninamo@keio.jp)
@@ -34,14 +34,14 @@ All data here are simulated, so we know the ground truth: `cell_type_1` and `cel
 
 ## 1. Setup
 
-Inside a clone of the repository, the development version is loaded with `devtools::load_all()`. Otherwise, install the package with `devtools::install_github("juninamo/spatialCooccur")` and call `library(spatialCooccur)`.
+Inside a clone of the repository, the development version is loaded with `devtools::load_all()`. Otherwise, install the package with `devtools::install_github("juninamo/COHALU")` and call `library(cohalu)`.
 
 ```r
 suppressPackageStartupMessages(suppressWarnings({
   if (file.exists("../DESCRIPTION")) {
     devtools::load_all("..", quiet = TRUE)
   } else {
-    library(spatialCooccur)
+    library(cohalu)
   }
   library(ggplot2)
   library(patchwork)
@@ -64,7 +64,7 @@ theme_tut <- theme_minimal(base_size = 12) +
 
 `nhood_enrichment()` compares the observed number of neighbor edges between two cell types with a label-permutation null. If cells are placed completely at random, the z-scores should look like draws from N(0, 1) for **every** pair, same-type pairs (the diagonal) included. This is the first thing to check before comparing groups. Use many tissues for this check: there are only K same-type pairs per tissue (8 here), so with a few tissues the diagonal histogram looks irregular by chance alone. Below, 80 random tissues give 640 same-type and 4,480 different-type values, and the actual test (`pvalue < 0.05`) is checked as well: it should be about 5% for both.
 
-> **Note.** spatialCooccur ≤ 0.99.1 shuffled the row and column labels *independently*, so each cell had two different labels in the null. Under spatial randomness that inflated same-type z-scores to about +11 and pushed different-type z-scores to about −2. The current version uses a single permutation for rows and columns. z-scores from earlier versions are not comparable with those below.
+> **Note.** COHALU ≤ 0.99.1 shuffled the row and column labels *independently*, so each cell had two different labels in the null. Under spatial randomness that inflated same-type z-scores to about +11 and pushed different-type z-scores to about −2. The current version uses a single permutation for rows and columns. z-scores from earlier versions are not comparable with those below.
 
 ```r
 set.seed(1)
@@ -248,7 +248,7 @@ Time difference of 14.26745 secs
 
 <div class="nb-output">
 <table class="dataframe">
-<caption>A spatialCooccurSample: 4 × 12</caption>
+<caption>A cohaluSample: 4 × 12</caption>
 <thead>
 	<tr><th></th><th scope=col>sample_id</th><th scope=col>cluster_i</th><th scope=col>cluster_j</th><th scope=col>zscore</th><th scope=col>count</th><th scope=col>expected</th><th scope=col>log2_oe</th><th scope=col>group</th><th scope=col>patient</th><th scope=col>n_cells</th><th scope=col>n_i</th><th scope=col>n_j</th></tr>
 	<tr><th></th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th></tr>
@@ -798,7 +798,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         spatialCooccur_0.99.3
+[1] patchwork_1.1.3       ggplot2_3.4.4         cohalu_0.99.3
 [4] testthat_3.2.1       
 
 loaded via a namespace (and not attached):

@@ -514,7 +514,7 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
     # Seed the worker RNG streams so results are reproducible for a given seed.
     parallel::clusterSetRNGStream(cl, iseed = seed)
     # Ship self-contained copies of the workers' functions so that the
-    # workers do not need spatialCooccur itself to be installed.
+    # workers do not need cohalu itself to be installed.
     fn_env <- new.env(parent = baseenv())
     fn_env$compute_count <- compute_count
     fn_env$.directional <- .directional
@@ -532,13 +532,13 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
     for (attempt in seq_len(3L)) {
       out <- tryCatch(
         parallel::parLapply(cl, seq_len(n_perms), worker),
-        error = function(e) { message("[spatialCooccur] parallel attempt ", attempt, " failed: ", conditionMessage(e)); NULL })
+        error = function(e) { message("[cohalu] parallel attempt ", attempt, " failed: ", conditionMessage(e)); NULL })
       if (!is.null(out)) break
       Sys.sleep(1)
     }
     if (is.null(out)) {
       # bounded retries exhausted -> sequential fallback (avoids infinite hang)
-      message("[spatialCooccur] falling back to sequential permutations.")
+      message("[cohalu] falling back to sequential permutations.")
       out <- run_seq()
     }
     out

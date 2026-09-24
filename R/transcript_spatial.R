@@ -1152,6 +1152,6 @@ colocalization_per_sample <- function(tx, sample_key, group_key, patient_key = N
   }
   out <- do.call(rbind, rows)
   attr(out, "value_columns") <- "log_g"
-  class(out) <- c("spatialCooccurSample", class(out))
+  class(out) <- c("cohaluSample", class(out))
   out
 }

@@ -53,7 +53,7 @@ samples.}
 \item{n_jobs}{Number of parallel jobs. `1` runs sequentially.}
 }
 \value{
-A data.frame (also tagged with class `spatialCooccurSample`) with
+A data.frame (also tagged with class `cohaluSample`) with
   columns `sample_id`, `cluster_i`, `cluster_j`, `zscore`, `count`,
   `expected`, `log2_oe`, `group`, `patient`, plus `n_cells` (cells in the
   sample) and `n_i` / `n_j` (cells of `cluster_i` / `cluster_j`).

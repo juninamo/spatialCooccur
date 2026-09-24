@@ -1,4 +1,4 @@
-^spatialCooccur\.Rproj$
+^cohalu\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^LICENSE\.md$
@@ -10,6 +10,6 @@
 ^vignettes/.*\.ipynb$
 ^vignettes/\.ipynb_checkpoints$
 ^figure$
-^spatialCooccur\.BiocCheck$
+^cohalu\.BiocCheck$
 ^\.claude$
 ^ppt$

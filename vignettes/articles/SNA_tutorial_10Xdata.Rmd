@@ -3,7 +3,7 @@ title: "Tutorial for spatial neighborhood analysis (SNA) & spatial co-localizati
 ---
 
 <div class="nb-source">
-This article is a rendered copy of the Jupyter notebook [`vignettes/SNA_tutorial_10Xdata.ipynb`](https://github.com/juninamo/spatialCooccur/blob/master/vignettes/SNA_tutorial_10Xdata.ipynb); download it to run the code yourself.
+This article is a rendered copy of the Jupyter notebook [`vignettes/SNA_tutorial_10Xdata.ipynb`](https://github.com/juninamo/cohalu/blob/master/vignettes/SNA_tutorial_10Xdata.ipynb); download it to run the code yourself.
 </div>
 
 **Author:**  
@@ -31,7 +31,7 @@ library(ggplot2)
 library(circlize)
 library(ComplexHeatmap)
 
-if (file.exists("../DESCRIPTION")) devtools::load_all("..", quiet = TRUE) else library(spatialCooccur)
+if (file.exists("../DESCRIPTION")) devtools::load_all("..", quiet = TRUE) else library(cohalu)
 
 BuildSNNSeurat <- function (data.use, k.param = 30, prune.SNN = 1/15, nn.eps = 0) {
   my.knn <- nn2(data = data.use, k = k.param, searchtype = "standard", eps = nn.eps)
@@ -1056,7 +1056,7 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] spacexr_2.2.1         spatialCooccur_0.99.3 testthat_3.2.1       
+ [1] spacexr_2.2.1         cohalu_0.99.3 testthat_3.2.1       
  [4] ComplexHeatmap_2.18.0 circlize_0.4.15       ggplot2_3.4.4        
  [7] SCP_0.5.6             dplyr_1.1.4           magrittr_2.0.3       
 [10] Seurat_5.2.1          SeuratObject_5.0.2    sp_2.1-2             

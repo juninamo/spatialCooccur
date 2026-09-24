@@ -1,4 +1,11 @@
-# spatialCooccur 0.99.3
+# cohalu 0.99.3
+
+## Package renamed
+
+* The package is renamed from `spatialCooccur` to `cohalu` (COHALU:
+  CO-localization, Hotspots And sample-Level Units; read "koharu"). Use
+  `library(cohalu)`; function names and arguments are unchanged. The internal
+  class `spatialCooccurSample` is now `cohaluSample`.
 
 ## Changes that affect results
 
@@ -69,7 +76,7 @@
   `cooccur_local_oe()`, `associate_continuous()` and gene-level modules. The
   algorithm reference covers all current methods.
 
-# spatialCooccur 0.99.2
+# cohalu 0.99.2
 
 ## Bug fixes that change results
 
