@@ -89,3 +89,16 @@ test_that("pcf_matrix agrees with pcf_cross", {
   expect_equal(mm$log_g_rel, ab_rel$log_g, tolerance = 1e-8)
   expect_equal(m$log_g[m$cluster_i == "A" & m$cluster_j == "A"], aa$log_g, tolerance = 1e-8)
 })
+
+test_that("pcf_matrix accepts any labelled points, e.g. pixel-level factors", {
+  set.seed(1); n <- 3000
+  cx <- runif(15, 0, 300); cy <- runif(15, 0, 300); k <- sample(15, n, TRUE)
+  px <- data.frame(X = c(cx[k] + rnorm(n, 0, 8), runif(n, 0, 300)),
+                   Y = c(cy[k] + rnorm(n, 0, 8), runif(n, 0, 300)),
+                   K1 = c(sample(c("1", "2"), n, TRUE), rep("3", n)))
+  b <- bin_transcripts(px, bin_size = 4, x_col = "X", y_col = "Y", gene_col = "K1")
+  pm <- pcf_matrix(b, list(F1 = "1", F2 = "2", F3 = "3"), r_max = 30)
+  short <- pm[pm$r > 0 & pm$r <= 20 & is.finite(pm$log_g_rel), ]
+  expect_gt(mean(short$log_g_rel[short$cluster_i == "F1" & short$cluster_j == "F2"]), 0.5)
+  expect_lt(mean(short$log_g_rel[short$cluster_i == "F1" & short$cluster_j == "F3"]), -0.3)
+})

@@ -27,7 +27,23 @@ These functions are **experimental**: the interface may change, and the model is
 5. Real data: Xenium mouse brain
 6. Practical guidance
 
-## 1. Setup
+**How this module fits with related tools**
+
+Segmentation-free analysis already has powerful discovery tools. [FICTURE](https://github.com/seqscope/ficture) (Si *et al.*, *Nat Methods* 2024) and its scalable implementation [punkst](https://github.com/Yichen-Si/punkst) infer spatial factors at submicron, pixel-level resolution; [MultiScale_ComplementMacrophage](https://github.com/fanzhanglab/MultiScale_ComplementMacrophage) (Guo *et al.*, in submission) models gene-level spatial neighbourhood associations to define cellular niches. This module is designed to complement them, with a focus on **quantifying and comparing co-localization**:
+
+* **Calibrated effect size.** The relative pair correlation is observed / expected under label shuffling with transcript positions fixed, the transcript-level counterpart of `log2_oe`; it stays at zero when only cellularity differs (Section 5).
+* **Distance as an explicit axis.** `pcf_matrix()` gives a co-localization curve over distance for every pair at once (FFT).
+* **Patient-level case-control and paired designs.** `colocalization_per_sample()` feeds `compare_groups()`.
+* **A generative model when needed.** `fit_spatial_rff()` learns spatial length scales and separates cellularity from composition.
+* **Any labelled points as input.** Marker transcripts, or pixel-level factors, for example from FICTURE / punkst:
+
+```r
+## px: pixel-level factor output with coordinates and the top factor
+b <- bin_transcripts(px, bin_size = 4, x_col = "X", y_col = "Y", gene_col = "K1")
+pcf_matrix(b, list(F1 = "1", F2 = "2", F3 = "3"), r_max = 100)
+```
+
+### 1. Setup
 
 ```r
 suppressPackageStartupMessages(suppressWarnings({
@@ -50,7 +66,7 @@ theme_tut <- theme_minimal(base_size = 12) +
         plot.title.position = "plot")
 ```
 
-## 2. A simulated tissue with known truth
+### 2. A simulated tissue with known truth
 
 `simulate_transcripts()` draws transcripts from a multivariate log-Gaussian Cox process. There are three gene sets (A, B, C; five genes each). Each set has its own "territory" field, all genes share a slowly varying cellularity field, and sets **A and B share a niche field** (length scale 20 µm), so they co-localize. The fields are generated exactly by FFT, *not* with random features, so the model below is not tested on data from its own approximation.
 
@@ -112,7 +128,7 @@ The estimate follows the truth. A single tissue fluctuates around the ensemble v
 
 A–B is negative at short range even though A and B *co-localize*. The relative pair correlation compares A–B pairs with **all** transcript pairs, and here each gene set clusters much more strongly with itself than with the other sets. The same happens with `log2_oe` when every cell type is spatially clustered. What matters for a case-control study is how this value **changes** between groups (section 4).
 
-## 3. The random-feature model
+### 3. The random-feature model
 
 `fit_spatial_rff()` fits
 
@@ -180,7 +196,7 @@ ggplot(comp, aes(r, log_g, color = source)) +
 
 Both methods find the A–B co-localization. For A–C (true value 0), this single tissue gives slightly negative values. Across repeated simulations the A–C estimate averages about 0 (−0.03 ± 0.25 at 4 µm over 4 seeds), so this is sample-to-sample variation. The intensity method is shrunk towards 0 at short range, because the MAP fields are smoother than the truth, so it is conservative. The Gaussian method slightly overshoots here, and on real tissue (section 5) it is badly miscalibrated. `"intensity"` is therefore the default.
 
-## 4. Case-control comparison
+### 4. Case-control comparison
 
 `simulate_transcripts_groups()` simulates 6 control and 6 case samples with **8 gene sets** (closer to a real panel with many cell types). The niche loading of A and B is 0.3 in controls and 0.9 in cases, so A–B co-localize more strongly in cases. `colocalization_per_sample()` returns one row per sample × pair × distance, ready for `compare_groups()` with `pair_keys = c("cluster_i", "cluster_j", "r")`.
 
@@ -264,7 +280,7 @@ ggplot(plot_df, aes(group, log_g, color = group)) +
 
 Both scores detect the planted A–B change. The relative score also shows a small A–C *decrease*: when A pairs more with B, it pairs relatively less with everything else. As with `log2_oe`, read such depletion as a consequence of the main change.
 
-### Robustness to differences in cellularity
+#### Robustness to differences in cellularity
 
 Tissue from cases is often more cellular or more heterogeneous. In the next simulation **co-localization is identical** in both groups, but cellularity varies more in cases (`density_sd` 0.8 vs 0.3). A good score must not call a difference here.
 
@@ -305,7 +321,7 @@ The **full** pair correlation calls differences that are only cellularity. The *
 
 > With very few cell types (e.g. 3 gene sets, two of which co-localize) the shared niche is hard to tell apart from the cellularity field, and `composition` can still give false positives. In that case, fit with `offset = "smoothed_total"` and `offset_genes` set to broadly expressed reference genes that are not part of the tested pair.
 
-## 5. Real data: Xenium mouse brain
+### 5. Real data: Xenium mouse brain
 
 We use the public 10x Genomics dataset *Xenium FF Mouse Brain Coronal Subset (CTX + HP)* (248-gene panel). Only the transcript table is needed (183 MB). It is downloaded once into the user cache directory. `read_xenium_transcripts()` handles older outputs that store gene names as binary, filters on `qv >= 20`, and drops control probes.
 
@@ -441,7 +457,7 @@ ggplot(h12, aes(a, b, fill = log_g_rel)) +
 
 ![](figures/segmentation_free_tutorial/fig-08.png){width="100%"}
 
-### Agreement with the segmentation-based analysis
+#### Agreement with the segmentation-based analysis
 
 The same dataset comes with Xenium's cell segmentation (`cell_id`). We assign each cell the cell type whose markers dominate its transcripts, run `nhood_enrichment()` on the cell centroids, and compare its `log2_oe` with the segmentation-free relative log g for every pair.
 
@@ -501,7 +517,7 @@ ggplot(h12u, aes(log_g_rel, log2_oe, color = kind)) +
 
 The two approaches rank the pairs similarly. The strongest cross-type signals agree: vascular SMC–VLMC and endothelial–SMC contacts, and the segregation of VLMC and oligodendrocytes from neurons. Same-type pairs sit to the right: at distances below one cell diameter, the segmentation-free pair correlation also counts transcripts of the **same** cell, which cell-level analyses exclude. Read cross-type co-localization at $r \gtrsim$ one cell diameter (here about 10–20 µm).
 
-### The random-feature model on a region
+#### The random-feature model on a region
 
 The model is fitted to an 800 × 800 µm region spanning deep cortex, white matter and hippocampus (8 µm bins, marker genes only).
 
@@ -603,7 +619,7 @@ ggplot(agree_long, aes(empirical, model)) +
 
 With `method = "intensity"` the model reproduces the empirical estimate. The closed-form Gaussian value is far off on real tissue: vessels and meninges are sparse, line-like structures whose log-intensity is not Gaussian.
 
-## 6. Practical guidance
+### 6. Practical guidance
 
 1. **Start model-free.** `pcf_cross(relative = TRUE)` / `colocalization_per_sample(method = "empirical")` is fast (a whole Xenium section with 45 pairs takes 1–2 minutes), makes no distributional assumption, and is robust to cellularity differences.
 2. **Read cross-type co-localization at $r \gtrsim$ one cell diameter.** At shorter distances, transcripts of the same cell dominate.

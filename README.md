@@ -44,7 +44,11 @@ The notebooks behind these pages are in [`vignettes/`](vignettes/).
   `log2_oe` = log2(observed / expected) (effect size)
 - Radius-based co-occurrence ratio: `calc_co_occurrence_for_radius()` /
   `compute_co_occurrence_ratio()`
-- Local co-localization score (sCLS) with graph diffusion: `cooccur_local()`
+- Local co-localization: `cooccur_local_oe()` counts A-B pairs around each
+  cell, divides by their exact expectation under label permutation and
+  smooths with a Gaussian kernel (abundance-adjusted local log2 O/E, optional
+  permutation hotspots, O(n k)); the original diffusion sCLS is kept as
+  `cooccur_local()`
 - Connected interaction spots: `search_interaction_spot()`
 
 **Multi-sample / disease-group comparison**
@@ -72,6 +76,53 @@ The notebooks behind these pages are in [`vignettes/`](vignettes/).
   `rff_pair_correlation()`
 - `colocalization_per_sample()` feeds `compare_groups()`
 
+## How spatialCooccur fits with related tools
+
+Spatial transcriptomics now has excellent tools for discovering structure
+directly from the data. spatialCooccur is designed to sit next to them and
+focuses on one question: **how strongly do two defined cell populations or
+gene programmes co-localize, at which distance, and does this differ between
+groups of patients?**
+
+| Tool | Primary focus |
+|---|---|
+| [FICTURE](https://github.com/seqscope/ficture) (Si *et al.*, *Nat Methods* 2024) | Segmentation-free inference of spatial factors at submicron, pixel-level resolution with a multilayer Dirichlet model; scales to billions of transcripts |
+| [punkst](https://github.com/Yichen-Si/punkst) | Scalable toolkit implementing the FICTURE pixel-level factor pipeline and preparing results for visualization |
+| [MultiScale_ComplementMacrophage](https://github.com/fanzhanglab/MultiScale_ComplementMacrophage) (Guo *et al.*, in submission) | Spatial neighbourhood-based regression of gene-level associations (Gaussian-kernel neighbourhood exposure, adjusted for self expression and cell density) to define complement-associated niches in RA synovium |
+| **spatialCooccur** | Calibrated co-localization between labelled populations (cells, transcripts or factors) and **patient-level comparison across groups** |
+
+What spatialCooccur adds:
+
+- **A calibrated effect size.** Every score is observed / expected under
+  label permutation with positions fixed (`log2_oe`, relative pair
+  correlation). It is verified on negative controls to stay at zero for any
+  number of cell types, cell abundance, image size or cellularity, so values
+  can be compared between samples.
+- **Distance as an explicit axis.** `pcf_matrix()` returns co-localization as
+  a curve over distance for all pairs at once (FFT; 45 pairs over a whole Xenium section in
+  about 1.5 minutes), so short-range contact and tissue-scale compartments are
+  separated.
+- **Where, not only whether.** `cooccur_local_oe()` maps local O/E and
+  permutation hotspots for any pair.
+- **Case-control and paired designs.** `compare_groups()` treats the patient
+  as the unit (exact Wilcoxon, mixed models, blocked permutation, signed-rank
+  and sign-flip for pre / post treatment), with power guidance and a
+  pseudoreplication warning.
+- **Cells, transcripts or factors as input.** The same statistics run on
+  segmented cell types, on marker transcripts without segmentation, or on
+  any labelled points, for example pixel-level factors from FICTURE / punkst:
+
+  ```r
+  # px: pixel-level factor output with coordinates and the top factor
+  b <- bin_transcripts(px, bin_size = 4, x_col = "X", y_col = "Y", gene_col = "K1")
+  pcf_matrix(b, list(F1 = "1", F2 = "2", F3 = "3"), r_max = 100)
+  ```
+
+- **A generative model when needed.** `fit_spatial_rff()` fits a
+  random-feature log-Gaussian Cox process (Gundersen, Zhang & Engelhardt,
+  AISTATS 2021) that learns spatial length scales and separates cellularity
+  from composition.
+
 > **Note for users of versions <= 0.99.1.** Version 0.99.2 fixes the
 > permutation null of `nhood_enrichment()` (same-type z-scores were
 > inflated) and the diffusion of `cooccur_local()` for `maxnsteps > 1`.
@@ -93,12 +144,14 @@ res$zscore    # evidence: grows with the number of cells
 res$log2_oe   # effect size: use this to compare samples
 ```
 
-### 2. Spatial Co-localization Score (sCLS)
+### 2. Local co-localization (where do A and B meet?)
 
 ```r
-sc <- cooccur_local(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2",
-                    neighbors.k = 30, radius = 30)
-summary(sc[[1]])
+rownames(df) <- paste0("cell", seq_len(nrow(df)))
+lo <- cooccur_local_oe(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2",
+                       radius = 30, n_perms = 99)
+attr(lo, "section_log2_oe")   # whole-section effect size
+head(lo)                       # per-cell local_log2_oe, p, padj (hotspots)
 ```
 
 ### 3. Comparing patient groups

@@ -241,3 +241,13 @@ test_that("paired designs: signrank and within-patient permutation", {
   expect_gt(unp$p, 0.05)                         # ignoring pairing loses the signal
   expect_error(compare_groups(d, value = "value", method = "signrank"), "patient_key")
 })
+
+test_that("summarize_by_patient keeps distances separate", {
+  d <- expand.grid(sample_id = c("p1a", "p1b", "p2a"), cluster_i = "A", cluster_j = "B", r = c(10, 40),
+                   stringsAsFactors = FALSE)
+  d$patient <- substr(d$sample_id, 1, 2); d$group <- "g"; d$log_g_rel <- ifelse(d$r == 10, 1, 3) + (d$sample_id == "p1b")
+  pp <- summarize_by_patient(d)
+  expect_equal(nrow(pp), 4)
+  expect_setequal(pp$r, c(10, 40))
+  expect_equal(pp$log_g_rel[pp$patient == "p1" & pp$r == 10], 1.5)
+})

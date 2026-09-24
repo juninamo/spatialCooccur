@@ -4,14 +4,19 @@
 \alias{summarize_by_patient}
 \title{Aggregate per-image scores to one row per patient}
 \usage{
-summarize_by_patient(per_sample_df)
+summarize_by_patient(per_sample_df, pair_keys = NULL)
 }
 \arguments{
 \item{per_sample_df}{Output of a `*_per_sample()` helper with a
 non-missing `patient` column.}
+
+\item{pair_keys}{Columns identifying a comparison (kept separate, not
+averaged). Defaults to `cluster_i`, `cluster_j` and, when present, the
+distance `r` of [colocalization_per_sample()].}
 }
 \value{
-A data.frame with one row per `patient x cluster_i x cluster_j`;
+A data.frame with one row per `patient x cluster_i x cluster_j`
+  (x `r`);
   `sample_id` is set to the patient ID.
 }
 \description{

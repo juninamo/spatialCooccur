@@ -24,6 +24,9 @@
 * `interaction_spot_per_sample()` returns `NA` (not 0 spots) when the spot
   search fails, and no longer requires a `cell` column in `meta.data`.
 * Absent cell types give `NA` scores instead of silently dropped rows.
+* `summarize_by_patient()` keeps distances (`r`) of
+  `colocalization_per_sample()` output separate instead of averaging them;
+  new `pair_keys` argument.
 
 ## New features
 
@@ -49,6 +52,8 @@
   `read_xenium_transcripts()` reads Xenium transcript tables (binary gene
   names in older outputs, qv filter, gene filtering inside Arrow for 5K
   panels) and `pcf_matrix()` computes all gene-set pairs with cached FFTs.
+  Any labelled point set can be analysed the same way, e.g. pixel-level
+  factors from FICTURE / punkst (`bin_transcripts(gene_col = "K1")`).
 * `compare_groups()` supports paired / repeated-measures designs
   (e.g. pre- vs post-treatment): new `method = "signrank"`, and
   `method = "perm"` now permutes labels within patients when patients appear

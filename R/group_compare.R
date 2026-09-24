@@ -342,18 +342,18 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
 }
 
 # Internal: aggregate sample-level rows to patient-level rows by mean.
-.aggregate_to_patient <- function(tidy_df) {
+.aggregate_to_patient <- function(tidy_df, pair_keys = NULL) {
   if (!"patient" %in% colnames(tidy_df) || all(is.na(tidy_df$patient))) {
     stop("patient column is missing or all NA; cannot aggregate to patient level.")
   }
+  # distance columns (e.g. `r` from colocalization_per_sample()) are keys, not values
+  if (is.null(pair_keys)) pair_keys <- intersect(c("cluster_i", "cluster_j", "r"), colnames(tidy_df))
   num_cols <- vapply(tidy_df, is.numeric, logical(1))
-  num_cols <- names(num_cols)[num_cols]
-  by_cols <- list(
-    patient = tidy_df$patient,
-    cluster_i = if ("cluster_i" %in% colnames(tidy_df)) tidy_df$cluster_i else rep("", nrow(tidy_df)),
-    cluster_j = if ("cluster_j" %in% colnames(tidy_df)) tidy_df$cluster_j else rep("", nrow(tidy_df)),
-    group = tidy_df$group
-  )
+  num_cols <- setdiff(names(num_cols)[num_cols], pair_keys)
+  by_cols <- c(list(patient = tidy_df$patient),
+               if (length(pair_keys)) as.list(tidy_df[, pair_keys, drop = FALSE])
+               else list(cluster_i = rep("", nrow(tidy_df)), cluster_j = rep("", nrow(tidy_df))),
+               list(group = tidy_df$group))
   agg <- aggregate(tidy_df[, num_cols, drop = FALSE], by = by_cols,
                    FUN = function(x) mean(x, na.rm = TRUE))
   agg$sample_id <- agg$patient
@@ -370,8 +370,12 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
 #'
 #' @param per_sample_df Output of a `*_per_sample()` helper with a
 #'   non-missing `patient` column.
+#' @param pair_keys Columns identifying a comparison (kept separate, not
+#'   averaged). Defaults to `cluster_i`, `cluster_j` and, when present, the
+#'   distance `r` of [colocalization_per_sample()].
 #'
-#' @return A data.frame with one row per `patient x cluster_i x cluster_j`;
+#' @return A data.frame with one row per `patient x cluster_i x cluster_j`
+#'   (x `r`);
 #'   `sample_id` is set to the patient ID.
 #' @export
 #' @examples
@@ -386,8 +390,8 @@ build_sample_design <- function(obj, sample_key, group_key, patient_key = NULL) 
 #'                                   neighbors.k = 8, n_perms = 20, n_jobs = 1)
 #' pp <- summarize_by_patient(ps)
 #' table(pp$sample_id)
-summarize_by_patient <- function(per_sample_df) {
-  out <- .aggregate_to_patient(as.data.frame(per_sample_df))
+summarize_by_patient <- function(per_sample_df, pair_keys = NULL) {
+  out <- .aggregate_to_patient(as.data.frame(per_sample_df), pair_keys)
   attr(out, "spatial_design") <- attr(per_sample_df, "spatial_design")
   attr(out, "value_columns") <- attr(per_sample_df, "value_columns")
   class(out) <- unique(c("spatialCooccurSample", class(out)))
