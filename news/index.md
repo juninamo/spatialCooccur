@@ -36,8 +36,23 @@
   returns `NA` (not 0 spots) when the spot search fails, and no longer
   requires a `cell` column in `meta.data`.
 - Absent cell types give `NA` scores instead of silently dropped rows.
+- [`summarize_by_patient()`](https://juninamo.github.io/spatialCooccur/reference/summarize_by_patient.md)
+  keeps distances (`r`) of
+  [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
+  output separate instead of averaging them; new `pair_keys` argument.
 
 ### New features
+
+- [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md):
+  abundance-adjusted local co-localization. For every cell, the number
+  of cluster_x-cluster_y pairs within `radius` is divided by its exact
+  expectation under label permutation (closed form), smoothed with a
+  Gaussian kernel of explicit width, with optional permutation hotspot
+  p-values (O(n k) per permutation).
+  [`cooccur_local_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_per_sample.md)
+  gains the corresponding `log2_oe` summary, recommended for group
+  comparison: the mean diffusion sCLS is unchanged by diffusion
+  (mass-conserving) and grows with cell-type abundance.
 
 - **Experimental segmentation-free analysis** of transcript coordinates
   (e.g. Xenium `transcripts.parquet`):
@@ -65,7 +80,9 @@
   reads Xenium transcript tables (binary gene names in older outputs, qv
   filter, gene filtering inside Arrow for 5K panels) and
   [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md)
-  computes all gene-set pairs with cached FFTs.
+  computes all gene-set pairs with cached FFTs. Any labelled point set
+  can be analysed the same way, e.g. pixel-level factors from FICTURE /
+  punkst (`bin_transcripts(gene_col = "K1")`).
 
 - [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
   supports paired / repeated-measures designs (e.g. pre- vs

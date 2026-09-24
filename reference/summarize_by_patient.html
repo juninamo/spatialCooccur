@@ -7,7 +7,7 @@ from an image-level result without recomputing the permutations
 images of each patient (within cluster pair and group). Use this to
 obtain patient-level values for `compare_groups(method = "wilcox" / "t")`
 from an image-level result without recomputing the permutations
-(equivalent to `unit = "patient"`).'><meta property="og:image" content="https://juninamo.github.io/spatialCooccur/logo.png"><meta name="description" content="spatialCooccur: neighborhood co-occurrence and spatial interaction analysis for spatial transcriptomics, with multi-sample disease-group comparison."></head><body>
+(equivalent to `unit = "patient"`).'><meta property="og:image" content="https://juninamo.github.io/spatialCooccur/logo.png"><meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -66,7 +66,7 @@ from an image-level result without recomputing the permutations
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">summarize_by_patient</span><span class="op">(</span><span class="va">per_sample_df</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">summarize_by_patient</span><span class="op">(</span><span class="va">per_sample_df</span>, pair_keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -77,10 +77,17 @@ from an image-level result without recomputing the permutations
 <dd><p>Output of a `*_per_sample()` helper with a
 non-missing `patient` column.</p></dd>
 
+
+<dt id="arg-pair-keys">pair_keys<a class="anchor" aria-label="anchor" href="#arg-pair-keys"></a></dt>
+<dd><p>Columns identifying a comparison (kept separate, not
+averaged). Defaults to `cluster_i`, `cluster_j` and, when present, the
+distance `r` of [colocalization_per_sample()].</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data.frame with one row per `patient x cluster_i x cluster_j`;
+    <p>A data.frame with one row per `patient x cluster_i x cluster_j`
+  (x `r`);
   `sample_id` is set to the patient ID.</p>
     </div>
 

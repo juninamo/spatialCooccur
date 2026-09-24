@@ -16,7 +16,7 @@ download it to run the code yourself.
 format(Sys.time(), '%d %B, %Y')
 ```
 
-‘08 October, 2025’
+‘24 September, 2026’
 
 ``` r
 
@@ -29,7 +29,7 @@ library(ggplot2)
 library(circlize)
 library(ComplexHeatmap)
 
-library(spatialCooccur)
+if (file.exists("../DESCRIPTION")) devtools::load_all("..", quiet = TRUE) else library(spatialCooccur)
 
 BuildSNNSeurat <- function (data.use, k.param = 30, prune.SNN = 1/15, nn.eps = 0) {
   my.knn <- nn2(data = data.use, k = k.param, searchtype = "standard", eps = nn.eps)
@@ -41,6 +41,9 @@ BuildSNNSeurat <- function (data.use, k.param = 30, prune.SNN = 1/15, nn.eps = 0
   return(snn_res)
 }
 environment(BuildSNNSeurat) <- asNamespace("Seurat")
+
+# folder with the 10x example datasets (set XENIUM_SAMPLE_DIR to override)
+data_dir <- Sys.getenv("XENIUM_SAMPLE_DIR", "./../10X_Xenium_sample")
 ```
 
 ## Xenium Human Breast Gene Expression
@@ -49,7 +52,7 @@ environment(BuildSNNSeurat) <- asNamespace("Seurat")
 
 ``` r
 
-path <- "./../10X_Xenium_sample/Xenium_V1_human_Breast_2fov_outs/"
+path <- paste0(data_dir, "/Xenium_V1_human_Breast_2fov_outs/")
 data_name = stringr::str_split(path, "/")[[1]][length(stringr::str_split(path, "/")[[1]])-1]
 
 # Load the Xenium data
@@ -74,21 +77,44 @@ rm(data); gc(); gc()
 ```
 
 ``` output
-10X data contains more than one type and is being returned as a list containing matrices of each type.
+Genome matrix has multiple modalities, returning a list of matrices for this genome
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
 “Feature names cannot have underscores ('_'), replacing with dashes ('-')”
 ```
 
 |        | used     | (Mb)  | gc trigger | (Mb)   | limit (Mb) | max used | (Mb)   |
 |--------|----------|-------|------------|--------|------------|----------|--------|
-| Ncells | 12451367 | 665.0 | 19335221   | 1032.7 | NA         | 19335221 | 1032.7 |
-| Vcells | 25888734 | 197.6 | 61951967   | 472.7  | 102400     | 61951164 | 472.7  |
+| Ncells | 12939514 | 691.1 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
+| Vcells | 27085989 | 206.7 | 45754539   | 349.1  | 204800     | 45712823 | 348.8  |
 
 A matrix: 2 × 7 of type dbl {.table .dataframe}
 
 |        | used     | (Mb)  | gc trigger | (Mb)   | limit (Mb) | max used | (Mb)   |
 |--------|----------|-------|------------|--------|------------|----------|--------|
-| Ncells | 12458662 | 665.4 | 19335221   | 1032.7 | NA         | 19335221 | 1032.7 |
-| Vcells | 25905162 | 197.7 | 61951967   | 472.7  | 102400     | 61951164 | 472.7  |
+| Ncells | 12945910 | 691.4 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
+| Vcells | 27100299 | 206.8 | 45754539   | 349.1  | 204800     | 45712823 | 348.8  |
 
 A matrix: 2 × 7 of type dbl {.table .dataframe}
 
@@ -204,49 +230,175 @@ cluster_col = paste0("res_",resolution)
 
 ``` output
 Running SCTransform on assay: Spatial
+```
+
+``` output
 Running SCTransform on layer: counts
+```
+
+``` output
 vst.flavor='v2' set. Using model with fixed slope and excluding poisson genes.
+```
+
+``` output
 Variance stabilizing transformation of count matrix of size 280 by 7273
+```
+
+``` output
 Model formula is y ~ log_umi
+```
+
+``` output
 Get Negative Binomial regression parameters per gene
+```
+
+``` output
 Using 268 genes, 5000 cells
+```
+
+``` output
 Found 12 outliers - those will be ignored in fitting/regularization step
+```
+
+``` output
 Skip calculation of full residual matrix
+```
+
+``` output
 Will not return corrected UMI because residual type is not set to 'pearson'
+```
+
+``` output
 Calculating gene attributes
-Wall clock passed: Time difference of 1.246651 secs
+```
+
+``` output
+Wall clock passed: Time difference of 1.471042 secs
+```
+
+``` output
 Setting min_variance based on median UMI:  0.04
+```
+
+``` output
 Calculating variance for residuals of type pearson for 280 genes
+```
+
+``` output
 Determine variable features
+```
+
+``` output
 Setting min_variance based on median UMI:  0.04
+```
+
+``` output
 Calculating residuals of type pearson for 280 genes
 ```
 
 ``` output
+
+  |                                                                            
+```
+
+``` output
+
+  |                                                                            
+```
+
+``` output
+
+  |                                                                            
+```
+
+``` output
 Computing corrected UMI count matrix
+```
+
+``` output
 Centering data matrix
+```
+
+``` output
 Getting residuals for block 1(of 2) for counts dataset
+```
+
+``` output
 Getting residuals for block 2(of 2) for counts dataset
+```
+
+``` output
 Centering data matrix
+```
+
+``` output
 Finished calculating residuals for counts
+```
+
+``` output
 Set default assay to SCT
+```
+
+``` output
 Computing nearest neighbor graph
+```
+
+``` output
 Computing SNN
+```
+
+``` output
 “The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
 To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
 This message will be shown once per session”
-16:57:00 UMAP embedding parameters a = 0.9922 b = 1.112
-16:57:00 Read 7273 rows and found 30 numeric columns
-16:57:00 Using Annoy for neighbor search, n_neighbors = 30
-16:57:00 Building Annoy index with metric = cosine, n_trees = 50
-16:57:00 Writing NN index file to temp file /var/folders/sy/nsv_ry152bl4gmzq0zkv250m0000gn/T//RtmpBuuDKV/file2e025554ddea
-16:57:00 Searching Annoy index using 1 thread, search_k = 3000
-16:57:02 Annoy recall = 100%
-16:57:02 Commencing smooth kNN distance calibration using 1 thread
+```
+
+``` output
+12:22:37 UMAP embedding parameters a = 0.9922 b = 1.112
+```
+
+``` output
+12:22:37 Read 7273 rows and found 30 numeric columns
+```
+
+``` output
+12:22:37 Using Annoy for neighbor search, n_neighbors = 30
+```
+
+``` output
+12:22:37 Building Annoy index with metric = cosine, n_trees = 50
+```
+
+``` output
+12:22:37 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpksBbvY/file62a728346358
+```
+
+``` output
+12:22:37 Searching Annoy index using 1 thread, search_k = 3000
+```
+
+``` output
+12:22:38 Annoy recall = 100%
+```
+
+``` output
+12:22:38 Commencing smooth kNN distance calibration using 1 thread
+```
+
+``` output
  with target n_neighbors = 30
-16:57:03 Initializing from normalized Laplacian + noise (using RSpectra)
-16:57:03 Commencing optimization for 500 epochs, with 322752 positive edges
-16:57:10 Optimization finished
+```
+
+``` output
+12:22:39 Initializing from normalized Laplacian + noise (using RSpectra)
+```
+
+``` output
+12:22:39 Commencing optimization for 500 epochs, with 319794 positive edges
+```
+
+``` output
+12:22:44 Optimization finished
 ```
 
 ``` output
@@ -256,12 +408,12 @@ This message will be shown once per session”
 |  | orig.ident | nCount_Spatial | nFeature_Spatial | nCount_BlankCodeword | nFeature_BlankCodeword | nCount_ControlCodeword | nFeature_ControlCodeword | nCount_ControlProbe | nFeature_ControlProbe | nCount_SCT | nFeature_SCT | res_0.20 | res_0.40 | res_0.60 | res_0.80 | res_1.00 |
 |----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|
 |  | \<fct\> | \<dbl\> | \<int\> | \<dbl\> | \<int\> | \<dbl\> | \<int\> | \<dbl\> | \<int\> | \<dbl\> | \<int\> | \<fct\> | \<fct\> | \<fct\> | \<fct\> | \<fct\> |
-| aaaiikim-1 | SeuratProject | 66 | 32 | 0 | 0 | 0 | 0 | 0 | 0 | 112 | 33 | 0 | 2 | 2 | 2 | 1 |
-| aaaljapa-1 | SeuratProject | 95 | 43 | 0 | 0 | 0 | 0 | 0 | 0 | 107 | 43 | 0 | 2 | 0 | 2 | 1 |
-| aabhbgmg-1 | SeuratProject | 215 | 74 | 0 | 0 | 0 | 0 | 0 | 0 | 139 | 69 | 0 | 3 | 3 | 3 | 1 |
-| aabpgobe-1 | SeuratProject | 103 | 42 | 0 | 0 | 0 | 0 | 0 | 0 | 111 | 42 | 0 | 0 | 0 | 2 | 1 |
-| aacemgol-1 | SeuratProject | 95 | 49 | 0 | 0 | 0 | 0 | 0 | 0 | 106 | 49 | 0 | 3 | 3 | 3 | 3 |
-| aacnljfi-1 | SeuratProject | 146 | 56 | 0 | 0 | 0 | 0 | 0 | 0 | 132 | 56 | 0 | 0 | 0 | 2 | 1 |
+| aaaiikim-1 | SeuratProject | 66 | 32 | 0 | 0 | 0 | 0 | 0 | 0 | 112 | 33 | 0 | 0 | 0 | 0 | 2 |
+| aaaljapa-1 | SeuratProject | 95 | 43 | 0 | 0 | 0 | 0 | 0 | 0 | 107 | 43 | 0 | 0 | 0 | 0 | 2 |
+| aabhbgmg-1 | SeuratProject | 215 | 74 | 0 | 0 | 0 | 0 | 0 | 0 | 139 | 69 | 0 | 0 | 0 | 0 | 2 |
+| aabpgobe-1 | SeuratProject | 103 | 42 | 0 | 0 | 0 | 0 | 0 | 0 | 111 | 42 | 0 | 0 | 0 | 0 | 2 |
+| aacemgol-1 | SeuratProject | 95 | 49 | 0 | 0 | 0 | 0 | 0 | 0 | 106 | 49 | 0 | 2 | 2 | 0 | 0 |
+| aacnljfi-1 | SeuratProject | 146 | 56 | 0 | 0 | 0 | 0 | 0 | 0 | 132 | 56 | 0 | 0 | 0 | 0 | 2 |
 
 A data.frame: 6 × 16 {.table .dataframe}
 
@@ -277,11 +429,6 @@ g = CellDimPlot(
 g 
 ```
 
-``` output
-“No shared levels found between `names(values)` of the manual scale and the
-data's fill values.”
-```
-
 ![](figures/SNA_tutorial_10Xdata/fig-03.png)
 
 ``` r
@@ -295,82 +442,106 @@ xenium.obj.markers %>%
 
 ``` output
 Calculating cluster 0
+```
+
+``` output
 Calculating cluster 1
+```
+
+``` output
 Calculating cluster 2
+```
+
+``` output
 Calculating cluster 3
+```
+
+``` output
 Calculating cluster 4
+```
+
+``` output
 Calculating cluster 5
+```
+
+``` output
 Calculating cluster 6
+```
+
+``` output
 Calculating cluster 7
+```
+
+``` output
 Calculating cluster 8
 ```
 
 | p_val         | avg_log2FC | pct.1   | pct.2   | p_val_adj     | cluster | gene     |
 |---------------|------------|---------|---------|---------------|---------|----------|
 | \<dbl\>       | \<dbl\>    | \<dbl\> | \<dbl\> | \<dbl\>       | \<fct\> | \<chr\>  |
-| 2.662899e-144 | 1.1679022  | 0.672   | 0.333   | 7.456118e-142 | 0       | TUBB2B   |
-| 9.566100e-58  | 1.1014546  | 0.297   | 0.131   | 2.678508e-55  | 0       | CAV1     |
-| 4.131144e-47  | 1.0423056  | 0.288   | 0.138   | 1.156720e-44  | 0       | MYBPC1   |
-| 1.174734e-09  | 0.9748890  | 0.065   | 0.032   | 3.289254e-07  | 0       | SERHL2   |
-| 5.652455e-83  | 0.8908141  | 0.614   | 0.365   | 1.582687e-80  | 0       | SLC5A6   |
-| 5.093635e-147 | 0.8779398  | 0.862   | 0.585   | 1.426218e-144 | 0       | CCND1    |
-| 4.594085e-54  | 0.8503573  | 0.450   | 0.255   | 1.286344e-51  | 0       | TRAF4    |
-| 6.618904e-26  | 0.8189392  | 0.236   | 0.131   | 1.853293e-23  | 0       | PTRHD1   |
-| 1.403824e-215 | 0.7650828  | 0.999   | 0.890   | 3.930707e-213 | 0       | AQP1     |
-| 7.102044e-03  | 0.7501358  | 0.020   | 0.011   | 1.000000e+00  | 0       | APOBEC3A |
-| 0.000000e+00  | 3.0765049  | 0.955   | 0.291   | 0.000000e+00  | 1       | TOP2A    |
-| 0.000000e+00  | 2.7393502  | 0.719   | 0.176   | 0.000000e+00  | 1       | CENPF    |
-| 0.000000e+00  | 2.6929152  | 0.877   | 0.266   | 0.000000e+00  | 1       | MKI67    |
-| 1.834973e-179 | 2.1395594  | 0.475   | 0.126   | 5.137924e-177 | 1       | RTKN2    |
-| 6.780687e-134 | 1.9392679  | 0.412   | 0.119   | 1.898592e-131 | 1       | PCLAF    |
-| 3.384295e-47  | 0.8499877  | 0.593   | 0.385   | 9.476026e-45  | 1       | TUBB2B   |
-| 3.258181e-13  | 0.7497524  | 0.185   | 0.108   | 9.122906e-11  | 1       | FOXC2    |
-| 3.059700e-07  | 0.6872314  | 0.102   | 0.060   | 8.567159e-05  | 1       | TCF7     |
-| 6.658867e-33  | 0.6227176  | 0.644   | 0.466   | 1.864483e-30  | 1       | EIF4EBP1 |
-| 9.353109e-12  | 0.6102920  | 0.273   | 0.186   | 2.618870e-09  | 1       | ANKRD28  |
-| 3.338556e-168 | 3.2232114  | 0.284   | 0.042   | 9.347957e-166 | 2       | KRT23    |
-| 1.182827e-14  | 3.1600350  | 0.029   | 0.005   | 3.311916e-12  | 2       | KRT5     |
-| 2.419718e-54  | 2.4714986  | 0.144   | 0.033   | 6.775211e-52  | 2       | KRT14    |
-| 1.462371e-127 | 2.3292966  | 0.301   | 0.064   | 4.094640e-125 | 2       | KLF5     |
-| 5.715703e-55  | 2.2236511  | 0.139   | 0.030   | 1.600397e-52  | 2       | MLPH     |
-| 1.373781e-11  | 2.2141908  | 0.037   | 0.010   | 3.846588e-09  | 2       | S100A14  |
-| 7.226854e-177 | 1.7475072  | 0.706   | 0.299   | 2.023519e-174 | 2       | KIT      |
-| 2.408642e-15  | 1.7219561  | 0.071   | 0.025   | 6.744196e-13  | 2       | MUC6     |
-| 2.346541e-20  | 1.7013104  | 0.102   | 0.037   | 6.570315e-18  | 2       | CLIC6    |
-| 6.904015e-144 | 1.6591053  | 0.666   | 0.306   | 1.933124e-141 | 2       | CXCR4    |
+| 4.352502e-144 | 1.1070971  | 0.631   | 0.312   | 1.218701e-141 | 0       | TUBB2B   |
+| 2.107105e-198 | 1.0848830  | 0.844   | 0.560   | 5.899895e-196 | 0       | CCND1    |
+| 7.158840e-12  | 1.0142743  | 0.063   | 0.029   | 2.004475e-09  | 0       | SERHL2   |
+| 1.120600e-69  | 0.9176133  | 0.440   | 0.236   | 3.137681e-67  | 0       | TRAF4    |
+| 1.399719e-34  | 0.8642718  | 0.254   | 0.137   | 3.919212e-32  | 0       | MYBPC1   |
+| 1.514970e-30  | 0.8518701  | 0.227   | 0.122   | 4.241917e-28  | 0       | PTRHD1   |
+| 2.436247e-80  | 0.8189955  | 0.584   | 0.349   | 6.821490e-78  | 0       | SLC5A6   |
+| 3.880890e-109 | 0.7992065  | 0.784   | 0.553   | 1.086649e-106 | 0       | SEC11C   |
+| 8.794545e-198 | 0.7828638  | 0.959   | 0.823   | 2.462473e-195 | 0       | TOMM7    |
+| 4.888822e-11  | 0.7782080  | 0.107   | 0.063   | 1.368870e-08  | 0       | DMKN     |
+| 0.000000e+00  | 3.0921346  | 0.963   | 0.295   | 0.000000e+00  | 1       | TOP2A    |
+| 0.000000e+00  | 2.7563930  | 0.738   | 0.177   | 0.000000e+00  | 1       | CENPF    |
+| 0.000000e+00  | 2.7361385  | 0.895   | 0.267   | 0.000000e+00  | 1       | MKI67    |
+| 4.390233e-182 | 2.1711490  | 0.484   | 0.127   | 1.229265e-179 | 1       | RTKN2    |
+| 1.016200e-139 | 1.9993007  | 0.423   | 0.120   | 2.845361e-137 | 1       | PCLAF    |
+| 1.413482e-49  | 0.8819110  | 0.602   | 0.385   | 3.957749e-47  | 1       | TUBB2B   |
+| 1.684906e-11  | 0.6981872  | 0.182   | 0.109   | 4.717737e-09  | 1       | FOXC2    |
+| 7.656002e-07  | 0.6572381  | 0.102   | 0.061   | 2.143681e-04  | 1       | TCF7     |
+| 4.130524e-35  | 0.6302350  | 0.659   | 0.464   | 1.156547e-32  | 1       | EIF4EBP1 |
+| 1.323024e-11  | 0.5794848  | 0.275   | 0.186   | 3.704466e-09  | 1       | ANKRD28  |
+| 2.613227e-07  | 0.3012463  | 0.806   | 0.711   | 7.317035e-05  | 2       | PELI1    |
+| 4.871823e-03  | 0.1489349  | 0.182   | 0.240   | 1.000000e+00  | 2       | HOOK2    |
+| 3.526833e-03  | 0.1391945  | 0.066   | 0.098   | 9.875131e-01  | 2       | C6orf132 |
+| 4.772797e-04  | 0.1064460  | 0.205   | 0.281   | 1.336383e-01  | 2       | JUP      |
+| 4.847743e-218 | 3.5214753  | 0.344   | 0.041   | 1.357368e-215 | 3       | KRT23    |
+| 1.256544e-15  | 3.3417568  | 0.033   | 0.006   | 3.518325e-13  | 3       | KRT5     |
+| 2.917291e-58  | 2.6703702  | 0.160   | 0.035   | 8.168416e-56  | 3       | KRT14    |
+| 1.424424e-14  | 2.4819469  | 0.043   | 0.010   | 3.988388e-12  | 3       | S100A14  |
+| 3.007982e-98  | 2.2080897  | 0.299   | 0.072   | 8.422349e-96  | 3       | KLF5     |
+| 2.894481e-49  | 2.1529674  | 0.145   | 0.033   | 8.104547e-47  | 3       | MLPH     |
 | ⋮             | ⋮          | ⋮       | ⋮       | ⋮             | ⋮       | ⋮        |
-| 0.000000e+00  | 5.507074   | 0.646   | 0.030   | 0.000000e+00  | 6       | ITGAX    |
-| 2.314770e-296 | 5.191223   | 0.293   | 0.011   | 6.481356e-294 | 6       | ITGAM    |
-| 0.000000e+00  | 4.997259   | 0.559   | 0.031   | 0.000000e+00  | 6       | CD163    |
-| 0.000000e+00  | 4.884338   | 0.431   | 0.019   | 0.000000e+00  | 6       | C1QA     |
-| 0.000000e+00  | 4.818968   | 0.887   | 0.121   | 0.000000e+00  | 6       | LYZ      |
-| 0.000000e+00  | 4.620677   | 0.521   | 0.031   | 0.000000e+00  | 6       | IGSF6    |
-| 0.000000e+00  | 4.610779   | 0.913   | 0.106   | 0.000000e+00  | 6       | FCER1G   |
-| 0.000000e+00  | 4.573058   | 0.530   | 0.034   | 0.000000e+00  | 6       | FCGR3A   |
-| 0.000000e+00  | 4.562829   | 0.833   | 0.096   | 0.000000e+00  | 6       | CD68     |
-| 0.000000e+00  | 4.561834   | 0.480   | 0.028   | 0.000000e+00  | 6       | C1QC     |
-| 3.031048e-133 | 6.841716   | 0.173   | 0.003   | 8.486933e-131 | 7       | PRF1     |
-| 0.000000e+00  | 6.209282   | 0.835   | 0.029   | 0.000000e+00  | 7       | CD3E     |
-| 0.000000e+00  | 6.203802   | 0.551   | 0.016   | 0.000000e+00  | 7       | GZMA     |
-| 0.000000e+00  | 6.177333   | 0.764   | 0.025   | 0.000000e+00  | 7       | TRAC     |
-| 3.158396e-292 | 6.129222   | 0.583   | 0.022   | 8.843508e-290 | 7       | CCL5     |
-| 4.485128e-230 | 6.106686   | 0.354   | 0.009   | 1.255836e-227 | 7       | CD247    |
-| 3.283038e-61  | 6.048701   | 0.079   | 0.001   | 9.192507e-59  | 7       | GZMK     |
-| 9.214896e-60  | 6.023689   | 0.102   | 0.003   | 2.580171e-57  | 7       | GNLY     |
-| 1.057008e-139 | 5.877429   | 0.244   | 0.007   | 2.959622e-137 | 7       | CD69     |
-| 9.851276e-104 | 5.662232   | 0.189   | 0.006   | 2.758357e-101 | 7       | NKG7     |
-| 0.000000e+00  | 7.763102   | 0.800   | 0.008   | 0.000000e+00  | 8       | CLEC14A  |
-| 0.000000e+00  | 7.715937   | 0.900   | 0.016   | 0.000000e+00  | 8       | VWF      |
-| 0.000000e+00  | 6.768240   | 0.686   | 0.012   | 0.000000e+00  | 8       | KDR      |
-| 0.000000e+00  | 6.740594   | 0.629   | 0.011   | 0.000000e+00  | 8       | MMRN2    |
-| 2.475225e-167 | 6.730903   | 0.257   | 0.003   | 6.930631e-165 | 8       | ESM1     |
-| 1.157115e-114 | 6.607097   | 0.171   | 0.002   | 3.239923e-112 | 8       | SOX18    |
-| 2.358859e-121 | 6.473595   | 0.186   | 0.002   | 6.604804e-119 | 8       | IL3RA    |
-| 1.108004e-198 | 6.241493   | 0.386   | 0.007   | 3.102411e-196 | 8       | HOXD9    |
-| 1.893055e-291 | 6.206150   | 0.900   | 0.035   | 5.300555e-289 | 8       | CD93     |
-| 4.691615e-108 | 6.159030   | 0.214   | 0.004   | 1.313652e-105 | 8       | NOSTRIN  |
+| 0.000000e+00  | 2.6406493  | 1.000   | 0.531   | 0.000000e+00  | 6       | SERPINA3 |
+| 7.221488e-03  | 1.5727292  | 0.011   | 0.004   | 1.000000e+00  | 6       | ADH1B    |
+| 5.709648e-05  | 1.2444034  | 0.038   | 0.015   | 1.598701e-02  | 6       | SPIB     |
+| 3.175231e-09  | 0.7713981  | 0.233   | 0.138   | 8.890646e-07  | 6       | DUSP2    |
+| 9.700172e-22  | 0.5749230  | 0.690   | 0.478   | 2.716048e-19  | 6       | EIF4EBP1 |
+| 5.189238e-22  | 0.5739879  | 0.629   | 0.400   | 1.452987e-19  | 6       | TUBB2B   |
+| 5.640017e-15  | 0.5603609  | 0.561   | 0.385   | 1.579205e-12  | 6       | SQLE     |
+| 1.246321e-12  | 0.5421208  | 0.457   | 0.301   | 3.489698e-10  | 6       | CDH1     |
+| 1.938110e-15  | 0.5207154  | 0.665   | 0.492   | 5.426709e-13  | 6       | BACE2    |
+| 3.980188e-16  | 0.5170584  | 0.743   | 0.583   | 1.114453e-13  | 6       | TMEM147  |
+| 1.987499e-114 | 6.6590671  | 0.164   | 0.003   | 5.564998e-112 | 7       | PRF1     |
+| 1.263723e-229 | 6.2246643  | 0.361   | 0.009   | 3.538425e-227 | 7       | CD247    |
+| 0.000000e+00  | 6.2119939  | 0.557   | 0.016   | 0.000000e+00  | 7       | GZMA     |
+| 0.000000e+00  | 6.1677046  | 0.836   | 0.030   | 0.000000e+00  | 7       | CD3E     |
+| 0.000000e+00  | 6.1522184  | 0.762   | 0.026   | 0.000000e+00  | 7       | TRAC     |
+| 8.911910e-64  | 6.1076572  | 0.082   | 0.001   | 2.495335e-61  | 7       | GZMK     |
+| 2.931856e-279 | 5.8886220  | 0.582   | 0.022   | 8.209198e-277 | 7       | CCL5     |
+| 8.855582e-118 | 5.8731920  | 0.205   | 0.006   | 2.479563e-115 | 7       | NKG7     |
+| 5.837061e-53  | 5.8313718  | 0.098   | 0.003   | 1.634377e-50  | 7       | GNLY     |
+| 1.270395e-31  | 5.6507995  | 0.074   | 0.003   | 3.557105e-29  | 7       | LTB      |
+| 0.000000e+00  | 7.8103947  | 0.826   | 0.008   | 0.000000e+00  | 8       | CLEC14A  |
+| 0.000000e+00  | 7.6710819  | 0.899   | 0.016   | 0.000000e+00  | 8       | VWF      |
+| 2.212329e-189 | 6.8435615  | 0.275   | 0.003   | 6.194522e-187 | 8       | ESM1     |
+| 0.000000e+00  | 6.7893135  | 0.652   | 0.011   | 0.000000e+00  | 8       | MMRN2    |
+| 0.000000e+00  | 6.7891992  | 0.696   | 0.012   | 0.000000e+00  | 8       | KDR      |
+| 2.349485e-116 | 6.6280555  | 0.174   | 0.002   | 6.578557e-114 | 8       | SOX18    |
+| 6.277482e-125 | 6.2772147  | 0.232   | 0.004   | 1.757695e-122 | 8       | NOSTRIN  |
+| 1.132348e-201 | 6.2624514  | 0.391   | 0.007   | 3.170575e-199 | 8       | HOXD9    |
+| 3.182380e-221 | 6.2249313  | 0.391   | 0.007   | 8.910665e-219 | 8       | ANGPT2   |
+| 2.091169e-295 | 6.2098244  | 0.913   | 0.035   | 5.855274e-293 | 8       | CD93     |
 
-A data.frame: 85 × 7 {.table .dataframe}
+A data.frame: 84 × 7 {.table .dataframe}
 
 Cluster annotation: 0 Basal-like epithelial cells / Myoepithelial cells
 1 Proliferating epithelial cells 2 Basal/myoepithelial tumor cells 3
@@ -378,20 +549,37 @@ Unclassified immune-like cells 4 Inflammatory immune cells (e.g. B cells
 / monocytes) 5 Cancer-associated fibroblasts (CAFs) 6 Macrophages (TAMs)
 7 Cytotoxic / Activated T cells 8 Endothelial cells
 
+Clusters are named by marker-gene signatures (the signature with the
+highest average scaled expression), so the names do not depend on the
+arbitrary cluster numbering.
+
 ``` r
 
 table(xenium.obj@meta.data[,cluster_col])
-xenium.obj@meta.data$new_cluster = dplyr::case_when(
-  xenium.obj@meta.data[,cluster_col] == "0" ~ "BasalMyo_epithelial_cells",
-  xenium.obj@meta.data[,cluster_col] == "1" ~ "Proliferating_epithelial_cells",
-  xenium.obj@meta.data[,cluster_col] == "2" ~ "BasalMyo_tumor_cells",
-  xenium.obj@meta.data[,cluster_col] == "3" ~ "Unclassified_immune-like_cells",
-  xenium.obj@meta.data[,cluster_col] == "4" ~ "Inflammatory_immune_cells",
-  xenium.obj@meta.data[,cluster_col] == "5" ~ "Cancer-associated_fibroblasts",
-  xenium.obj@meta.data[,cluster_col] == "6" ~ "Tumor-associated_macrophages",
-  xenium.obj@meta.data[,cluster_col] == "7" ~ "Cytotoxic_T",
-  xenium.obj@meta.data[,cluster_col] == "8" ~ "Endothelial_cells"
+# Annotate clusters with marker signatures rather than fixed cluster numbers,
+# so the labels stay correct if clustering changes between package versions.
+signatures <- list(
+  BasalMyo_epithelial_cells      = c("MYBPC1", "SERHL2", "CCND1", "TRAF4"),
+  Proliferating_epithelial_cells = c("TOP2A", "MKI67", "CENPF", "PCLAF"),
+  BasalMyo_tumor_cells           = c("KRT5", "KRT14", "KRT23", "KLF5"),
+  Luminal_tumor_cells            = c("ESR1", "FOXA1", "GATA3", "KRT8", "CEACAM6"),
+  Cytotoxic_T                    = c("CD3E", "PRF1", "GZMA", "TRAC", "CD247", "CD8A"),
+  `B_and_plasma_cells`           = c("MS4A1", "CD79A", "MZB1"),
+  `Tumor-associated_macrophages` = c("CD163", "C1QA", "CD68", "ITGAX", "LYZ"),
+  `Cancer-associated_fibroblasts`= c("POSTN", "LUM", "PDGFRB", "SFRP4", "FBLN1", "DPT", "MMP2"),
+  Endothelial_cells              = c("VWF", "CLEC14A", "KDR", "MMRN2"),
+  Mast_cells                     = c("CPA3", "TPSAB1", "KIT")
 )
+feats <- intersect(unique(unlist(signatures)), rownames(xenium.obj))
+avg <- as.matrix(AverageExpression(xenium.obj, assays = "SCT", features = feats,
+                                   group.by = cluster_col, layer = "data")$SCT)
+colnames(avg) <- sub("^g", "", colnames(avg))
+avg <- t(scale(t(avg))); avg[is.na(avg)] <- 0          # z-score each gene across clusters
+sig_score <- sapply(signatures, function(g) colMeans(avg[intersect(g, rownames(avg)), , drop = FALSE]))
+best <- setNames(colnames(sig_score)[max.col(sig_score, ties.method = "first")], rownames(sig_score))
+round(sig_score, 2)
+best
+xenium.obj@meta.data$new_cluster <- unname(best[as.character(xenium.obj@meta.data[, cluster_col])])
 table(xenium.obj@meta.data$new_cluster)
 cluster_col = "new_cluster"
 Idents(xenium.obj) = xenium.obj@meta.data$new_cluster
@@ -400,21 +588,53 @@ Idents(xenium.obj) = xenium.obj@meta.data$new_cluster
 ``` output
 
    0    1    2    3    4    5    6    7    8 
-1794 1125 1060  906  827  754  610  127   70 
+2389 1079  956  854  700  575  529  122   69 
 ```
+
+``` output
+As of Seurat v5, we recommend using AggregateExpression to perform pseudo-bulk analysis.
+This message is displayed once per session.
+```
+
+``` output
+First group.by variable `res_0.60` starts with a number, appending `g` to ensure valid variable names
+This message is displayed once every 8 hours.
+```
+
+|  | BasalMyo_epithelial_cells | Proliferating_epithelial_cells | BasalMyo_tumor_cells | Luminal_tumor_cells | Cytotoxic_T | B_and_plasma_cells | Tumor-associated_macrophages | Cancer-associated_fibroblasts | Endothelial_cells | Mast_cells |
+|----|----|----|----|----|----|----|----|----|----|----|
+| 0 | 1.46 | -0.09 | -0.25 | -0.03 | -0.37 | -0.28 | -0.48 | -0.62 | -0.34 | 0.04 |
+| 1 | 0.63 | 2.57 | -0.10 | 0.15 | -0.37 | -0.30 | -0.48 | -0.60 | -0.34 | 0.08 |
+| 2 | -0.01 | -0.10 | -0.01 | -0.11 | -0.35 | -0.33 | -0.40 | -0.50 | -0.33 | 0.07 |
+| 3 | 0.88 | -0.05 | 2.59 | 0.24 | -0.37 | -0.51 | -0.45 | -0.60 | -0.34 | 0.38 |
+| 4 | -0.84 | -0.62 | -0.51 | 0.00 | -0.26 | 1.36 | -0.02 | 2.29 | -0.30 | -0.22 |
+| 5 | -0.99 | -0.65 | -0.49 | 0.15 | -0.21 | -0.18 | 2.59 | 0.00 | -0.34 | 0.28 |
+| 6 | 0.83 | -0.08 | -0.21 | 0.26 | -0.37 | -0.28 | -0.48 | -0.64 | -0.35 | -0.30 |
+| 7 | -1.16 | -0.51 | -0.55 | 0.36 | 2.66 | 1.22 | 0.14 | 0.23 | -0.32 | 0.28 |
+| 8 | -0.81 | -0.47 | -0.46 | -1.02 | -0.35 | -0.69 | -0.42 | 0.45 | 2.67 | -0.62 |
+
+A matrix: 9 × 10 of type dbl {.table .dataframe}
+
+- 0 : ‘BasalMyo_epithelial_cells’
+- 1 : ‘Proliferating_epithelial_cells’
+- 2 : ‘Mast_cells’
+- 3 : ‘BasalMyo_tumor_cells’
+- 4 : ‘Cancer-associated_fibroblasts’
+- 5 : ‘Tumor-associated_macrophages’
+- 6 : ‘BasalMyo_epithelial_cells’
+- 7 : ‘Cytotoxic_T’
+- 8 : ‘Endothelial_cells’
 
 ``` output
 
      BasalMyo_epithelial_cells           BasalMyo_tumor_cells 
-                          1794                           1060 
+                          2918                            854 
  Cancer-associated_fibroblasts                    Cytotoxic_T 
-                           754                            127 
-             Endothelial_cells      Inflammatory_immune_cells 
-                            70                            827 
+                           700                            122 
+             Endothelial_cells                     Mast_cells 
+                            69                            956 
 Proliferating_epithelial_cells   Tumor-associated_macrophages 
-                          1125                            610 
-Unclassified_immune-like_cells 
-                           906 
+                          1079                            575 
 ```
 
 ``` r
@@ -440,8 +660,6 @@ g
 ``` output
 Scale for colour is already present.
 Adding another scale for colour, which will replace the existing scale.
-“No shared levels found between `names(values)` of the manual scale and the
-data's fill values.”
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-04.png)
@@ -490,7 +708,7 @@ difftime(end_time, start_time, units = "secs")
 ```
 
 ``` output
-Time difference of 8.454405 secs
+Time difference of 2.019416 secs
 ```
 
 ``` r
@@ -652,16 +870,14 @@ summary(cooccur_local_df)
 
 ``` output
 
-          BasalMyo_tumor_cells      BasalMyo_epithelial_cells 
-                          1060                           1794 
-Unclassified_immune-like_cells Proliferating_epithelial_cells 
-                           906                           1125 
-  Tumor-associated_macrophages                    Cytotoxic_T 
-                           610                            127 
- Cancer-associated_fibroblasts              Endothelial_cells 
-                           754                             70 
-     Inflammatory_immune_cells 
-                           827 
+     BasalMyo_epithelial_cells                     Mast_cells 
+                          2918                            956 
+Proliferating_epithelial_cells   Tumor-associated_macrophages 
+                          1079                            575 
+                   Cytotoxic_T  Cancer-associated_fibroblasts 
+                           122                            700 
+             Endothelial_cells           BasalMyo_tumor_cells 
+                            69                            854 
 ```
 
 ``` output
@@ -673,17 +889,17 @@ stopping after 4 steps
 ```
 
 ``` output
-Time difference of 2.116352 secs
+Time difference of 1.44676 secs
 ```
 
 ``` output
  cooccur_local_Cytotoxic_T_Cancer-associated_fibroblasts
- Min.   :0.00000                                        
- 1st Qu.:0.00000                                        
- Median :0.00000                                        
- Mean   :0.11811                                        
- 3rd Qu.:0.03125                                        
- Max.   :1.13205                                        
+ Min.   :0.0000000                                      
+ 1st Qu.:0.0000000                                      
+ Median :0.0000773                                      
+ Mean   :0.1106833                                      
+ 3rd Qu.:0.0646834                                      
+ Max.   :1.1785277                                      
 ```
 
 ``` r
@@ -709,7 +925,7 @@ g
 
 ``` r
 
-path <- "./../10X_Xenium_sample/Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_outs/"
+path <- paste0(data_dir, "/Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_outs/")
 data_name = stringr::str_split(path, "/")[[1]][length(stringr::str_split(path, "/")[[1]])-1]
 
 xenium.obj <- LoadXenium(path, fov = "fov")
@@ -720,8 +936,38 @@ VlnPlot(xenium.obj, features = c("nFeature_Xenium", "nCount_Xenium"), ncol = 2, 
 ```
 
 ``` output
-10X data contains more than one type and is being returned as a list containing matrices of each type.
+“cells did not contain a segmentation_method column. Skipping...”
+```
+
+``` output
+Genome matrix has multiple modalities, returning a list of matrices for this genome
+```
+
+``` output
 “Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
+“Feature names cannot have underscores ('_'), replacing with dashes ('-')”
+```
+
+``` output
 “Default search for "data" layer in "Xenium" assay yielded no results; utilizing "counts" layer instead.”
 ```
 
@@ -748,29 +994,101 @@ xenium.obj <- FindClusters(xenium.obj, resolution = 0.3)
 
 ``` output
 Running SCTransform on assay: Xenium
+```
+
+``` output
 Running SCTransform on layer: counts
+```
+
+``` output
 vst.flavor='v2' set. Using model with fixed slope and excluding poisson genes.
+```
+
+``` output
 Variance stabilizing transformation of count matrix of size 248 by 36553
+```
+
+``` output
 Model formula is y ~ log_umi
+```
+
+``` output
 Get Negative Binomial regression parameters per gene
+```
+
+``` output
 Using 248 genes, 5000 cells
+```
+
+``` output
 Second step: Get residuals using fitted parameters for 248 genes
+```
+
+``` output
 Computing corrected count matrix for 248 genes
+```
+
+``` output
 Calculating gene attributes
-Wall clock passed: Time difference of 1.898056 secs
+```
+
+``` output
+Wall clock passed: Time difference of 1.649014 secs
+```
+
+``` output
 Determine variable features
+```
+
+``` output
 Centering data matrix
+```
+
+``` output
 Getting residuals for block 1(of 8) for counts dataset
+```
+
+``` output
 Getting residuals for block 2(of 8) for counts dataset
+```
+
+``` output
 Getting residuals for block 3(of 8) for counts dataset
+```
+
+``` output
 Getting residuals for block 4(of 8) for counts dataset
+```
+
+``` output
 Getting residuals for block 5(of 8) for counts dataset
+```
+
+``` output
 Getting residuals for block 6(of 8) for counts dataset
+```
+
+``` output
 Getting residuals for block 7(of 8) for counts dataset
+```
+
+``` output
 Getting residuals for block 8(of 8) for counts dataset
+```
+
+``` output
 Centering data matrix
+```
+
+``` output
 Finished calculating residuals for counts
+```
+
+``` output
 Set default assay to SCT
+```
+
+``` output
 PC_ 1 
 Positive:  Slc17a7, Nrn1, Epha4, Neurod6, Nwd2, Gad1, Cpne4, Rasgrf2, Rims3, Lamp5 
 Negative:  Igf2, Dcn, Fmod, Slc13a4, Fn1, Aldh1a2, Col1a1, Ly6a, Cldn5, Spp1 
@@ -778,27 +1096,69 @@ PC_ 2
 Positive:  Slc17a7, Fn1, Igf2, Nrn1, Cldn5, Epha4, Neurod6, Ly6a, Dcn, Rasgrf2 
 Negative:  Gjc3, Opalin, Sox10, Gfap, Clmn, Vwc2l, Zfp536, Sema6a, Gpr17, Gng12 
 PC_ 3 
-Positive:  Cldn5, Ly6a, Adgrl4, Fn1, Pecam1, Acvrl1, Kdr, Cd93, Pglyrp1, Sox17 
-Negative:  Slc13a4, Igf2, Dcn, Fmod, Aldh1a2, Nwd2, Col1a1, Vat1l, Calb2, Spp1 
+Positive:  Slc13a4, Igf2, Dcn, Fmod, Aldh1a2, Nwd2, Col1a1, Vat1l, Calb2, Spp1 
+Negative:  Cldn5, Ly6a, Adgrl4, Fn1, Pecam1, Acvrl1, Kdr, Cd93, Pglyrp1, Sox17 
 PC_ 4 
-Positive:  Nwd2, Calb2, Slc17a6, Necab2, Syt6, Vat1l, Nrp2, Sncg, Cpne4, Cldn5 
-Negative:  Slc17a7, Dkk3, Cabp7, Neurod6, 2010300C02Rik, Arc, Epha4, Igfbp4, Bcl11b, Fmod 
+Positive:  Slc17a7, Dkk3, Cabp7, Neurod6, 2010300C02Rik, Arc, Epha4, Igfbp4, Bcl11b, Fmod 
+Negative:  Nwd2, Calb2, Slc17a6, Necab2, Syt6, Vat1l, Nrp2, Sncg, Cpne4, Cldn5 
 PC_ 5 
 Positive:  Gad1, Pvalb, Gad2, Rab3b, Opalin, Gjc3, Dpy19l1, Cdh13, Sox10, Garnl3 
 Negative:  Cabp7, Gfap, Aqp4, Laptm5, Ntsr2, Trem2, Siglech, Acsbg1, Cd53, Slc39a12 
-16:58:08 UMAP embedding parameters a = 0.9922 b = 1.112
-16:58:08 Read 36553 rows and found 30 numeric columns
-16:58:08 Using Annoy for neighbor search, n_neighbors = 30
-16:58:08 Building Annoy index with metric = cosine, n_trees = 50
-16:58:12 Writing NN index file to temp file /var/folders/sy/nsv_ry152bl4gmzq0zkv250m0000gn/T//RtmpBuuDKV/file2e022174c969
-16:58:12 Searching Annoy index using 1 thread, search_k = 3000
-16:58:21 Annoy recall = 100%
-16:58:22 Commencing smooth kNN distance calibration using 1 thread
+```
+
+``` output
+12:24:37 UMAP embedding parameters a = 0.9922 b = 1.112
+```
+
+``` output
+12:24:37 Read 36553 rows and found 30 numeric columns
+```
+
+``` output
+12:24:37 Using Annoy for neighbor search, n_neighbors = 30
+```
+
+``` output
+12:24:37 Building Annoy index with metric = cosine, n_trees = 50
+```
+
+``` output
+12:24:40 Writing NN index file to temp file /var/folders/df/49px45nx3rz20xqjngdv2ccc0000gn/T//RtmpksBbvY/file62a742fa525
+```
+
+``` output
+12:24:40 Searching Annoy index using 1 thread, search_k = 3000
+```
+
+``` output
+12:24:45 Annoy recall = 100%
+```
+
+``` output
+12:24:46 Commencing smooth kNN distance calibration using 1 thread
+```
+
+``` output
  with target n_neighbors = 30
-16:58:23 Initializing from normalized Laplacian + noise (using RSpectra)
-16:58:24 Commencing optimization for 200 epochs, with 1669238 positive edges
-16:58:38 Optimization finished
+```
+
+``` output
+12:24:47 Initializing from normalized Laplacian + noise (using RSpectra)
+```
+
+``` output
+12:24:48 Commencing optimization for 200 epochs, with 1669102 positive edges
+```
+
+``` output
+12:24:57 Optimization finished
+```
+
+``` output
 Computing nearest neighbor graph
+```
+
+``` output
 Computing SNN
 ```
 
@@ -806,12 +1166,12 @@ Computing SNN
 Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
 
 Number of nodes: 36553
-Number of edges: 1341724
+Number of edges: 1340944
 
 Running Louvain algorithm...
-Maximum modularity in 10 random starts: 0.9586
-Number of communities: 29
-Elapsed time: 5 seconds
+Maximum modularity in 10 random starts: 0.9585
+Number of communities: 27
+Elapsed time: 4 seconds
 ```
 
 ``` r
@@ -825,11 +1185,6 @@ g = CellDimPlot(
   stat_plot_size = 3
 ) 
 g 
-```
-
-``` output
-“No shared levels found between `names(values)` of the manual scale and the
-data's fill values.”
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-10.png)
@@ -873,7 +1228,7 @@ query <- SpatialRNA(coords, query.counts, colSums(query.counts))
 
 # allen.corted.ref can be downloaded here:
 # https://www.dropbox.com/s/cuowvm4vrf65pvq/allen_cortex.rds?dl=1
-allen.cortex.ref <- readRDS("./../10X_Xenium_sample/allen_cortex.rds")
+allen.cortex.ref <- readRDS(paste0(data_dir, "/allen_cortex.rds"))
 allen.cortex.ref <- UpdateSeuratObject(allen.cortex.ref)
 
 Idents(allen.cortex.ref) <- "subclass"
@@ -891,13 +1246,37 @@ reference <- Reference(counts, cluster, nUMI)
 
 ``` output
 Validating object structure
+```
+
+``` output
 Updating object slots
+```
+
+``` output
 Ensuring keys are in the proper structure
+```
+
+``` output
 “Assay RNA changing from Assay to Assay”
+```
+
+``` output
 Ensuring keys are in the proper structure
+```
+
+``` output
 Ensuring feature names don't have underscores or pipes
+```
+
+``` output
 Updating slots in RNA
+```
+
+``` output
 Validating object structure for Assay ‘RNA’
+```
+
+``` output
 Object representation is consistent with the most current Seurat version
 ```
 
@@ -910,7 +1289,13 @@ RCTD <- run.RCTD(RCTD, doublet_mode = "doublet")
 
 ``` output
 Begin: process_cell_type_info
+```
+
+``` output
 process_cell_type_info: number of cells in reference: 14242
+```
+
+``` output
 process_cell_type_info: number of genes in reference: 34617
 ```
 
@@ -928,61 +1313,229 @@ process_cell_type_info: number of genes in reference: 34617
 
 ``` output
 End: process_cell_type_info
+```
+
+``` output
 create.RCTD: getting regression differentially expressed genes: 
+```
+
+``` output
 get_de_genes: Astro found DE genes: 9
+```
+
+``` output
 get_de_genes: Endo found DE genes: 15
+```
+
+``` output
 get_de_genes: L2-3 IT found DE genes: 7
+```
+
+``` output
 get_de_genes: L4 found DE genes: 13
+```
+
+``` output
 get_de_genes: L5 IT found DE genes: 8
+```
+
+``` output
 get_de_genes: L5 PT found DE genes: 4
+```
+
+``` output
 get_de_genes: L6 CT found DE genes: 11
+```
+
+``` output
 get_de_genes: L6 IT found DE genes: 8
+```
+
+``` output
 get_de_genes: L6b found DE genes: 11
+```
+
+``` output
 get_de_genes: Lamp5 found DE genes: 9
+```
+
+``` output
 get_de_genes: Macrophage found DE genes: 11
+```
+
+``` output
 get_de_genes: Meis2 found DE genes: 12
+```
+
+``` output
 get_de_genes: NP found DE genes: 10
+```
+
+``` output
 get_de_genes: Oligo found DE genes: 7
+```
+
+``` output
 get_de_genes: Peri found DE genes: 10
+```
+
+``` output
 get_de_genes: Pvalb found DE genes: 7
+```
+
+``` output
 get_de_genes: Serpinf1 found DE genes: 9
+```
+
+``` output
 get_de_genes: SMC found DE genes: 13
+```
+
+``` output
 get_de_genes: Sncg found DE genes: 12
+```
+
+``` output
 get_de_genes: Sst found DE genes: 10
+```
+
+``` output
 get_de_genes: Vip found DE genes: 10
+```
+
+``` output
 get_de_genes: VLMC found DE genes: 13
+```
+
+``` output
 get_de_genes: total DE genes: 122
+```
+
+``` output
 create.RCTD: getting platform effect normalization differentially expressed genes: 
+```
+
+``` output
 get_de_genes: Astro found DE genes: 16
+```
+
+``` output
 get_de_genes: Endo found DE genes: 20
+```
+
+``` output
 get_de_genes: L2-3 IT found DE genes: 15
+```
+
+``` output
 get_de_genes: L4 found DE genes: 23
+```
+
+``` output
 get_de_genes: L5 IT found DE genes: 16
+```
+
+``` output
 get_de_genes: L5 PT found DE genes: 11
+```
+
+``` output
 get_de_genes: L6 CT found DE genes: 19
+```
+
+``` output
 get_de_genes: L6 IT found DE genes: 17
+```
+
+``` output
 get_de_genes: L6b found DE genes: 14
+```
+
+``` output
 get_de_genes: Lamp5 found DE genes: 15
+```
+
+``` output
 get_de_genes: Macrophage found DE genes: 11
+```
+
+``` output
 get_de_genes: Meis2 found DE genes: 16
+```
+
+``` output
 get_de_genes: NP found DE genes: 17
+```
+
+``` output
 get_de_genes: Oligo found DE genes: 12
+```
+
+``` output
 get_de_genes: Peri found DE genes: 13
+```
+
+``` output
 get_de_genes: Pvalb found DE genes: 12
+```
+
+``` output
 get_de_genes: Serpinf1 found DE genes: 16
+```
+
+``` output
 get_de_genes: SMC found DE genes: 17
+```
+
+``` output
 get_de_genes: Sncg found DE genes: 19
+```
+
+``` output
 get_de_genes: Sst found DE genes: 13
+```
+
+``` output
 get_de_genes: Vip found DE genes: 17
+```
+
+``` output
 get_de_genes: VLMC found DE genes: 16
+```
+
+``` output
 get_de_genes: total DE genes: 154
+```
+
+``` output
 fitBulk: decomposing bulk
+```
+
+``` output
 chooseSigma: using initial Q_mat with sigma =  1
+```
+
+``` output
 Likelihood value: 149571.609725169
+```
+
+``` output
 Sigma value:  0.84
+```
+
+``` output
 Likelihood value: 148159.897969503
+```
+
+``` output
 Sigma value:  0.7
+```
+
+``` output
 Likelihood value: 147678.589123498
+```
+
+``` output
 Sigma value:  0.7
 ```
 
@@ -1051,11 +1604,6 @@ ImageDimPlot(xenium.obj, fov = "fov", molecules = markers, nmols = 20000) &
   scale_color_manual(values = marker_COLORS) 
 ```
 
-``` output
-“No shared levels found between `names(values)` of the manual scale and the
-data's colour values.”
-```
-
 ![](figures/SNA_tutorial_10Xdata/fig-13.png)
 
 ``` r
@@ -1081,8 +1629,6 @@ g
 ``` output
 Scale for colour is already present.
 Adding another scale for colour, which will replace the existing scale.
-“No shared levels found between `names(values)` of the manual scale and the
-data's fill values.”
 ```
 
 ![](figures/SNA_tutorial_10Xdata/fig-14.png)
@@ -1126,7 +1672,7 @@ difftime(end_time, start_time, units = "secs")
 ```
 
 ``` output
-Time difference of 38.82865 secs
+Time difference of 7.315697 secs
 ```
 
 ``` r
@@ -1237,17 +1783,17 @@ stopping after 4 steps
 ```
 
 ``` output
-Time difference of 8.313207 secs
+Time difference of 6.518088 secs
 ```
 
 ``` output
  cooccur_local_L6_IT_L6_CT
- Min.   :0.0000           
- 1st Qu.:0.0000           
- Median :0.0000           
- Mean   :0.0929           
- 3rd Qu.:0.0000           
- Max.   :1.0787           
+ Min.   :0.00000          
+ 1st Qu.:0.00000          
+ Median :0.00000          
+ Mean   :0.09290          
+ 3rd Qu.:0.03948          
+ Max.   :1.20254          
 ```
 
 ``` r
@@ -1302,7 +1848,7 @@ sessionInfo()
 ``` output
 R version 4.3.2 (2023-10-31)
 Platform: aarch64-apple-darwin20 (64-bit)
-Running under: macOS 15.6
+Running under: macOS 26.3.1
 
 Matrix products: default
 BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib 
@@ -1319,122 +1865,128 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] spacexr_2.2.1         spatialCooccur_0.1.0  ComplexHeatmap_2.18.0
- [4] circlize_0.4.15       ggplot2_3.5.2         SCP_0.5.6            
- [7] dplyr_1.1.4           magrittr_2.0.3        Seurat_5.0.1         
-[10] SeuratObject_5.0.2    sp_2.1-3             
+ [1] spacexr_2.2.1         spatialCooccur_0.99.2 testthat_3.2.1       
+ [4] ComplexHeatmap_2.18.0 circlize_0.4.15       ggplot2_3.4.4        
+ [7] SCP_0.5.6             dplyr_1.1.4           magrittr_2.0.3       
+[10] Seurat_5.2.1          SeuratObject_5.0.2    sp_2.1-2             
 
 loaded via a namespace (and not attached):
-  [1] fs_1.6.3                      matrixStats_1.5.0            
-  [3] spatstat.sparse_3.0-3         bitops_1.0-7                 
-  [5] enrichplot_1.22.0             HDO.db_0.99.1                
-  [7] httr_1.4.7                    RColorBrewer_1.1-3           
-  [9] doParallel_1.0.17             repr_1.1.6                   
- [11] tools_4.3.2                   sctransform_0.4.1            
- [13] utf8_1.2.4                    R6_2.5.1                     
- [15] HDF5Array_1.30.0              lazyeval_0.2.2               
- [17] uwot_0.1.16                   rhdf5filters_1.14.1          
- [19] GetoptLong_1.0.5              withr_3.0.0                  
- [21] prettyunits_1.2.0             gridExtra_2.3                
- [23] progressr_0.14.0              cli_3.6.2                    
- [25] Biobase_2.62.0                Cairo_1.6-2                  
- [27] spatstat.explore_3.2-6        fastDummies_1.7.3            
- [29] scatterpie_0.2.1              labeling_0.4.3               
- [31] spatstat.data_3.0-4           ggridges_0.5.4               
- [33] pbapply_1.7-2                 slingshot_2.10.0             
- [35] Rsamtools_2.18.0              yulab.utils_0.1.4            
- [37] pbdZMQ_0.3-11                 gson_0.1.0                   
- [39] DOSE_3.28.2                   R.utils_2.12.3               
- [41] parallelly_1.36.0             limma_3.58.1                 
- [43] RSQLite_2.3.5                 gridGraphics_0.5-1           
- [45] generics_0.1.3                shape_1.4.6                  
- [47] ica_1.0-3                     spatstat.random_3.2-2        
- [49] GO.db_3.18.0                  Matrix_1.6-5                 
- [51] ggbeeswarm_0.7.2              fansi_1.0.6                  
- [53] S4Vectors_0.40.2              abind_1.4-5                  
- [55] R.methodsS3_1.8.2             lifecycle_1.0.4              
- [57] yaml_2.3.8                    SummarizedExperiment_1.32.0  
- [59] glmGamPoi_1.14.3              rhdf5_2.46.1                 
- [61] qvalue_2.34.0                 SparseArray_1.2.4            
- [63] BiocFileCache_2.10.1          Rtsne_0.17                   
- [65] blob_1.2.4                    promises_1.2.1               
- [67] crayon_1.5.2                  miniUI_0.1.1.1               
- [69] lattice_0.22-5                cowplot_1.1.3                
- [71] KEGGREST_1.42.0               magick_2.8.2                 
- [73] pillar_1.9.0                  fgsea_1.28.0                 
- [75] GenomicRanges_1.54.1          rjson_0.2.21                 
- [77] future.apply_1.11.1           codetools_0.2-19             
- [79] fastmatch_1.1-4               leiden_0.4.3.1               
- [81] glue_1.7.0                    ggfun_0.1.4                  
- [83] data.table_1.15.0             treeio_1.26.0                
- [85] vctrs_0.6.5                   png_0.1-8                    
- [87] spam_2.10-0                   gtable_0.3.4                 
- [89] cachem_1.0.8                  princurve_2.1.6              
- [91] Signac_1.12.0                 S4Arrays_1.2.0               
- [93] mime_0.12                     tidygraph_1.3.1              
- [95] survival_3.5-7                SingleCellExperiment_1.24.0  
- [97] RcppRoll_0.3.0                iterators_1.0.14             
- [99] statmod_1.5.0                 interactiveDisplayBase_1.40.0
-[101] ellipsis_0.3.2                fitdistrplus_1.1-11          
-[103] ROCR_1.0-11                   nlme_3.1-164                 
-[105] ggtree_3.10.0                 bit64_4.0.5                  
-[107] progress_1.2.3                filelock_1.0.3               
-[109] RcppAnnoy_0.0.22              GenomeInfoDb_1.38.6          
-[111] R.cache_0.16.0                irlba_2.3.5.1                
-[113] vipor_0.4.7                   KernSmooth_2.23-22           
-[115] colorspace_2.1-0              BiocGenerics_0.48.1          
-[117] DBI_1.2.1                     ggrastr_1.0.2                
-[119] tidyselect_1.2.1              moments_0.14.1               
-[121] proxyC_0.3.4                  bit_4.0.5                    
-[123] compiler_4.3.2                curl_5.2.0                   
-[125] xml2_1.3.6                    DelayedArray_0.28.0          
-[127] plotly_4.10.4                 shadowtext_0.1.3             
-[129] scales_1.3.0                  lmtest_0.9-40                
-[131] quadprog_1.5-8                rappdirs_0.3.3               
-[133] stringr_1.5.1                 digest_0.6.35                
-[135] goftest_1.2-3                 presto_1.0.0                 
-[137] spatstat.utils_3.1-2          XVector_0.42.0               
-[139] htmltools_0.5.8.1             pkgconfig_2.0.3              
-[141] base64enc_0.1-3               sparseMatrixStats_1.14.0     
-[143] MatrixGenerics_1.14.0         dbplyr_2.4.0                 
-[145] fastmap_1.1.1                 rlang_1.1.6                  
-[147] GlobalOptions_0.1.2           htmlwidgets_1.6.4            
-[149] DelayedMatrixStats_1.24.0     shiny_1.8.0                  
-[151] farver_2.1.1                  zoo_1.8-12                   
-[153] jsonlite_1.8.8                BiocParallel_1.36.0          
-[155] GOSemSim_2.28.1               R.oo_1.26.0                  
-[157] RCurl_1.98-1.14               ggplotify_0.1.2              
-[159] GenomeInfoDbData_1.2.11       dotCall64_1.1-1              
-[161] patchwork_1.2.0               Rhdf5lib_1.24.2              
-[163] IRkernel_1.3.2                munsell_0.5.1                
-[165] Rcpp_1.0.12                   TrajectoryUtils_1.10.1       
-[167] ggnewscale_0.4.10             ape_5.7-1                    
-[169] viridis_0.6.5                 reticulate_1.39.0            
-[171] stringi_1.8.3                 ggraph_2.1.0                 
-[173] zlibbioc_1.48.0               MASS_7.3-60.0.1              
-[175] AnnotationHub_3.10.0          plyr_1.8.9                   
-[177] parallel_4.3.2                listenv_0.9.1                
-[179] ggrepel_0.9.5                 deldir_2.0-2                 
-[181] Biostrings_2.70.2             graphlayouts_1.1.0           
-[183] IRdisplay_1.1                 splines_4.3.2                
-[185] tensor_1.5                    hms_1.1.3                    
-[187] igraph_2.0.1.1                uuid_1.2-0                   
-[189] spatstat.geom_3.2-8           RcppHNSW_0.6.0               
-[191] reshape2_1.4.4                biomaRt_2.58.2               
-[193] stats4_4.3.2                  BiocVersion_3.18.1           
-[195] XML_3.99-0.16.1               evaluate_0.23                
-[197] RcppParallel_5.1.7            BiocManager_1.30.22          
-[199] foreach_1.5.2                 tweenr_2.0.2                 
-[201] httpuv_1.6.14                 RANN_2.6.1                   
-[203] tidyr_1.3.1                   purrr_1.0.2                  
-[205] polyclip_1.10-6               future_1.33.1                
-[207] clue_0.3-65                   scattermore_1.2              
-[209] ggforce_0.4.1                 xtable_1.8-4                 
-[211] tidytree_0.4.6                RSpectra_0.16-1              
-[213] later_1.3.2                   viridisLite_0.4.2            
-[215] tibble_3.2.1                  aplot_0.2.2                  
-[217] clusterProfiler_4.10.0        beeswarm_0.4.0               
-[219] memoise_2.0.1                 AnnotationDbi_1.64.1         
-[221] IRanges_2.36.0                cluster_2.1.6                
-[223] globals_0.16.2               
+  [1] IRanges_2.36.0                R.methodsS3_1.8.2            
+  [3] progress_1.2.3                urlchecker_1.0.1             
+  [5] goftest_1.2-3                 Biostrings_2.70.1            
+  [7] HDF5Array_1.30.0              vctrs_0.6.5                  
+  [9] spatstat.random_3.3-2         digest_0.6.33                
+ [11] png_0.1-8                     shape_1.4.6                  
+ [13] slingshot_2.10.0              ggrepel_0.9.4                
+ [15] IRdisplay_1.1                 deldir_2.0-2                 
+ [17] parallelly_1.36.0             magick_2.8.2                 
+ [19] MASS_7.3-60                   Signac_1.14.0                
+ [21] reshape2_1.4.4                httpuv_1.6.13                
+ [23] foreach_1.5.2                 BiocGenerics_0.48.1          
+ [25] qvalue_2.34.0                 withr_2.5.2                  
+ [27] ggrastr_1.0.2                 ggfun_0.1.3                  
+ [29] ellipsis_0.3.2                survival_3.5-7               
+ [31] memoise_2.0.1                 proxyC_0.3.4                 
+ [33] ggbeeswarm_0.7.2              clusterProfiler_4.10.0       
+ [35] gson_0.1.0                    princurve_2.1.6              
+ [37] profvis_0.3.8                 tidytree_0.4.6               
+ [39] zoo_1.8-12                    GlobalOptions_0.1.2          
+ [41] pbapply_1.7-2                 IRkernel_1.3.2               
+ [43] R.oo_1.25.0                   prettyunits_1.2.0            
+ [45] KEGGREST_1.42.0               promises_1.2.1               
+ [47] httr_1.4.7                    globals_0.16.2               
+ [49] fitdistrplus_1.1-11           rhdf5filters_1.14.1          
+ [51] rhdf5_2.46.1                  rstudioapi_0.15.0            
+ [53] miniUI_0.1.1.1                generics_0.1.3               
+ [55] DOSE_3.28.2                   base64enc_0.1-3              
+ [57] curl_5.2.0                    S4Vectors_0.40.2             
+ [59] repr_1.1.6                    zlibbioc_1.48.0              
+ [61] ggraph_2.1.0                  polyclip_1.10-6              
+ [63] quadprog_1.5-8                GenomeInfoDbData_1.2.11      
+ [65] SparseArray_1.2.3             interactiveDisplayBase_1.40.0
+ [67] xtable_1.8-4                  stringr_1.5.1                
+ [69] desc_1.4.3                    doParallel_1.0.17            
+ [71] evaluate_0.23                 S4Arrays_1.2.0               
+ [73] BiocFileCache_2.10.1          hms_1.1.3                    
+ [75] GenomicRanges_1.54.1          irlba_2.3.5.1                
+ [77] colorspace_2.1-0              filelock_1.0.3               
+ [79] hdf5r_1.3.8                   ROCR_1.0-11                  
+ [81] reticulate_1.35.0             spatstat.data_3.1-4          
+ [83] lmtest_0.9-40                 glmGamPoi_1.14.0             
+ [85] later_1.3.2                   viridis_0.6.4                
+ [87] ggtree_3.10.0                 lattice_0.21-9               
+ [89] spatstat.geom_3.3-5           future.apply_1.11.1          
+ [91] scattermore_1.2               XML_3.99-0.16                
+ [93] shadowtext_0.1.2              cowplot_1.1.2                
+ [95] matrixStats_1.2.0             RcppAnnoy_0.0.21             
+ [97] pillar_1.11.0                 nlme_3.1-163                 
+ [99] iterators_1.0.14              compiler_4.3.2               
+[101] RSpectra_0.16-1               stringi_1.8.3                
+[103] tensor_1.5                    SummarizedExperiment_1.32.0  
+[105] devtools_2.4.5                plyr_1.8.9                   
+[107] crayon_1.5.2                  abind_1.4-5                  
+[109] gridGraphics_0.5-1            graphlayouts_1.0.2           
+[111] bit_4.0.5                     fastmatch_1.1-4              
+[113] codetools_0.2-19              GetoptLong_1.0.5             
+[115] plotly_4.10.3                 mime_0.12                    
+[117] splines_4.3.2                 Rcpp_1.0.11                  
+[119] fastDummies_1.7.3             sparseMatrixStats_1.14.0     
+[121] dbplyr_2.4.0                  HDO.db_0.99.1                
+[123] blob_1.2.4                    clue_0.3-65                  
+[125] BiocVersion_3.18.1            pbdZMQ_0.3-10                
+[127] fs_1.6.3                      listenv_0.9.0                
+[129] DelayedMatrixStats_1.24.0     pkgbuild_1.4.3               
+[131] ggplotify_0.1.2               tibble_3.2.1                 
+[133] Matrix_1.6-5                  statmod_1.5.0                
+[135] tweenr_2.0.2                  pkgconfig_2.0.3              
+[137] tools_4.3.2                   cachem_1.0.8                 
+[139] R.cache_0.16.0                RSQLite_2.3.4                
+[141] viridisLite_0.4.2             DBI_1.2.0                    
+[143] fastmap_1.1.1                 scales_1.3.0                 
+[145] usethis_2.2.2                 ica_1.0-3                    
+[147] Rsamtools_2.18.0              AnnotationHub_3.10.0         
+[149] patchwork_1.1.3               BiocManager_1.30.22          
+[151] dotCall64_1.1-1               RANN_2.6.1                   
+[153] farver_2.1.1                  tidygraph_1.3.0              
+[155] scatterpie_0.2.1              yaml_2.3.8                   
+[157] MatrixGenerics_1.14.0         cli_3.6.2                    
+[159] purrr_1.0.2                   stats4_4.3.2                 
+[161] lifecycle_1.0.4               uwot_0.1.16                  
+[163] Biobase_2.62.0                arrow_17.0.0.1               
+[165] presto_1.0.0                  sessioninfo_1.2.2            
+[167] BiocParallel_1.36.0           gtable_0.3.4                 
+[169] rjson_0.2.23                  ggridges_0.5.5               
+[171] progressr_0.14.0              limma_3.58.1                 
+[173] parallel_4.3.2                ape_5.7-1                    
+[175] jsonlite_2.0.0                RcppHNSW_0.5.0               
+[177] bitops_1.0-7                  bit64_4.0.5                  
+[179] assertthat_0.2.1              brio_1.1.4                   
+[181] Rtsne_0.17                    yulab.utils_0.1.2            
+[183] spatstat.utils_3.1-2          RcppParallel_5.1.7           
+[185] GOSemSim_2.28.0               spatstat.univar_3.1-2        
+[187] R.utils_2.12.3                lazyeval_0.2.2               
+[189] shiny_1.8.0                   htmltools_0.5.7              
+[191] enrichplot_1.22.0             GO.db_3.18.0                 
+[193] sctransform_0.4.1             rappdirs_0.3.3               
+[195] glue_1.6.2                    spam_2.10-0                  
+[197] XVector_0.42.0                RCurl_1.98-1.13              
+[199] rprojroot_2.0.4               treeio_1.26.0                
+[201] gridExtra_2.3                 igraph_1.6.0                 
+[203] TrajectoryUtils_1.10.0        R6_2.5.1                     
+[205] tidyr_1.3.0                   SingleCellExperiment_1.24.0  
+[207] labeling_0.4.3                RcppRoll_0.3.0               
+[209] cluster_2.1.4                 pkgload_1.3.3                
+[211] Rhdf5lib_1.24.1               aplot_0.2.2                  
+[213] GenomeInfoDb_1.38.2           vipor_0.4.7                  
+[215] DelayedArray_0.28.0           tidyselect_1.2.0             
+[217] ggforce_0.4.1                 xml2_1.3.6                   
+[219] AnnotationDbi_1.64.1          future_1.33.1                
+[221] moments_0.14.1                munsell_0.5.0                
+[223] KernSmooth_2.23-22            data.table_1.16.0            
+[225] htmlwidgets_1.6.4             fgsea_1.28.0                 
+[227] RColorBrewer_1.1-3            biomaRt_2.58.2               
+[229] rlang_1.1.2                   spatstat.sparse_3.1-0        
+[231] spatstat.explore_3.3-4        uuid_1.1-1                   
+[233] remotes_2.4.2.1               Cairo_1.6-2                  
+[235] ggnewscale_0.4.9              beeswarm_0.4.0               
 ```

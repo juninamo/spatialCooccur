@@ -19,7 +19,7 @@ cooccur_local_per_sample(
   neighbors.k = 20,
   radius = 30,
   maxnsteps = 1,
-  summarize = c("mean", "q90", "pos_rate")
+  summarize = c("mean", "q90", "pos_rate", "log2_oe")
 )
 ```
 
@@ -65,7 +65,14 @@ cooccur_local_per_sample(
 - summarize:
 
   Character vector of summary statistics to compute: "mean", "q90" (90th
-  percentile), and / or "pos_rate" (fraction of cells with score \> 0).
+  percentile), "pos_rate" (fraction of cells with score \> 0), and / or
+  "log2_oe": log2 of the number of \`cluster_x\`- \`cluster_y\` pairs
+  within \`radius\` of each cell, summed over cells, over its
+  expectation under label permutation (see \[cooccur_local_oe()\]).
+  \`log2_oe\` is adjusted for the abundance of the two cell types and
+  for cell density and is the recommended summary for group comparison;
+  "mean" is unchanged by the (mass-conserving) diffusion and grows with
+  abundance.
 
 ## Value
 
@@ -94,18 +101,18 @@ cooccur_local_per_sample(df, sample_key = "sample_id", group_key = "group",
                          cluster_x = "cell_type_1", cluster_y = "cell_type_2",
                          patient_key = "patient", neighbors.k = 10,
                          radius = 20)
-#>   sample_id   cluster_i   cluster_j  mean       q90 pos_rate n_cells n_i n_j
-#> 1    case_1 cell_type_1 cell_type_2 0.530 0.8663170    0.920     200  41  63
-#> 2    case_2 cell_type_1 cell_type_2 0.545 0.8285827    0.960     200  49  52
-#> 3    case_3 cell_type_1 cell_type_2 0.525 0.8651515    0.950     200  51  44
-#> 4 control_1 cell_type_1 cell_type_2 0.335 0.6922113    0.870     200  42  42
-#> 5 control_2 cell_type_1 cell_type_2 0.395 0.6866178    0.935     200  53  52
-#> 6 control_3 cell_type_1 cell_type_2 0.270 0.6303030    0.750     200  53  42
-#>     group   patient
-#> 1    case    case_1
-#> 2    case    case_2
-#> 3    case    case_3
-#> 4 control control_1
-#> 5 control control_2
-#> 6 control control_3
+#>   sample_id   cluster_i   cluster_j  mean       q90 pos_rate    log2_oe n_cells
+#> 1    case_1 cell_type_1 cell_type_2 0.530 0.8663170    0.920  0.7945891     200
+#> 2    case_2 cell_type_1 cell_type_2 0.545 0.8285827    0.960  0.8763038     200
+#> 3    case_3 cell_type_1 cell_type_2 0.525 0.8651515    0.950  0.8153353     200
+#> 4 control_1 cell_type_1 cell_type_2 0.335 0.6922113    0.870  0.1839814     200
+#> 5 control_2 cell_type_1 cell_type_2 0.395 0.6866178    0.935 -0.2220844     200
+#> 6 control_3 cell_type_1 cell_type_2 0.270 0.6303030    0.750 -0.2984772     200
+#>   n_i n_j   group   patient
+#> 1  41  63    case    case_1
+#> 2  49  52    case    case_2
+#> 3  51  44    case    case_3
+#> 4  42  42 control control_1
+#> 5  53  52 control control_2
+#> 6  53  42 control control_3
 ```

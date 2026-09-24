@@ -49,7 +49,12 @@ The notebooks behind these pages are in
   [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md)
   /
   [`compute_co_occurrence_ratio()`](https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.md)
-- Local co-localization score (sCLS) with graph diffusion:
+- Local co-localization:
+  [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md)
+  counts A-B pairs around each cell, divides by their exact expectation
+  under label permutation and smooths with a Gaussian kernel
+  (abundance-adjusted local log2 O/E, optional permutation hotspots, O(n
+  k)); the original diffusion sCLS is kept as
   [`cooccur_local()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.md)
 - Connected interaction spots:
   [`search_interaction_spot()`](https://juninamo.github.io/spatialCooccur/reference/search_interaction_spot.md)
@@ -91,6 +96,96 @@ The notebooks behind these pages are in
   feeds
   [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
 
+## How spatialCooccur fits with related tools
+
+Spatial transcriptomics now has excellent tools for discovering
+structure directly from the data. spatialCooccur is designed to sit next
+to them and focuses on one question: **how strongly do two defined cell
+populations or gene programmes co-localize, at which distance, and does
+this differ between groups of patients?**
+
+| Tool | Primary focus |
+|----|----|
+| [FICTURE](https://github.com/seqscope/ficture) (Si *et al.*, *Nat Methods* 2024) | Segmentation-free inference of spatial factors at submicron, pixel-level resolution with a multilayer Dirichlet model; scales to billions of transcripts |
+| [punkst](https://github.com/Yichen-Si/punkst) | Scalable toolkit implementing the FICTURE pixel-level factor pipeline and preparing results for visualization |
+| [MultiScale_ComplementMacrophage](https://github.com/fanzhanglab/MultiScale_ComplementMacrophage) (Guo *et al.*, in submission) | Spatial neighbourhood-based regression of gene-level associations (Gaussian-kernel neighbourhood exposure, adjusted for self expression and cell density) to define complement-associated niches in RA synovium |
+| **spatialCooccur** | Calibrated co-localization between labelled populations (cells, transcripts or factors) and **patient-level comparison across groups** |
+
+What spatialCooccur adds:
+
+- **A calibrated effect size.** Every score is observed / expected under
+  label permutation with positions fixed (`log2_oe`, relative pair
+  correlation). It is verified on negative controls to stay at zero for
+  any number of cell types, cell abundance, image size or cellularity,
+  so values can be compared between samples.
+
+- **Distance as an explicit axis.**
+  [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md)
+  returns co-localization as a curve over distance for all pairs at once
+  (FFT; 45 pairs over a whole Xenium section in about 1.5 minutes), so
+  short-range contact and tissue-scale compartments are separated.
+
+- **Where, not only whether.**
+  [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md)
+  maps local O/E and permutation hotspots for any pair.
+
+- **Case-control and paired designs.**
+  [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md)
+  treats the patient as the unit (exact Wilcoxon, mixed models, blocked
+  permutation, signed-rank and sign-flip for pre / post treatment), with
+  power guidance and a pseudoreplication warning.
+
+- **Cells, transcripts or factors as input.** The same statistics run on
+  segmented cell types, on marker transcripts without segmentation, or
+  on any labelled points, for example pixel-level factors from FICTURE /
+  punkst:
+
+  ``` r
+
+  # px: pixel-level factor output with coordinates and the top factor
+  b <- bin_transcripts(px, bin_size = 4, x_col = "X", y_col = "Y", gene_col = "K1")
+  pcf_matrix(b, list(F1 = "1", F2 = "2", F3 = "3"), r_max = 100)
+  ```
+
+- **A generative model when needed.**
+  [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+  fits a random-feature log-Gaussian Cox process (Gundersen, Zhang &
+  Engelhardt, AISTATS 2021) that learns spatial length scales and
+  separates cellularity from composition.
+
+## Validation
+
+Every module is checked on simulated positive controls (a planted
+interaction or group difference) and negative controls (nothing
+planted), repeated over many tissues or studies.
+
+![](reference/figures/validation_calibration.png)
+
+*Neighbourhood enrichment on 250 random tissues (50 per number of cell
+types): log2 O/E stays at 0 and the within-sample test gives 5% false
+positives for 3 to 25 cell types (mean and 95% CI).*
+
+| Check | Setting | Result |
+|----|----|----|
+| Neighbourhood enrichment, negative control | random tissues, 3–25 cell types | false-positive rate 3–6%, 95% CI includes 5% |
+| Neighbourhood enrichment, positive control | B placed 5–100 µm from A, 20 tissues per distance | planted pair log2 O/E ≈ 0.35–0.4 up to 20 µm (detected in 90% at 10 µm), ≈ 0 beyond the neighbourhood |
+| Local O/E, negative control | only the abundance of A and B changes (3–24%) | section O/E 95% CI includes 0; ≤ 5% of cells with p \< 0.05; no FDR hits in 80 tissues |
+| Local O/E, positive control | ring of B around a disc of A | 74% of ring cells are hotspots, 0% far away |
+| Group comparison, negative controls | 200 studies each: no difference, or 4× larger images | 3–4.5% false positives (mixed model, patient-level Wilcoxon) |
+| Pseudoreplication | images treated as independent | 13.8% false positives vs ≈ 5% with patient-aware tests |
+| Segmentation-free | shared niche field / cellularity-only difference | relative g follows the truth; calibrated when only cellularity differs |
+
+**Compute cost** (one core of an Apple M3 Max, R 4.3.2; RA synovium,
+Xenium 5K):
+
+| Task | Size | Time | Peak memory |
+|----|----|----|----|
+| [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md), 100 shuffles | 18k / 63k / 100k / 140k cells | 3 / 11 / 17 / 24 s | 0.7–1.4 GB |
+| [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md), no / 99 shuffles | 140k cells | 1.4 s / 15 s | 1.6 GB |
+| [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md) | 34 sections × 105 pairs | 0.2 s (signed-rank), 1.7 s (mixed model) | \< 0.6 GB |
+| [`read_xenium_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/read_xenium_transcripts.md) + [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md) | 1 section, 8 marker sets, 1.8M transcripts | 40 s | 5.5 GB (reading the 5K parquet) |
+| [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md), 6 factors | 1 mm × 1 mm | 2.9 min | 5.5 GB |
+
 > **Note for users of versions \<= 0.99.1.** Version 0.99.2 fixes the
 > permutation null of
 > [`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
@@ -116,13 +211,15 @@ res$zscore    # evidence: grows with the number of cells
 res$log2_oe   # effect size: use this to compare samples
 ```
 
-### 2. Spatial Co-localization Score (sCLS)
+### 2. Local co-localization (where do A and B meet?)
 
 ``` r
 
-sc <- cooccur_local(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2",
-                    neighbors.k = 30, radius = 30)
-summary(sc[[1]])
+rownames(df) <- paste0("cell", seq_len(nrow(df)))
+lo <- cooccur_local_oe(df, cluster_x = "cell_type_1", cluster_y = "cell_type_2",
+                       radius = 30, n_perms = 99)
+attr(lo, "section_log2_oe")   # whole-section effect size
+head(lo)                       # per-cell local_log2_oe, p, padj (hotspots)
 ```
 
 ### 3. Comparing patient groups

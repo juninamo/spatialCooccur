@@ -25,6 +25,9 @@ Spatial neighborhood analysis (SNA), spatial co-localization score
   : Local Co-occurrence Score (Generic method)
 - [`cooccur_local.Seurat()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local.Seurat.md)
   : Local Co-occurrence Score (Seurat Method)
+- [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md)
+  : Local co-localization score with a permutation-calibrated
+  expectation
 - [`calc_co_occurrence_for_radius()`](https://juninamo.github.io/spatialCooccur/reference/calc_co_occurrence_for_radius.md)
   : Calculate Co-occurrence Matrix for a Given Radius
 - [`compute_co_occurrence_ratio()`](https://juninamo.github.io/spatialCooccur/reference/compute_co_occurrence_ratio.md)

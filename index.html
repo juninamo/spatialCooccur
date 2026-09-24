@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>spatialCooccur: spatial co-occurrence analysis for spatial transcriptomics • spatialCooccur</title>
+<title>spatialCooccur: calibrated co-localization for spatial transcriptomics • spatialCooccur</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -16,11 +16,11 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
-<meta property="og:title" content="spatialCooccur: spatial co-occurrence analysis for spatial transcriptomics">
+<meta property="og:title" content="spatialCooccur: calibrated co-localization for spatial transcriptomics">
 <meta name="description" content="spatialCooccur quantifies how cell types are arranged relative to each other in spatial transcriptomics data. It provides a permutation-based neighborhood enrichment test (z-score and observed-over-expected effect size), radius-based co-occurrence ratios, a per-cell local co-localization score smoothed over the neighbor graph, and detection of connected interaction spots. Scores can be computed for each image of a multi-sample study and compared between disease groups with Wilcoxon, t, linear mixed model or patient-blocked permutation tests that treat the patient as the unit of analysis. Seurat objects and plain coordinate tables are supported as input, and simulators with a planted cell-cell interaction are included for benchmarking.">
 <meta property="og:description" content="spatialCooccur quantifies how cell types are arranged relative to each other in spatial transcriptomics data. It provides a permutation-based neighborhood enrichment test (z-score and observed-over-expected effect size), radius-based co-occurrence ratios, a per-cell local co-localization score smoothed over the neighbor graph, and detection of connected interaction spots. Scores can be computed for each image of a multi-sample study and compared between disease groups with Wilcoxon, t, linear mixed model or patient-blocked permutation tests that treat the patient as the unit of analysis. Seurat objects and plain coordinate tables are supported as input, and simulators with a planted cell-cell interaction are included for benchmarking.">
 <meta property="og:image" content="https://juninamo.github.io/spatialCooccur/logo.png">
-<meta name="description" content="spatialCooccur: neighborhood co-occurrence and spatial interaction analysis for spatial transcriptomics, with multi-sample disease-group comparison.">
+<meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -137,7 +137,7 @@
 <li>Neighborhood enrichment with a label-permutation null: <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> returns the z-score (evidence) and <code>log2_oe</code> = log2(observed / expected) (effect size)</li>
 <li>Radius-based co-occurrence ratio: <code><a href="reference/calc_co_occurrence_for_radius.html">calc_co_occurrence_for_radius()</a></code> / <code><a href="reference/compute_co_occurrence_ratio.html">compute_co_occurrence_ratio()</a></code>
 </li>
-<li>Local co-localization score (sCLS) with graph diffusion: <code><a href="reference/cooccur_local.html">cooccur_local()</a></code>
+<li>Local co-localization: <code><a href="reference/cooccur_local_oe.html">cooccur_local_oe()</a></code> counts A-B pairs around each cell, divides by their exact expectation under label permutation and smooths with a Gaussian kernel (abundance-adjusted local log2 O/E, optional permutation hotspots, O(n k)); the original diffusion sCLS is kept as <code><a href="reference/cooccur_local.html">cooccur_local()</a></code>
 </li>
 <li>Connected interaction spots: <code><a href="reference/search_interaction_spot.html">search_interaction_spot()</a></code>
 </li>
@@ -163,6 +163,165 @@
 <code><a href="reference/colocalization_per_sample.html">colocalization_per_sample()</a></code> feeds <code><a href="reference/compare_groups.html">compare_groups()</a></code>
 </li>
 </ul>
+</div>
+<div class="section level2">
+<h2 id="how-spatialcooccur-fits-with-related-tools">How spatialCooccur fits with related tools<a class="anchor" aria-label="anchor" href="#how-spatialcooccur-fits-with-related-tools"></a>
+</h2>
+<p>Spatial transcriptomics now has excellent tools for discovering structure directly from the data. spatialCooccur is designed to sit next to them and focuses on one question: <strong>how strongly do two defined cell populations or gene programmes co-localize, at which distance, and does this differ between groups of patients?</strong></p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Tool</th>
+<th>Primary focus</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/seqscope/ficture" class="external-link">FICTURE</a> (Si <em>et al.</em>, <em>Nat Methods</em> 2024)</td>
+<td>Segmentation-free inference of spatial factors at submicron, pixel-level resolution with a multilayer Dirichlet model; scales to billions of transcripts</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Yichen-Si/punkst" class="external-link">punkst</a></td>
+<td>Scalable toolkit implementing the FICTURE pixel-level factor pipeline and preparing results for visualization</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/fanzhanglab/MultiScale_ComplementMacrophage" class="external-link">MultiScale_ComplementMacrophage</a> (Guo <em>et al.</em>, in submission)</td>
+<td>Spatial neighbourhood-based regression of gene-level associations (Gaussian-kernel neighbourhood exposure, adjusted for self expression and cell density) to define complement-associated niches in RA synovium</td>
+</tr>
+<tr>
+<td><strong>spatialCooccur</strong></td>
+<td>Calibrated co-localization between labelled populations (cells, transcripts or factors) and <strong>patient-level comparison across groups</strong>
+</td>
+</tr>
+</tbody>
+</table>
+<p>What spatialCooccur adds:</p>
+<ul>
+<li><p><strong>A calibrated effect size.</strong> Every score is observed / expected under label permutation with positions fixed (<code>log2_oe</code>, relative pair correlation). It is verified on negative controls to stay at zero for any number of cell types, cell abundance, image size or cellularity, so values can be compared between samples.</p></li>
+<li><p><strong>Distance as an explicit axis.</strong> <code><a href="reference/pcf_matrix.html">pcf_matrix()</a></code> returns co-localization as a curve over distance for all pairs at once (FFT; 45 pairs over a whole Xenium section in about 1.5 minutes), so short-range contact and tissue-scale compartments are separated.</p></li>
+<li><p><strong>Where, not only whether.</strong> <code><a href="reference/cooccur_local_oe.html">cooccur_local_oe()</a></code> maps local O/E and permutation hotspots for any pair.</p></li>
+<li><p><strong>Case-control and paired designs.</strong> <code><a href="reference/compare_groups.html">compare_groups()</a></code> treats the patient as the unit (exact Wilcoxon, mixed models, blocked permutation, signed-rank and sign-flip for pre / post treatment), with power guidance and a pseudoreplication warning.</p></li>
+<li>
+<p><strong>Cells, transcripts or factors as input.</strong> The same statistics run on segmented cell types, on marker transcripts without segmentation, or on any labelled points, for example pixel-level factors from FICTURE / punkst:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># px: pixel-level factor output with coordinates and the top factor</span></span>
+<span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/bin_transcripts.html">bin_transcripts</a></span><span class="op">(</span><span class="va">px</span>, bin_size <span class="op">=</span> <span class="fl">4</span>, x_col <span class="op">=</span> <span class="st">"X"</span>, y_col <span class="op">=</span> <span class="st">"Y"</span>, gene_col <span class="op">=</span> <span class="st">"K1"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/pcf_matrix.html">pcf_matrix</a></span><span class="op">(</span><span class="va">b</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>F1 <span class="op">=</span> <span class="st">"1"</span>, F2 <span class="op">=</span> <span class="st">"2"</span>, F3 <span class="op">=</span> <span class="st">"3"</span><span class="op">)</span>, r_max <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+</li>
+<li><p><strong>A generative model when needed.</strong> <code><a href="reference/fit_spatial_rff.html">fit_spatial_rff()</a></code> fits a random-feature log-Gaussian Cox process (Gundersen, Zhang &amp; Engelhardt, AISTATS 2021) that learns spatial length scales and separates cellularity from composition.</p></li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="validation">Validation<a class="anchor" aria-label="anchor" href="#validation"></a>
+</h2>
+<p>Every module is checked on simulated positive controls (a planted interaction or group difference) and negative controls (nothing planted), repeated over many tissues or studies.</p>
+<p><img src="reference/figures/validation_calibration.png" width="100%"></p>
+<p><em>Neighbourhood enrichment on 250 random tissues (50 per number of cell types): log2 O/E stays at 0 and the within-sample test gives 5% false positives for 3 to 25 cell types (mean and 95% CI).</em></p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>Check</th>
+<th>Setting</th>
+<th>Result</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Neighbourhood enrichment, negative control</td>
+<td>random tissues, 3–25 cell types</td>
+<td>false-positive rate 3–6%, 95% CI includes 5%</td>
+</tr>
+<tr>
+<td>Neighbourhood enrichment, positive control</td>
+<td>B placed 5–100 µm from A, 20 tissues per distance</td>
+<td>planted pair log2 O/E ≈ 0.35–0.4 up to 20 µm (detected in 90% at 10 µm), ≈ 0 beyond the neighbourhood</td>
+</tr>
+<tr>
+<td>Local O/E, negative control</td>
+<td>only the abundance of A and B changes (3–24%)</td>
+<td>section O/E 95% CI includes 0; ≤ 5% of cells with p &lt; 0.05; no FDR hits in 80 tissues</td>
+</tr>
+<tr>
+<td>Local O/E, positive control</td>
+<td>ring of B around a disc of A</td>
+<td>74% of ring cells are hotspots, 0% far away</td>
+</tr>
+<tr>
+<td>Group comparison, negative controls</td>
+<td>200 studies each: no difference, or 4× larger images</td>
+<td>3–4.5% false positives (mixed model, patient-level Wilcoxon)</td>
+</tr>
+<tr>
+<td>Pseudoreplication</td>
+<td>images treated as independent</td>
+<td>13.8% false positives vs ≈ 5% with patient-aware tests</td>
+</tr>
+<tr>
+<td>Segmentation-free</td>
+<td>shared niche field / cellularity-only difference</td>
+<td>relative g follows the truth; calibrated when only cellularity differs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Compute cost</strong> (one core of an Apple M3 Max, R 4.3.2; RA synovium, Xenium 5K):</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr>
+<th>Task</th>
+<th>Size</th>
+<th>Time</th>
+<th>Peak memory</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+<code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code>, 100 shuffles</td>
+<td>18k / 63k / 100k / 140k cells</td>
+<td>3 / 11 / 17 / 24 s</td>
+<td>0.7–1.4 GB</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/cooccur_local_oe.html">cooccur_local_oe()</a></code>, no / 99 shuffles</td>
+<td>140k cells</td>
+<td>1.4 s / 15 s</td>
+<td>1.6 GB</td>
+</tr>
+<tr>
+<td><code><a href="reference/compare_groups.html">compare_groups()</a></code></td>
+<td>34 sections × 105 pairs</td>
+<td>0.2 s (signed-rank), 1.7 s (mixed model)</td>
+<td>&lt; 0.6 GB</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/read_xenium_transcripts.html">read_xenium_transcripts()</a></code> + <code><a href="reference/pcf_matrix.html">pcf_matrix()</a></code>
+</td>
+<td>1 section, 8 marker sets, 1.8M transcripts</td>
+<td>40 s</td>
+<td>5.5 GB (reading the 5K parquet)</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/fit_spatial_rff.html">fit_spatial_rff()</a></code>, 6 factors</td>
+<td>1 mm × 1 mm</td>
+<td>2.9 min</td>
+<td>5.5 GB</td>
+</tr>
+</tbody>
+</table>
 <blockquote>
 <p><strong>Note for users of versions &lt;= 0.99.1.</strong> Version 0.99.2 fixes the permutation null of <code><a href="reference/nhood_enrichment.html">nhood_enrichment()</a></code> (same-type z-scores were inflated) and the diffusion of <code><a href="reference/cooccur_local.html">cooccur_local()</a></code> for <code>maxnsteps &gt; 1</code>. Results from earlier versions are not directly comparable; see <a href="NEWS.html">NEWS</a>.</p>
 </blockquote>
@@ -173,7 +332,7 @@
 <div class="section level3">
 <h3 id="id_1-spatial-neighborhood-analysis-sna">1. Spatial Neighborhood Analysis (SNA)<a class="anchor" aria-label="anchor" href="#id_1-spatial-neighborhood-analysis-sna"></a>
 </h3>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://juninamo.github.io/spatialCooccur/">spatialCooccur</a></span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_sim.html">generate_sim</a></span><span class="op">(</span>close_ratio <span class="op">=</span> <span class="fl">1</span>, n_types <span class="op">=</span> <span class="fl">15</span>, max_loc <span class="op">=</span> <span class="fl">800</span>, n_cells <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>                   test_type <span class="op">=</span> <span class="st">"circle"</span>, distance_param <span class="op">=</span> <span class="fl">20</span>, seed <span class="op">=</span> <span class="fl">1234</span><span class="op">)</span></span>
@@ -184,17 +343,19 @@
 <span><span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>   <span class="co"># effect size: use this to compare samples</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="id_2-spatial-co-localization-score-scls">2. Spatial Co-localization Score (sCLS)<a class="anchor" aria-label="anchor" href="#id_2-spatial-co-localization-score-scls"></a>
+<h3 id="id_2-local-co-localization-where-do-a-and-b-meet">2. Local co-localization (where do A and B meet?)<a class="anchor" aria-label="anchor" href="#id_2-local-co-localization-where-do-a-and-b-meet"></a>
 </h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cooccur_local.html">cooccur_local</a></span><span class="op">(</span><span class="va">df</span>, cluster_x <span class="op">=</span> <span class="st">"cell_type_1"</span>, cluster_y <span class="op">=</span> <span class="st">"cell_type_2"</span>,</span>
-<span>                    neighbors.k <span class="op">=</span> <span class="fl">30</span>, radius <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sc</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"cell"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">lo</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cooccur_local_oe.html">cooccur_local_oe</a></span><span class="op">(</span><span class="va">df</span>, cluster_x <span class="op">=</span> <span class="st">"cell_type_1"</span>, cluster_y <span class="op">=</span> <span class="st">"cell_type_2"</span>,</span>
+<span>                       radius <span class="op">=</span> <span class="fl">30</span>, n_perms <span class="op">=</span> <span class="fl">99</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">lo</span>, <span class="st">"section_log2_oe"</span><span class="op">)</span>   <span class="co"># whole-section effect size</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lo</span><span class="op">)</span>                       <span class="co"># per-cell local_log2_oe, p, padj (hotspots)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="id_3-comparing-patient-groups">3. Comparing patient groups<a class="anchor" aria-label="anchor" href="#id_3-comparing-patient-groups"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_sim_groups.html">generate_sim_groups</a></span><span class="op">(</span></span>
 <span>  n_samples_per_group <span class="op">=</span> <span class="fl">6</span>, n_images_per_patient <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  group_close_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>case <span class="op">=</span> <span class="fl">0.8</span>, control <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>,</span>
@@ -217,7 +378,7 @@
 <div class="section level3">
 <h3 id="id_4-segmentation-free-co-localization-experimental">4. Segmentation-free co-localization (experimental)<a class="anchor" aria-label="anchor" href="#id_4-segmentation-free-co-localization-experimental"></a>
 </h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tx</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_xenium_transcripts.html">read_xenium_transcripts</a></span><span class="op">(</span><span class="st">"path/to/xenium_outs"</span>, genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">marker_sets</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">b</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/bin_transcripts.html">bin_transcripts</a></span><span class="op">(</span><span class="va">tx</span>, bin_size <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/pcf_matrix.html">pcf_matrix</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">marker_sets</span>, r_max <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>   <span class="co"># log_g and log_g_rel for every pair</span></span></code></pre></div>

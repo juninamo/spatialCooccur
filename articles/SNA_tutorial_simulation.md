@@ -16,28 +16,35 @@ download it to run the code yourself.
 format(Sys.time(), '%d %B, %Y')
 ```
 
-‘08 October, 2025’
+‘24 September, 2026’
 
 ## Spatial neighborhood analysis (SNA, cell type level analysis)
 
 First generate dummy data where two cell types (cell_type_1 and
-cell_type_2 in “cell_type” cik) are close to each other. Here we assume
-that cell_type_1 and cell_type_2 are close to each other (concentric
-cicle) by close_ratio. Make sure to assume \>10 cell types to see the
-effect of neighborhood enrichment analysis. If this total cell types are
-less than 10, the analysis may by susceptible to false positive results
-because cell labels are shuffling in permutation test.
+cell_type_2 in the “cell_type” column) are close to each other:
+cell_type_2 forms a ring around a disk of cell_type_1 (concentric
+circles), for a fraction `close_ratio` of the cells.
+
+> **Note (v0.99.2).** Earlier versions shuffled the row and column
+> labels independently in the permutation test. That inflated same-type
+> z-scores to about +10 and biased different-type z-scores downwards,
+> most strongly when there were few cell types (hence the old advice to
+> use more than 10 cell types). The permutation now uses one shuffle for
+> both, and the z-scores are calibrated under spatial randomness for any
+> number of cell types (3 to 25 tested).
 
 ``` r
 
-library(spatialCooccur)
-library(patchwork)
-library(ggplot2)
-library(magrittr)
-library(dplyr)
-library(circlize)
-library(ComplexHeatmap)
-library(ggrastr)
+suppressPackageStartupMessages(suppressWarnings({
+  if (file.exists("../DESCRIPTION")) devtools::load_all("..", quiet = TRUE) else library(spatialCooccur)
+  library(patchwork)
+  library(ggplot2)
+  library(magrittr)
+  library(dplyr)
+  library(circlize)
+  library(ComplexHeatmap)
+  library(ggrastr)
+}))
 ```
 
 ``` r
@@ -106,11 +113,6 @@ g2 = ggplot(df %>% dplyr::mutate(cell_type = ifelse(cell_type %in% c("cell_type_
 g1|g2
 ```
 
-``` output
-“No shared levels found between `names(values)` of the manual scale and the
-data's colour values.”
-```
-
 ![](figures/SNA_tutorial_simulation/fig-01.png)
 
 Run neighborhood enrichment analysis
@@ -135,21 +137,21 @@ nhood_enrichment_res
 
 |  | Clustercell_type_1 | Clustercell_type_2 | Clustercell_type_3 | Clustercell_type_4 | Clustercell_type_5 | Clustercell_type_6 | Clustercell_type_7 | Clustercell_type_8 | Clustercell_type_9 | Clustercell_type_10 | Clustercell_type_11 | Clustercell_type_12 | Clustercell_type_13 | Clustercell_type_14 | Clustercell_type_15 |
 |----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|
-| Clustercell_type_1 | 17.9871780 | 4.7817679 | -3.65314566 | -2.12732491 | -3.19255339 | -2.29393557 | -3.5154081 | -2.78522419 | -3.38001771 | 1.301076 | -1.74187916 | -3.9894063 | -1.3912251 | -2.105634361 | -2.61864572 |
-| Clustercell_type_2 | 7.6658961 | 10.8842376 | -2.69373489 | -0.39481708 | -1.36416923 | -2.98575264 | -2.2182959 | -3.27224251 | -2.12733430 | -1.017797 | -0.76764430 | -3.3963502 | -1.2794098 | -1.758017008 | -2.49274076 |
-| Clustercell_type_3 | -2.9761619 | -1.0090318 | 1.55200614 | 1.54866861 | 1.82634482 | -0.04462895 | 1.3230457 | 0.10670713 | 0.03756225 | 2.303521 | 0.50802505 | -1.0687816 | -0.2602177 | -0.002965376 | 1.06972714 |
-| Clustercell_type_4 | -1.6227139 | -0.1241113 | -0.18820728 | 2.22619881 | 1.09374148 | -1.21103296 | 0.3551040 | -0.66545726 | -0.38123679 | 1.966876 | 0.38450573 | -2.1929610 | -0.9272234 | 0.397422056 | -0.28458741 |
-| Clustercell_type_5 | -3.4138188 | -1.5279760 | 0.11949763 | 1.15928393 | 3.43591067 | -0.23769514 | 1.3706482 | 0.30817463 | 0.73702581 | 1.805702 | -0.42712246 | -0.6147119 | 0.2317648 | 0.879774872 | 1.31679915 |
-| Clustercell_type_6 | -0.6517928 | -1.3779308 | -0.74393169 | 0.36344031 | 0.91042137 | 1.10737342 | 0.3046584 | -0.30686414 | 0.35023999 | 2.314959 | -1.17527492 | -0.9991580 | -0.6887218 | -0.226417712 | 1.95624273 |
-| Clustercell_type_7 | -3.3627457 | -1.3291273 | 0.30187928 | 0.85697197 | 1.77237156 | 0.31636230 | 3.3593937 | -0.43498178 | 0.56823891 | 2.060907 | -0.82550974 | -1.3659994 | -0.3794609 | 0.296483634 | 0.73622879 |
-| Clustercell_type_8 | -2.6349217 | -2.6670134 | -0.16373606 | 0.76367570 | 1.78053052 | -0.55088908 | 0.3173527 | 1.79688893 | 0.03821519 | 2.226846 | 0.13466433 | -2.0951257 | 0.6769182 | 1.491857747 | 1.30491052 |
-| Clustercell_type_9 | -2.7687376 | -1.3555109 | -0.70955906 | 0.25574694 | 1.26850775 | -0.01671934 | 1.1578975 | 0.03175541 | 2.14076649 | 2.033952 | -0.56776949 | -0.8820415 | 0.5456851 | -0.031767696 | 0.50685706 |
-| Clustercell_type_10 | 0.5652055 | -2.0138750 | -1.16961727 | 0.15320208 | 0.87147238 | -0.21664598 | 0.5088938 | -0.35731577 | -0.88522898 | 3.068639 | -0.44068579 | -1.7898222 | -0.9956563 | 0.278669313 | 0.85695169 |
-| Clustercell_type_11 | -0.5579479 | 0.4252563 | -0.01873493 | 0.91857621 | -0.03910266 | -2.16110188 | -0.1223153 | 0.38885975 | -0.85715327 | 2.379773 | 1.18954946 | -1.6673539 | -0.1508552 | 0.720147878 | 0.01940884 |
-| Clustercell_type_12 | -2.4749385 | -1.2260379 | -0.69172407 | 0.28653298 | 1.06433717 | -0.67824403 | 0.1032652 | -0.93980525 | 0.25904476 | 1.686511 | -0.12302033 | 0.5669522 | 0.4234686 | 0.395742783 | 0.71856560 |
-| Clustercell_type_13 | -1.4962686 | -1.2253934 | -0.15155209 | 0.37352104 | 1.19832098 | -1.51234488 | 0.4175916 | 0.65498550 | -0.02784879 | 1.589921 | -0.32823256 | -1.2999869 | 2.7341507 | 0.587693518 | 0.86209196 |
-| Clustercell_type_14 | -1.4226028 | -0.6171552 | -0.85396030 | 0.06652673 | 1.62351940 | -1.79007462 | 0.1438312 | 0.21505198 | -1.26452053 | 1.764798 | -0.35795765 | -1.4471873 | -0.7671178 | 1.826489379 | -0.22236356 |
-| Clustercell_type_15 | -2.6830525 | -1.8023621 | -1.02035397 | 0.55174468 | 1.77494723 | -0.00690145 | 0.4204384 | 0.57575913 | -0.33875210 | 2.532334 | 0.03504458 | -1.5008791 | 0.2291114 | 0.717072639 | 2.32544618 |
+| Clustercell_type_1 | 23.9462152 | 7.55240752 | -5.3958430 | -3.82373224 | -5.80635244 | -2.26689053 | -5.43668687 | -3.84599452 | -4.5108173 | -0.35758967 | -2.28902658 | -4.29912555 | -1.92571443 | -3.32436320 | -4.2660152 |
+| Clustercell_type_2 | 11.6664396 | 10.54484214 | -3.0764086 | -0.82269048 | -3.23832605 | -3.49157735 | -3.07689551 | -4.17474364 | -2.6125001 | -3.52852118 | -0.83772671 | -3.27183402 | -1.61240564 | -2.55429496 | -3.8987714 |
+| Clustercell_type_3 | -4.7903951 | -1.31431602 | -0.1065409 | 2.03924634 | 1.49391337 | 1.38742042 | 2.06612177 | 1.10913149 | 0.7275787 | 1.27762327 | 1.40551062 | 1.20882289 | -0.07352066 | 0.04911908 | 1.7309958 |
+| Clustercell_type_4 | -2.5971542 | -0.01574833 | 0.7607068 | -0.45675781 | 0.27936360 | -0.39076603 | 0.46849941 | -0.19154561 | 0.1567979 | 0.38388104 | 1.32517014 | -0.66235798 | -1.11936001 | 0.74591614 | -0.7338555 |
+| Clustercell_type_5 | -5.9018119 | -2.49389597 | 1.4220691 | 1.63744595 | 0.17649029 | 1.57788513 | 2.15393321 | 1.64587923 | 2.3365992 | 0.26511365 | -0.13822270 | 2.82392510 | 0.52710098 | 1.78246712 | 1.9532530 |
+| Clustercell_type_6 | -0.7889704 | -2.09523368 | -0.2945250 | 0.39670465 | 0.26683303 | -0.37977428 | 0.28285391 | 0.39909189 | 1.5204003 | 1.01036955 | -1.30876962 | 1.17120012 | -0.73449688 | -0.39735893 | 2.7057134 |
+| Clustercell_type_7 | -5.3189627 | -1.57800022 | 1.5167070 | 0.97343333 | 1.14744226 | 2.52227593 | 0.91148352 | 0.04390953 | 1.5291142 | 0.84523018 | -0.60576832 | 0.80226186 | -0.17905000 | 0.55670640 | 1.0836499 |
+| Clustercell_type_8 | -4.2232122 | -3.47448344 | 0.8587543 | 0.92884826 | 1.50286681 | 0.78444010 | 0.38646304 | -0.16301631 | 0.8165288 | 0.80205192 | 1.02273357 | -0.51558702 | 1.44169053 | 2.46512023 | 1.6798632 |
+| Clustercell_type_9 | -3.7111627 | -1.87235391 | -0.1871118 | 0.08593054 | 0.54578219 | 1.81785875 | 1.59159355 | 0.93051831 | 0.4194477 | 0.73241891 | -0.31794703 | 2.01237126 | 1.22422127 | -0.03826781 | 0.7692662 |
+| Clustercell_type_10 | 1.2898659 | -2.95208987 | -0.6798872 | -0.17312173 | 0.04244105 | 1.65074606 | 0.96998256 | 0.39125354 | -0.6616165 | -1.55610914 | 0.04299035 | 0.48039933 | -1.07396824 | 0.44995656 | 1.3685586 |
+| Clustercell_type_11 | -0.8340541 | 0.56242526 | 0.9748902 | 1.04756004 | -0.98921206 | -2.17068449 | -0.30223534 | 1.46187500 | -0.6870519 | 0.96698617 | -1.21993249 | 0.13879806 | 0.11199731 | 1.18853450 | -0.1425264 |
+| Clustercell_type_12 | -3.4448219 | -1.66118506 | -0.2057989 | 0.05974900 | 0.28957481 | 0.08644692 | -0.03856619 | -0.65749684 | 0.9706269 | 0.39570032 | 0.32181942 | -0.02977462 | 0.80664099 | 0.53222064 | 0.7668497 |
+| Clustercell_type_13 | -2.5814666 | -1.68473588 | 0.7105855 | 0.23894026 | 0.30891844 | -0.99346511 | 0.60728395 | 1.58949172 | 0.8372079 | -0.09399647 | 0.16496200 | 0.99344001 | 0.70798618 | 1.26178019 | 1.1170149 |
+| Clustercell_type_14 | -2.2931761 | -0.76467865 | -0.3148586 | -0.17747055 | 1.31715287 | -1.45048262 | 0.18764913 | 1.10728429 | -1.3150995 | 0.08186561 | 0.06230033 | 0.63262575 | -0.68156380 | -0.62075647 | -0.4057012 |
+| Clustercell_type_15 | -4.3679490 | -3.06176850 | -0.6248035 | 0.41598618 | 1.15980091 | 1.52799462 | 0.64019114 | 1.77480684 | 0.5590566 | 1.11072644 | 0.60358689 | 0.79449527 | 0.82226981 | 1.29512233 | -0.2911776 |
 
 A matrix: 15 × 15 of type dbl {.table .dataframe}
 
@@ -170,6 +172,14 @@ only one-way relationships: • Is there a high concentration of
 cell_type_2 around cell_type_1? → nhood_enrichment\[‘cell_type_1’,
 ‘cell_type_2’\] • Is there a high concentration of cell_type_1 around
 cell_type_2? → nhood_enrichment\[‘cell_type_2’, ‘cell_type_1’\]
+
+**z-score or log2 O/E?**
+[`nhood_enrichment()`](https://juninamo.github.io/spatialCooccur/reference/nhood_enrichment.md)
+also returns `log2_oe`, log2(observed / expected). The z-score measures
+the *evidence* for enrichment within this sample and grows with the
+number of cells; `log2_oe` measures its *size*. Use the z-score within
+one sample, as here, and `log2_oe` when comparing samples or groups (see
+the case-control tutorial).
 
 ``` r
 
@@ -233,97 +243,40 @@ Run the same analysis with different distance parameters
 ``` r
 
 set.seed(seed)
-random_seeds <- sample(1000:9999, 100)
+random_seeds <- sample(1000:9999, 20)
+n_types_sim <- n_types
 
-accuracy_df_all = data.frame()
-
-library(foreach)
-library(doParallel)
-cl <- makeCluster(4)
-registerDoParallel(cl)
-
-accuracy_df <- foreach(
-  distance_param = c(5,10,20,30,40,50,75,100),
-  .combine = rbind, 
-  .packages = c("ggplot2", "dplyr", "Seurat", "doParallel", "spatialCooccur")
-) %:%
-  foreach(
-    test_type = c("circle"), 
-    .combine = rbind
-  ) %:%
-  foreach(
-    seed_ = random_seeds,
-    .combine = rbind
-  ) %dopar% {
-    
-    set.seed(seed_) 
-    print(grep(seed_, random_seeds))
-    
-    df = generate_sim(close_ratio = close_ratio, 
-                      n_types = n_types,  
-                      max_loc = max_loc,
-                      n_cells = n_cells,  
-                      test_type = test_type,
-                      distance_param = distance_param,  
-                      seed=1234)
-    
-    nhood_enrichment_res <- nhood_enrichment(
-      df,
-      cluster_key = "cell_type", 
-      neighbors.k = neighbors.k_, 
-      connectivity_key = "nn", 
-      transformation = TRUE,
-      n_perms = n_perm, seed = seed_, n_jobs = 4
-    )
-    
-    nhood_enrichment_res <- nhood_enrichment_res$zscore
-    diag(nhood_enrichment_res) <- 0
-    colnames(nhood_enrichment_res) <- gsub("^Cluster", "", colnames(nhood_enrichment_res))
-    rownames(nhood_enrichment_res) <- gsub("^Cluster", "", rownames(nhood_enrichment_res))
-    
-    pval_mat <- 1 - pnorm(nhood_enrichment_res)
-    fdr_vec <- p.adjust(as.vector(pval_mat), method = "BH")
-    fdr_mat <- matrix(fdr_vec, nrow = nrow(nhood_enrichment_res), ncol = ncol(nhood_enrichment_res), dimnames = dimnames(nhood_enrichment_res))
-    
-    sig_mat <- ifelse(fdr_mat < 0.05, "**", ifelse(fdr_mat > 0.05 & fdr_mat < 0.1, "*", ""))
-    
-    result <- data.frame(
-      test_type = test_type,
-      seed = seed_,
-      distance_param = distance_param,
-      zscore = nhood_enrichment_res["cell_type_1", "cell_type_2"],
-      zscore_false = nhood_enrichment_res["cell_type_3", "cell_type_4"]
-    )
-    
-    return(result)
-  }
-
-stopCluster(cl)
-
-accuracy_df <- as.data.frame(accuracy_df)
-head(accuracy_df)
-accuracy_df_all = rbind(accuracy_df_all,accuracy_df)
-
-accuracy_df_all$n_types = n_types
-accuracy_df_all$neighbors.k_ = neighbors.k_
-accuracy_df_all$close_ratio = close_ratio
-accuracy_df_all$n_perm = n_perm
-accuracy_df_all$general_seed = seed
-accuracy_df_all$max_loc = max_loc
-accuracy_df_all$n_cells = n_cells
+accuracy_df_all <- do.call(rbind, lapply(c(5, 10, 20, 30, 40, 50, 75, 100), function(distance_param) {
+  do.call(rbind, lapply(random_seeds, function(seed_) {
+    # a new tissue for every seed
+    df <- generate_sim(close_ratio = close_ratio, n_types = n_types_sim, max_loc = max_loc,
+                       n_cells = n_cells, test_type = "circle",
+                       distance_param = distance_param, seed = seed_)
+    z <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = neighbors.k_,
+                          connectivity_key = "nn", transformation = TRUE,
+                          n_perms = n_perm, seed = seed_, n_jobs = 1)$zscore
+    dimnames(z) <- lapply(dimnames(z), function(v) gsub("^Cluster", "", v))
+    data.frame(test_type = "circle", seed = seed_, distance_param = distance_param,
+               zscore = z["cell_type_1", "cell_type_2"],        # planted pair
+               zscore_false = z["cell_type_3", "cell_type_4"])  # unrelated pair
+  }))
+}))
+accuracy_df_all$n_types <- n_types_sim
+accuracy_df_all$neighbors.k_ <- neighbors.k_
+head(accuracy_df_all)
 ```
 
-|     | test_type | seed    | distance_param | zscore   | zscore_false |
-|-----|-----------|---------|----------------|----------|--------------|
-|     | \<chr\>   | \<int\> | \<dbl\>        | \<dbl\>  | \<dbl\>      |
-| 1   | circle    | 8451    | 5              | 7.099714 | 1.685421     |
-| 2   | circle    | 9015    | 5              | 7.010090 | 1.658070     |
-| 3   | circle    | 8161    | 5              | 7.032457 | 1.620338     |
-| 4   | circle    | 9085    | 5              | 6.899482 | 1.601554     |
-| 5   | circle    | 8268    | 5              | 6.983298 | 1.655557     |
-| 6   | circle    | 1622    | 5              | 7.135838 | 1.624043     |
+|  | test_type | seed | distance_param | zscore | zscore_false | n_types | neighbors.k\_ |
+|----|----|----|----|----|----|----|----|
+|  | \<chr\> | \<int\> | \<dbl\> | \<dbl\> | \<dbl\> | \<dbl\> | \<dbl\> |
+| 1 | circle | 8451 | 5 | 13.247010 | -1.89891730 | 15 | 30 |
+| 2 | circle | 9015 | 5 | 13.753787 | 1.28154388 | 15 | 30 |
+| 3 | circle | 8161 | 5 | 9.817993 | 0.60922574 | 15 | 30 |
+| 4 | circle | 9085 | 5 | 14.703173 | 1.49370460 | 15 | 30 |
+| 5 | circle | 8268 | 5 | 14.571439 | 0.09802873 | 15 | 30 |
+| 6 | circle | 1622 | 5 | 16.173440 | -0.39799206 | 15 | 30 |
 
-A data.frame: 6 × 5 {.table .dataframe}
+A data.frame: 6 × 7 {.table .dataframe}
 
 ``` r
 
@@ -366,6 +319,9 @@ ggplot(summary_df, aes(x = distance_param, y = median_zscore, color = zscore_typ
 ``` output
 `summarise()` has grouped output by 'zscore_type', 'test_type'. You can
 override using the `.groups` argument.
+```
+
+``` output
 “Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 ℹ Please use `linewidth` instead.”
 ```
@@ -445,11 +401,6 @@ options(repr.plot.width=8, repr.plot.height=4)
 g1|g2
 ```
 
-``` output
-“No shared levels found between `names(values)` of the manual scale and the
-data's colour values.”
-```
-
 ![](figures/SNA_tutorial_simulation/fig-04.png)
 
 Run co-localization analysis
@@ -476,12 +427,12 @@ summary(cooccur_local_df)
 
 ``` output
  cooccur_local_cell_type_1_cell_type_2
- Min.   :0.0000                       
- 1st Qu.:0.0000                       
- Median :0.0000                       
- Mean   :0.1020                       
- 3rd Qu.:0.2141                       
- Max.   :0.3982                       
+ Min.   :0.001175                     
+ 1st Qu.:0.037670                     
+ Median :0.103213                     
+ Mean   :0.102000                     
+ 3rd Qu.:0.161757                     
+ Max.   :0.231130                     
 ```
 
 Check how the co-localization score is distributed in the space
@@ -505,11 +456,6 @@ g3 = ggplot() +
 
 options(repr.plot.width=12, repr.plot.height=4)
 g1 | g2 | g3
-```
-
-``` output
-“No shared levels found between `names(values)` of the manual scale and the
-data's colour values.”
 ```
 
 ![](figures/SNA_tutorial_simulation/fig-05.png)
@@ -557,13 +503,23 @@ ggplot(data = coords_df, aes(x = dist_nearest, y = score)) +
 ``` output
 Warning message in cor.test.default(na.omit(coords_df)$score, na.omit(coords_df)$dist_nearest, :
 “Cannot compute exact p-value with ties”
+```
+
+``` output
 Warning message in cor.test.default(na.omit(coords_df)$score, na.omit(coords_df)$dist_nearest, :
 “Cannot compute exact p-value with ties”
+```
+
+``` output
 `geom_smooth()` using formula = 'y ~ x'
-“Removed 400 rows containing non-finite outside the scale range
-(`stat_smooth()`).”
-“Removed 400 rows containing missing values or values outside the scale range
-(`geom_point()`).”
+```
+
+``` output
+“Removed 400 rows containing non-finite values (`stat_smooth()`).”
+```
+
+``` output
+“Removed 400 rows containing missing values (`geom_point()`).”
 ```
 
 ![](figures/SNA_tutorial_simulation/fig-06.png)
@@ -598,7 +554,7 @@ sessionInfo()
 ``` output
 R version 4.3.2 (2023-10-31)
 Platform: aarch64-apple-darwin20 (64-bit)
-Running under: macOS 15.6
+Running under: macOS 26.3.1
 
 Matrix products: default
 BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib 
@@ -611,57 +567,62 @@ time zone: Asia/Tokyo
 tzcode source: internal
 
 attached base packages:
-[1] parallel  grid      stats     graphics  grDevices utils     datasets 
-[8] methods   base     
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
 
 other attached packages:
- [1] doParallel_1.0.17     iterators_1.0.14      foreach_1.5.2        
- [4] ggrastr_1.0.2         ComplexHeatmap_2.18.0 circlize_0.4.15      
- [7] dplyr_1.1.4           magrittr_2.0.3        ggplot2_3.5.2        
-[10] patchwork_1.2.0       spatialCooccur_0.1.0 
+[1] ggrastr_1.0.2         ComplexHeatmap_2.18.0 circlize_0.4.15      
+[4] dplyr_1.1.4           magrittr_2.0.3        ggplot2_3.4.4        
+[7] patchwork_1.1.3       spatialCooccur_0.99.2 testthat_3.2.1       
 
 loaded via a namespace (and not attached):
-  [1] RColorBrewer_1.1-3     jsonlite_1.8.8         shape_1.4.6           
-  [4] magick_2.8.2           ggbeeswarm_0.7.2       spatstat.utils_3.1-2  
-  [7] farver_2.1.1           GlobalOptions_0.1.2    vctrs_0.6.5           
- [10] ROCR_1.0-11            Cairo_1.6-2            spatstat.explore_3.2-6
- [13] base64enc_0.1-3        htmltools_0.5.8.1      sctransform_0.4.1     
- [16] parallelly_1.36.0      KernSmooth_2.23-22     htmlwidgets_1.6.4     
- [19] ica_1.0-3              plyr_1.8.9             plotly_4.10.4         
- [22] zoo_1.8-12             uuid_1.2-0             igraph_2.0.1.1        
- [25] mime_0.12              lifecycle_1.0.4        pkgconfig_2.0.3       
- [28] Matrix_1.6-5           R6_2.5.1               fastmap_1.1.1         
- [31] clue_0.3-65            fitdistrplus_1.1-11    future_1.33.1         
- [34] shiny_1.8.0            digest_0.6.35          colorspace_2.1-0      
- [37] S4Vectors_0.40.2       Seurat_5.0.1           tensor_1.5            
- [40] RSpectra_0.16-1        irlba_2.3.5.1          labeling_0.4.3        
- [43] progressr_0.14.0       fansi_1.0.6            spatstat.sparse_3.0-3 
- [46] mgcv_1.9-1             httr_1.4.7             polyclip_1.10-6       
- [49] abind_1.4-5            compiler_4.3.2         withr_3.0.0           
- [52] fastDummies_1.7.3      MASS_7.3-60.0.1        rjson_0.2.21          
- [55] tools_4.3.2            vipor_0.4.7            lmtest_0.9-40         
- [58] beeswarm_0.4.0         httpuv_1.6.14          future.apply_1.11.1   
- [61] goftest_1.2-3          glue_1.7.0             nlme_3.1-164          
- [64] promises_1.2.1         pbdZMQ_0.3-11          Rtsne_0.17            
- [67] cluster_2.1.6          reshape2_1.4.4         generics_0.1.3        
- [70] gtable_0.3.4           spatstat.data_3.0-4    tidyr_1.3.1           
- [73] data.table_1.15.0      sp_2.1-3               utf8_1.2.4            
- [76] BiocGenerics_0.48.1    spatstat.geom_3.2-8    RcppAnnoy_0.0.22      
- [79] ggrepel_0.9.5          RANN_2.6.1             pillar_1.9.0          
- [82] stringr_1.5.1          spam_2.10-0            IRdisplay_1.1         
- [85] RcppHNSW_0.6.0         later_1.3.2            splines_4.3.2         
- [88] moments_0.14.1         lattice_0.22-5         survival_3.5-7        
- [91] deldir_2.0-2           tidyselect_1.2.1       miniUI_0.1.1.1        
- [94] pbapply_1.7-2          gridExtra_2.3          IRanges_2.36.0        
- [97] scattermore_1.2        stats4_4.3.2           matrixStats_1.5.0     
-[100] stringi_1.8.3          lazyeval_0.2.2         evaluate_0.23         
-[103] codetools_0.2-19       tibble_3.2.1           cli_3.6.2             
-[106] uwot_0.1.16            IRkernel_1.3.2         xtable_1.8-4          
-[109] reticulate_1.39.0      repr_1.1.6             munsell_0.5.1         
-[112] Rcpp_1.0.12            globals_0.16.2         spatstat.random_3.2-2 
-[115] png_0.1-8              ellipsis_0.3.2         dotCall64_1.1-1       
-[118] listenv_0.9.1          viridisLite_0.4.2      scales_1.3.0          
-[121] ggridges_0.5.4         SeuratObject_5.0.2     leiden_0.4.3.1        
-[124] purrr_1.0.2            crayon_1.5.2           GetoptLong_1.0.5      
-[127] rlang_1.1.6            cowplot_1.1.3         
+  [1] RcppAnnoy_0.0.21       splines_4.3.2          later_1.3.2           
+  [4] pbdZMQ_0.3-10          tibble_3.2.1           polyclip_1.10-6       
+  [7] fastDummies_1.7.3      lifecycle_1.0.4        doParallel_1.0.17     
+ [10] rprojroot_2.0.4        globals_0.16.2         lattice_0.21-9        
+ [13] MASS_7.3-60            plotly_4.10.3          remotes_2.4.2.1       
+ [16] httpuv_1.6.13          Seurat_5.2.1           sctransform_0.4.1     
+ [19] spam_2.10-0            sp_2.1-2               sessioninfo_1.2.2     
+ [22] pkgbuild_1.4.3         spatstat.sparse_3.1-0  reticulate_1.35.0     
+ [25] cowplot_1.1.2          pbapply_1.7-2          RColorBrewer_1.1-3    
+ [28] abind_1.4-5            pkgload_1.3.3          Rtsne_0.17            
+ [31] purrr_1.0.2            BiocGenerics_0.48.1    IRanges_2.36.0        
+ [34] S4Vectors_0.40.2       ggrepel_0.9.4          irlba_2.3.5.1         
+ [37] listenv_0.9.0          spatstat.utils_3.1-2   moments_0.14.1        
+ [40] goftest_1.2-3          RSpectra_0.16-1        spatstat.random_3.3-2 
+ [43] fitdistrplus_1.1-11    parallelly_1.36.0      codetools_0.2-19      
+ [46] tidyselect_1.2.0       shape_1.4.6            farver_2.1.1          
+ [49] matrixStats_1.2.0      stats4_4.3.2           base64enc_0.1-3       
+ [52] spatstat.explore_3.3-4 jsonlite_2.0.0         GetoptLong_1.0.5      
+ [55] ellipsis_0.3.2         progressr_0.14.0       ggridges_0.5.5        
+ [58] survival_3.5-7         iterators_1.0.14       foreach_1.5.2         
+ [61] tools_4.3.2            ica_1.0-3              Rcpp_1.0.11           
+ [64] glue_1.6.2             gridExtra_2.3          mgcv_1.9-0            
+ [67] usethis_2.2.2          IRdisplay_1.1          withr_2.5.2           
+ [70] fastmap_1.1.1          digest_0.6.33          R6_2.5.1              
+ [73] mime_0.12              colorspace_2.1-0       scattermore_1.2       
+ [76] Cairo_1.6-2            tensor_1.5             spatstat.data_3.1-4   
+ [79] tidyr_1.3.0            generics_0.1.3         data.table_1.16.0     
+ [82] httr_1.4.7             htmlwidgets_1.6.4      uwot_0.1.16           
+ [85] pkgconfig_2.0.3        gtable_0.3.4           lmtest_0.9-40         
+ [88] brio_1.1.4             htmltools_0.5.7        profvis_0.3.8         
+ [91] dotCall64_1.1-1        clue_0.3-65            SeuratObject_5.0.2    
+ [94] scales_1.3.0           png_0.1-8              spatstat.univar_3.1-2 
+ [97] rstudioapi_0.15.0      reshape2_1.4.4         rjson_0.2.23          
+[100] uuid_1.1-1             nlme_3.1-163           repr_1.1.6            
+[103] cachem_1.0.8           zoo_1.8-12             GlobalOptions_0.1.2   
+[106] stringr_1.5.1          KernSmooth_2.23-22     parallel_4.3.2        
+[109] miniUI_0.1.1.1         vipor_0.4.7            desc_1.4.3            
+[112] pillar_1.11.0          vctrs_0.6.5            RANN_2.6.1            
+[115] urlchecker_1.0.1       promises_1.2.1         xtable_1.8-4          
+[118] cluster_2.1.4          beeswarm_0.4.0         evaluate_0.23         
+[121] magick_2.8.2           cli_3.6.2              compiler_4.3.2        
+[124] rlang_1.1.2            crayon_1.5.2           future.apply_1.11.1   
+[127] labeling_0.4.3         plyr_1.8.9             fs_1.6.3              
+[130] ggbeeswarm_0.7.2       stringi_1.8.3          viridisLite_0.4.2     
+[133] deldir_2.0-2           munsell_0.5.0          lazyeval_0.2.2        
+[136] devtools_2.4.5         spatstat.geom_3.3-5    Matrix_1.6-5          
+[139] IRkernel_1.3.2         RcppHNSW_0.5.0         future_1.33.1         
+[142] shiny_1.8.0            ROCR_1.0-11            igraph_1.6.0          
+[145] memoise_2.0.1         
 ```

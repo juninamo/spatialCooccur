@@ -50,7 +50,46 @@ Xenium sections).
 5.  Real data: Xenium mouse brain
 6.  Practical guidance
 
-## 1. Setup
+**How this module fits with related tools**
+
+Segmentation-free analysis already has powerful discovery tools.
+[FICTURE](https://github.com/seqscope/ficture) (Si *et al.*, *Nat
+Methods* 2024) and its scalable implementation
+[punkst](https://github.com/Yichen-Si/punkst) infer spatial factors at
+submicron, pixel-level resolution;
+[MultiScale_ComplementMacrophage](https://github.com/fanzhanglab/MultiScale_ComplementMacrophage)
+(Guo *et al.*, in submission) models gene-level spatial neighbourhood
+associations to define cellular niches. This module is designed to
+complement them, with a focus on **quantifying and comparing
+co-localization**:
+
+- **Calibrated effect size.** The relative pair correlation is observed
+  / expected under label shuffling with transcript positions fixed, the
+  transcript-level counterpart of `log2_oe`; it stays at zero when only
+  cellularity differs (Section 5).
+- **Distance as an explicit axis.**
+  [`pcf_matrix()`](https://juninamo.github.io/spatialCooccur/reference/pcf_matrix.md)
+  gives a co-localization curve over distance for every pair at once
+  (FFT).
+- **Patient-level case-control and paired designs.**
+  [`colocalization_per_sample()`](https://juninamo.github.io/spatialCooccur/reference/colocalization_per_sample.md)
+  feeds
+  [`compare_groups()`](https://juninamo.github.io/spatialCooccur/reference/compare_groups.md).
+- **A generative model when needed.**
+  [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
+  learns spatial length scales and separates cellularity from
+  composition.
+- **Any labelled points as input.** Marker transcripts, or pixel-level
+  factors, for example from FICTURE / punkst:
+
+``` r
+
+## px: pixel-level factor output with coordinates and the top factor
+b <- bin_transcripts(px, bin_size = 4, x_col = "X", y_col = "Y", gene_col = "K1")
+pcf_matrix(b, list(F1 = "1", F2 = "2", F3 = "3"), r_max = 100)
+```
+
+### 1. Setup
 
 ``` r
 
@@ -74,7 +113,7 @@ theme_tut <- theme_minimal(base_size = 12) +
         plot.title.position = "plot")
 ```
 
-## 2. A simulated tissue with known truth
+### 2. A simulated tissue with known truth
 
 [`simulate_transcripts()`](https://juninamo.github.io/spatialCooccur/reference/simulate_transcripts.md)
 draws transcripts from a multivariate log-Gaussian Cox process. There
@@ -156,7 +195,7 @@ than with the other sets. The same happens with `log2_oe` when every
 cell type is spatially clustered. What matters for a case-control study
 is how this value **changes** between groups (section 4).
 
-## 3. The random-feature model
+### 3. The random-feature model
 
 [`fit_spatial_rff()`](https://juninamo.github.io/spatialCooccur/reference/fit_spatial_rff.md)
 fits
@@ -242,7 +281,7 @@ than the truth, so it is conservative. The Gaussian method slightly
 overshoots here, and on real tissue (section 5) it is badly
 miscalibrated. `"intensity"` is therefore the default.
 
-## 4. Case-control comparison
+### 4. Case-control comparison
 
 [`simulate_transcripts_groups()`](https://juninamo.github.io/spatialCooccur/reference/simulate_transcripts_groups.md)
 simulates 6 control and 6 case samples with **8 gene sets** (closer to a
@@ -332,7 +371,7 @@ a small A–C *decrease*: when A pairs more with B, it pairs relatively
 less with everything else. As with `log2_oe`, read such depletion as a
 consequence of the main change.
 
-### Robustness to differences in cellularity
+#### Robustness to differences in cellularity
 
 Tissue from cases is often more cellular or more heterogeneous. In the
 next simulation **co-localization is identical** in both groups, but
@@ -385,7 +424,7 @@ did not.
 > `offset = "smoothed_total"` and `offset_genes` set to broadly
 > expressed reference genes that are not part of the tested pair.
 
-## 5. Real data: Xenium mouse brain
+### 5. Real data: Xenium mouse brain
 
 We use the public 10x Genomics dataset *Xenium FF Mouse Brain Coronal
 Subset (CTX + HP)* (248-gene panel). Only the transcript table is needed
@@ -529,7 +568,7 @@ ggplot(h12, aes(a, b, fill = log_g_rel)) +
 
 ![](figures/segmentation_free_tutorial/fig-08.png)
 
-### Agreement with the segmentation-based analysis
+#### Agreement with the segmentation-based analysis
 
 The same dataset comes with Xenium’s cell segmentation (`cell_id`). We
 assign each cell the cell type whose markers dominate its transcripts,
@@ -601,7 +640,7 @@ segmentation-free pair correlation also counts transcripts of the
 co-localization at $`r \gtrsim`$ one cell diameter (here about 10–20
 µm).
 
-### The random-feature model on a region
+#### The random-feature model on a region
 
 The model is fitted to an 800 × 800 µm region spanning deep cortex,
 white matter and hippocampus (8 µm bins, marker genes only).
@@ -702,7 +741,7 @@ The closed-form Gaussian value is far off on real tissue: vessels and
 meninges are sparse, line-like structures whose log-intensity is not
 Gaussian.
 
-## 6. Practical guidance
+### 6. Practical guidance
 
 1.  **Start model-free.** `pcf_cross(relative = TRUE)` /
     `colocalization_per_sample(method = "empirical")` is fast (a whole

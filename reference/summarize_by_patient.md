@@ -9,7 +9,7 @@ obtain patient-level values for \`compare_groups(method = "wilcox" /
 ## Usage
 
 ``` r
-summarize_by_patient(per_sample_df)
+summarize_by_patient(per_sample_df, pair_keys = NULL)
 ```
 
 ## Arguments
@@ -19,10 +19,16 @@ summarize_by_patient(per_sample_df)
   Output of a \`\*\_per_sample()\` helper with a non-missing \`patient\`
   column.
 
+- pair_keys:
+
+  Columns identifying a comparison (kept separate, not averaged).
+  Defaults to \`cluster_i\`, \`cluster_j\` and, when present, the
+  distance \`r\` of \[colocalization_per_sample()\].
+
 ## Value
 
-A data.frame with one row per \`patient x cluster_i x cluster_j\`;
-\`sample_id\` is set to the patient ID.
+A data.frame with one row per \`patient x cluster_i x cluster_j\` (x
+\`r\`); \`sample_id\` is set to the patient ID.
 
 ## Examples
 

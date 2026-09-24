@@ -3,7 +3,7 @@
 and summarize the per-cell scores at the sample level. Output is a tidy
 data.frame suitable for group comparison."><meta property="og:description" content="Run [cooccur_local()] for one (cluster_x, cluster_y) pair on each sample
 and summarize the per-cell scores at the sample level. Output is a tidy
-data.frame suitable for group comparison."><meta property="og:image" content="https://juninamo.github.io/spatialCooccur/logo.png"><meta name="description" content="spatialCooccur: neighborhood co-occurrence and spatial interaction analysis for spatial transcriptomics, with multi-sample disease-group comparison."></head><body>
+data.frame suitable for group comparison."><meta property="og:image" content="https://juninamo.github.io/spatialCooccur/logo.png"><meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -72,7 +72,7 @@ data.frame suitable for group comparison.</p>
 <span>  neighbors.k <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  radius <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  maxnsteps <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  summarize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"q90"</span>, <span class="st">"pos_rate"</span><span class="op">)</span></span>
+<span>  summarize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"q90"</span>, <span class="st">"pos_rate"</span>, <span class="st">"log2_oe"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -120,8 +120,13 @@ the kurtosis of the scores decreases by less than 3 between steps
 
 <dt id="arg-summarize">summarize<a class="anchor" aria-label="anchor" href="#arg-summarize"></a></dt>
 <dd><p>Character vector of summary statistics to compute:
-"mean", "q90" (90th percentile), and / or "pos_rate" (fraction of
-cells with score &gt; 0).</p></dd>
+"mean", "q90" (90th percentile), "pos_rate" (fraction of cells with
+score &gt; 0), and / or "log2_oe": log2 of the number of `cluster_x`-
+`cluster_y` pairs within `radius` of each cell, summed over cells, over
+its expectation under label permutation (see [cooccur_local_oe()]). `log2_oe` is adjusted for the
+abundance of the two cell types and for cell density and is the
+recommended summary for group comparison; "mean" is unchanged by the
+(mass-conserving) diffusion and grows with abundance.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -153,20 +158,20 @@ group difference as a change in co-localization.</p>
 <span class="r-in"><span>                         cluster_x <span class="op">=</span> <span class="st">"cell_type_1"</span>, cluster_y <span class="op">=</span> <span class="st">"cell_type_2"</span>,</span></span>
 <span class="r-in"><span>                         patient_key <span class="op">=</span> <span class="st">"patient"</span>, neighbors.k <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>                         radius <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id   cluster_i   cluster_j  mean       q90 pos_rate n_cells n_i n_j</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1    case_1 cell_type_1 cell_type_2 0.530 0.8663170    0.920     200  41  63</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    case_2 cell_type_1 cell_type_2 0.545 0.8285827    0.960     200  49  52</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    case_3 cell_type_1 cell_type_2 0.525 0.8651515    0.950     200  51  44</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 control_1 cell_type_1 cell_type_2 0.335 0.6922113    0.870     200  42  42</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 control_2 cell_type_1 cell_type_2 0.395 0.6866178    0.935     200  53  52</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 control_3 cell_type_1 cell_type_2 0.270 0.6303030    0.750     200  53  42</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     group   patient</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1    case    case_1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    case    case_2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    case    case_3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 control control_1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 control control_2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 control control_3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id   cluster_i   cluster_j  mean       q90 pos_rate    log2_oe n_cells</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1    case_1 cell_type_1 cell_type_2 0.530 0.8663170    0.920  0.7945891     200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2    case_2 cell_type_1 cell_type_2 0.545 0.8285827    0.960  0.8763038     200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    case_3 cell_type_1 cell_type_2 0.525 0.8651515    0.950  0.8153353     200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 control_1 cell_type_1 cell_type_2 0.335 0.6922113    0.870  0.1839814     200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 control_2 cell_type_1 cell_type_2 0.395 0.6866178    0.935 -0.2220844     200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 control_3 cell_type_1 cell_type_2 0.270 0.6303030    0.750 -0.2984772     200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   n_i n_j   group   patient</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  41  63    case    case_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  49  52    case    case_2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  51  44    case    case_3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  42  42 control control_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  53  52 control control_2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  53  42 control control_3</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

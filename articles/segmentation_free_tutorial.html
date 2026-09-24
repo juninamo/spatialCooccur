@@ -17,7 +17,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Segmentation-free co-localization analysis of transcript coordinates (experimental)">
-<meta name="description" content="spatialCooccur: neighborhood co-occurrence and spatial interaction analysis for spatial transcriptomics, with multi-sample disease-group comparison.">
+<meta name="description" content="spatialCooccur: calibrated co-localization for spatial transcriptomics: neighbourhood enrichment, local hotspots, patient-level case-control and paired comparison, and segmentation-free analysis of transcript coordinates.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -137,10 +137,45 @@ needed for whole Xenium sections).</p>
 <li>Real data: Xenium mouse brain</li>
 <li>Practical guidance</li>
 </ol>
-<div class="section level2">
-<h2 id="setup">1. Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
-</h2>
+<p><strong>How this module fits with related tools</strong></p>
+<p>Segmentation-free analysis already has powerful discovery tools. <a href="https://github.com/seqscope/ficture" class="external-link">FICTURE</a> (Si <em>et
+al.</em>, <em>Nat Methods</em> 2024) and its scalable implementation <a href="https://github.com/Yichen-Si/punkst" class="external-link">punkst</a> infer spatial
+factors at submicron, pixel-level resolution; <a href="https://github.com/fanzhanglab/MultiScale_ComplementMacrophage" class="external-link">MultiScale_ComplementMacrophage</a>
+(Guo <em>et al.</em>, in submission) models gene-level spatial
+neighbourhood associations to define cellular niches. This module is
+designed to complement them, with a focus on <strong>quantifying and
+comparing co-localization</strong>:</p>
+<ul>
+<li>
+<strong>Calibrated effect size.</strong> The relative pair
+correlation is observed / expected under label shuffling with transcript
+positions fixed, the transcript-level counterpart of
+<code>log2_oe</code>; it stays at zero when only cellularity differs
+(Section 5).</li>
+<li>
+<strong>Distance as an explicit axis.</strong>
+<code><a href="../reference/pcf_matrix.html">pcf_matrix()</a></code> gives a co-localization curve over distance
+for every pair at once (FFT).</li>
+<li>
+<strong>Patient-level case-control and paired designs.</strong>
+<code><a href="../reference/colocalization_per_sample.html">colocalization_per_sample()</a></code> feeds
+<code><a href="../reference/compare_groups.html">compare_groups()</a></code>.</li>
+<li>
+<strong>A generative model when needed.</strong>
+<code><a href="../reference/fit_spatial_rff.html">fit_spatial_rff()</a></code> learns spatial length scales and
+separates cellularity from composition.</li>
+<li>
+<strong>Any labelled points as input.</strong> Marker transcripts,
+or pixel-level factors, for example from FICTURE / punkst:</li>
+</ul>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## px: pixel-level factor output with coordinates and the top factor</span></span>
+<span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bin_transcripts.html">bin_transcripts</a></span><span class="op">(</span><span class="va">px</span>, bin_size <span class="op">=</span> <span class="fl">4</span>, x_col <span class="op">=</span> <span class="st">"X"</span>, y_col <span class="op">=</span> <span class="st">"Y"</span>, gene_col <span class="op">=</span> <span class="st">"K1"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/pcf_matrix.html">pcf_matrix</a></span><span class="op">(</span><span class="va">b</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>F1 <span class="op">=</span> <span class="st">"1"</span>, F2 <span class="op">=</span> <span class="st">"2"</span>, F3 <span class="op">=</span> <span class="st">"3"</span><span class="op">)</span>, r_max <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="setup">1. Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="st">"../DESCRIPTION"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu">devtools</span><span class="fu">::</span><span class="fu">load_all</span><span class="op">(</span><span class="st">".."</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -160,9 +195,9 @@ needed for whole Xenium sections).</p>
 <span>        plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
 <span>        plot.title.position <span class="op">=</span> <span class="st">"plot"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="a-simulated-tissue-with-known-truth">2. A simulated tissue with known truth<a class="anchor" aria-label="anchor" href="#a-simulated-tissue-with-known-truth"></a>
-</h2>
+<div class="section level3">
+<h3 id="a-simulated-tissue-with-known-truth">2. A simulated tissue with known truth<a class="anchor" aria-label="anchor" href="#a-simulated-tissue-with-known-truth"></a>
+</h3>
 <p><code><a href="../reference/simulate_transcripts.html">simulate_transcripts()</a></code> draws transcripts from a
 multivariate log-Gaussian Cox process. There are three gene sets (A, B,
 C; five genes each). Each set has its own “territory” field, all genes
@@ -170,7 +205,7 @@ share a slowly varying cellularity field, and sets <strong>A and B share
 a niche field</strong> (length scale 20 µm), so they co-localize. The
 fields are generated exactly by FFT, <em>not</em> with random features,
 so the model below is not tested on data from its own approximation.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tx</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_transcripts.html">simulate_transcripts</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">400</span>, rate <span class="op">=</span> <span class="fl">0.02</span>, coloc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fl">0.8</span>, B <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span>
 <span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">tx</span>, <span class="st">"truth"</span><span class="op">)</span></span>
 <span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/split.html" class="external-link">split</a></span><span class="op">(</span><span class="va">truth</span><span class="op">$</span><span class="va">genes</span>, <span class="va">truth</span><span class="op">$</span><span class="va">set_of</span><span class="op">)</span></span>
@@ -193,7 +228,7 @@ bins (4 µm here). <code><a href="../reference/pcf_cross.html">pcf_cross()</a></
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g_{AB}(r)</annotation></semantics></math>
 from the binned counts with FFTs and edge correction. Compare it with
 the closed-form truth for the relative pair correlation:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bin_transcripts.html">bin_transcripts</a></span><span class="op">(</span><span class="va">tx</span>, bin_size <span class="op">=</span> <span class="fl">4</span>, tissue_radius <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span>
 <span><span class="va">b</span></span>
 <span></span>
@@ -229,9 +264,9 @@ same happens with <code>log2_oe</code> when every cell type is spatially
 clustered. What matters for a case-control study is how this value
 <strong>changes</strong> between groups (section 4).</p>
 </div>
-<div class="section level2">
-<h2 id="the-random-feature-model">3. The random-feature model<a class="anchor" aria-label="anchor" href="#the-random-feature-model"></a>
-</h2>
+<div class="section level3">
+<h3 id="the-random-feature-model">3. The random-feature model<a class="anchor" aria-label="anchor" href="#the-random-feature-model"></a>
+</h3>
 <p><code><a href="../reference/fit_spatial_rff.html">fit_spatial_rff()</a></code> fits</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>μ</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>a</mi><mo>+</mo><msub><mi>α</mi><mi>j</mi></msub><mo>+</mo><msub><mi>σ</mi><mn>0</mn></msub><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msub><mi>L</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub><msub><mi>f</mi><mi>k</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>f</mi><mi>k</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>ϕ</mi><msub><mi>ℓ</mi><mi>k</mi></msub></msub><mo stretchy="false" form="prefix">(</mo><mi>u</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><msub><mi>γ</mi><mi>k</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\log\mu_{bj} = \log a + \alpha_j + \sigma_0 f_0(u_b) + \sum_{k=1}^K L_{jk} f_k(u_b), \qquad f_k(u) = \phi_{\ell_k}(u)^\top\gamma_k,</annotation></semantics></math></p>
 <p>with negative-binomial counts
@@ -251,7 +286,7 @@ Because the length scale enters through
 all parameters, including the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℓ</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\ell_k</annotation></semantics></math>,
 have closed-form gradients.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">t0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_spatial_rff.html">fit_spatial_rff</a></span><span class="op">(</span><span class="va">b</span>, n_factors <span class="op">=</span> <span class="fl">4</span>, lengthscales <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">15</span>, <span class="fl">25</span>, <span class="fl">50</span><span class="op">)</span>,</span>
 <span>                       n_features <span class="op">=</span> <span class="fl">64</span>, max_iter <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
@@ -348,7 +383,7 @@ uses the closed form
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>C</mi><mrow><mi>A</mi><mi>B</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\exp(C_{AB}(r))</annotation></semantics></math>,
 which is exact only if the log-intensities really are Gaussian. The
 truth here <em>is</em> Gaussian, so both can be checked:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"C"</span><span class="op">)</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">f</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="fu"><a href="../reference/rff_pair_correlation.html">rff_pair_correlation</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">sets</span><span class="op">[[</span><span class="va">p</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">]</span>, <span class="va">sets</span><span class="op">[[</span><span class="va">p</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">]</span>, <span class="va">r_grid</span>, <span class="st">"composition"</span>, method <span class="op">=</span> <span class="va">m</span><span class="op">)</span><span class="op">$</span><span class="va">log_g</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>pair <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">p</span>, collapse <span class="op">=</span> <span class="st">"-"</span><span class="op">)</span>, r <span class="op">=</span> <span class="va">r_grid</span>, source <span class="op">=</span> <span class="st">"model, intensity"</span>, log_g <span class="op">=</span> <span class="fu">f</span><span class="op">(</span><span class="st">"intensity"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -376,9 +411,9 @@ than the truth, so it is conservative. The Gaussian method slightly
 overshoots here, and on real tissue (section 5) it is badly
 miscalibrated. <code>"intensity"</code> is therefore the default.</p>
 </div>
-<div class="section level2">
-<h2 id="case-control-comparison">4. Case-control comparison<a class="anchor" aria-label="anchor" href="#case-control-comparison"></a>
-</h2>
+<div class="section level3">
+<h3 id="case-control-comparison">4. Case-control comparison<a class="anchor" aria-label="anchor" href="#case-control-comparison"></a>
+</h3>
 <p><code><a href="../reference/simulate_transcripts_groups.html">simulate_transcripts_groups()</a></code> simulates 6 control and 6
 case samples with <strong>8 gene sets</strong> (closer to a real panel
 with many cell types). The niche loading of A and B is 0.3 in controls
@@ -386,7 +421,7 @@ and 0.9 in cases, so A–B co-localize more strongly in cases.
 <code><a href="../reference/colocalization_per_sample.html">colocalization_per_sample()</a></code> returns one row per sample ×
 pair × distance, ready for <code><a href="../reference/compare_groups.html">compare_groups()</a></code> with
 <code>pair_keys = c("cluster_i", "cluster_j", "r")</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gs8</span> <span class="op">&lt;-</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span></span>
 <span><span class="va">cc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_transcripts_groups.html">simulate_transcripts_groups</a></span><span class="op">(</span><span class="fl">6</span>, group_coloc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">0.3</span>, case <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span>,</span>
 <span>                                  gene_sets <span class="op">=</span> <span class="va">gs8</span>, n_genes_per_set <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -744,7 +779,7 @@ A-C
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">emp_cc</span>, score <span class="op">=</span> <span class="st">"relative (empirical)"</span><span class="op">)</span>,</span>
 <span>                 <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">mod_cc</span>, score <span class="op">=</span> <span class="st">"composition (model)"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">plot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">plot_df</span>, <span class="va">r</span> <span class="op">==</span> <span class="fl">16</span><span class="op">)</span></span>
@@ -767,15 +802,15 @@ A-C
 shows a small A–C <em>decrease</em>: when A pairs more with B, it pairs
 relatively less with everything else. As with <code>log2_oe</code>, read
 such depletion as a consequence of the main change.</p>
-<div class="section level3">
-<h3 id="robustness-to-differences-in-cellularity">Robustness to differences in cellularity<a class="anchor" aria-label="anchor" href="#robustness-to-differences-in-cellularity"></a>
-</h3>
+<div class="section level4">
+<h4 id="robustness-to-differences-in-cellularity">Robustness to differences in cellularity<a class="anchor" aria-label="anchor" href="#robustness-to-differences-in-cellularity"></a>
+</h4>
 <p>Tissue from cases is often more cellular or more heterogeneous. In
 the next simulation <strong>co-localization is identical</strong> in
 both groups, but cellularity varies more in cases
 (<code>density_sd</code> 0.8 vs 0.3). A good score must not call a
 difference here.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_transcripts_groups.html">simulate_transcripts_groups</a></span><span class="op">(</span><span class="fl">6</span>, group_coloc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span>, gene_sets <span class="op">=</span> <span class="va">gs8</span>, n_genes_per_set <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>                                 size <span class="op">=</span> <span class="fl">300</span>, rate <span class="op">=</span> <span class="fl">0.03</span>, density_sd <span class="op">=</span> <span class="fl">0.3</span>, seed <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">b2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_transcripts_groups.html">simulate_transcripts_groups</a></span><span class="op">(</span><span class="fl">6</span>, group_coloc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>case <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span>, gene_sets <span class="op">=</span> <span class="va">gs8</span>, n_genes_per_set <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -821,16 +856,16 @@ are not part of the tested pair.</p>
 </blockquote>
 </div>
 </div>
-<div class="section level2">
-<h2 id="real-data-xenium-mouse-brain">5. Real data: Xenium mouse brain<a class="anchor" aria-label="anchor" href="#real-data-xenium-mouse-brain"></a>
-</h2>
+<div class="section level3">
+<h3 id="real-data-xenium-mouse-brain">5. Real data: Xenium mouse brain<a class="anchor" aria-label="anchor" href="#real-data-xenium-mouse-brain"></a>
+</h3>
 <p>We use the public 10x Genomics dataset <em>Xenium FF Mouse Brain
 Coronal Subset (CTX + HP)</em> (248-gene panel). Only the transcript
 table is needed (183 MB). It is downloaded once into the user cache
 directory. <code><a href="../reference/read_xenium_transcripts.html">read_xenium_transcripts()</a></code> handles older outputs
 that store gene names as binary, filters on <code>qv &gt;= 20</code>,
 and drops control probes.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cache</span> <span class="op">&lt;-</span> <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/userdir.html" class="external-link">R_user_dir</a></span><span class="op">(</span><span class="st">"spatialCooccur"</span>, <span class="st">"cache"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">cache</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">pq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">cache</span>, <span class="st">"Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_transcripts.parquet"</span><span class="op">)</span></span>
@@ -863,7 +898,7 @@ and drops control probes.</p>
 <p>248</p>
 </div>
 <p>Marker gene sets for nine brain cell types, all in the panel:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">brain_sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  Endothelial <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Cldn5"</span>, <span class="st">"Pecam1"</span>, <span class="st">"Kdr"</span>, <span class="st">"Emcn"</span>, <span class="st">"Adgrl4"</span>, <span class="st">"Fgd5"</span>, <span class="st">"Cd93"</span>, <span class="st">"Nostrin"</span><span class="op">)</span>,</span>
 <span>  Astrocyte   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Aqp4"</span>, <span class="st">"Gfap"</span>, <span class="st">"Slc39a12"</span>, <span class="st">"Acsbg1"</span>, <span class="st">"Ntsr2"</span><span class="op">)</span>,</span>
@@ -893,7 +928,7 @@ and drops control probes.</p>
 <p>Bin the whole section (4 µm bins, about 1.2 million bins) and compute
 the relative pair correlation for every pair of cell types. The pair
 correlation of all transcripts is computed once and reused.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">t0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">xb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bin_transcripts.html">bin_transcripts</a></span><span class="op">(</span><span class="va">xtx</span>, bin_size <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">xb</span></span>
@@ -911,7 +946,7 @@ correlation of all transcripts is computed once and reused.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">t0</span></span></code></pre></div>
 <pre class="output"><code>&lt;binned_transcripts&gt; 1361 x 882 bins of 4 (922805 in tissue), 248 genes, 9447344 transcripts</code></pre>
 <pre class="output"><code>Time difference of 1.399758 mins</code></pre>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">show</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>pair <span class="op">=</span> <span class="st">"Endothelial-SMC"</span>,  <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">xres</span>, <span class="va">a</span> <span class="op">==</span> <span class="st">"Endothelial"</span> <span class="op">&amp;</span> <span class="va">b</span> <span class="op">==</span> <span class="st">"SMC"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>pair <span class="op">=</span> <span class="st">"Oligo-OPC"</span>,        <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">xres</span>, <span class="va">a</span> <span class="op">==</span> <span class="st">"Oligo"</span> <span class="op">&amp;</span> <span class="va">b</span> <span class="op">==</span> <span class="st">"OPC"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -935,7 +970,7 @@ endothelium, OPCs sit among oligodendrocytes, and oligodendrocytes
 (white matter) are segregated from excitatory neurons (grey matter) out
 to more than 80 µm. The heatmap shows all pairs at r = 12 µm, about one
 cell-to-cell distance:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">h12</span> <span class="op">&lt;-</span> <span class="va">xres12</span></span>
 <span><span class="va">h12</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">h12</span>, <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">h12</span><span class="op">[</span><span class="va">h12</span><span class="op">$</span><span class="va">a</span> <span class="op">!=</span> <span class="va">h12</span><span class="op">$</span><span class="va">b</span>, <span class="op">]</span>, a <span class="op">=</span> <span class="va">b</span>, b <span class="op">=</span> <span class="va">a</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">h12</span><span class="op">$</span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">h12</span><span class="op">$</span><span class="va">a</span>, levels <span class="op">=</span> <span class="va">nm</span><span class="op">)</span>; <span class="va">h12</span><span class="op">$</span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">h12</span><span class="op">$</span><span class="va">b</span>, levels <span class="op">=</span> <span class="va">nm</span><span class="op">)</span></span>
@@ -951,15 +986,15 @@ cell-to-cell distance:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Segmentation-free co-localization at r = 12 µm"</span>, x <span class="op">=</span> <span class="cn">NULL</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="va">theme_tut</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, panel.grid <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/segmentation_free_tutorial/fig-08.png" style="width:100.0%"></p>
-<div class="section level3">
-<h3 id="agreement-with-the-segmentation-based-analysis">Agreement with the segmentation-based analysis<a class="anchor" aria-label="anchor" href="#agreement-with-the-segmentation-based-analysis"></a>
-</h3>
+<div class="section level4">
+<h4 id="agreement-with-the-segmentation-based-analysis">Agreement with the segmentation-based analysis<a class="anchor" aria-label="anchor" href="#agreement-with-the-segmentation-based-analysis"></a>
+</h4>
 <p>The same dataset comes with Xenium’s cell segmentation
 (<code>cell_id</code>). We assign each cell the cell type whose markers
 dominate its transcripts, run <code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code> on the
 cell centroids, and compare its <code>log2_oe</code> with the
 segmentation-free relative log g for every pair.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seg</span> <span class="op">&lt;-</span> <span class="va">xtx</span><span class="op">[</span><span class="va">xtx</span><span class="op">$</span><span class="va">cell_id</span> <span class="op">!=</span> <span class="op">-</span><span class="fl">1</span>, <span class="op">]</span></span>
 <span><span class="va">cent</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">cell_id</span>, data <span class="op">=</span> <span class="va">seg</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
 <span><span class="va">mk_all</span> <span class="op">&lt;-</span> <span class="va">seg</span><span class="op">[</span><span class="va">seg</span><span class="op">$</span><span class="va">gene</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">set_of</span><span class="op">)</span>, <span class="op">]</span></span>
@@ -988,7 +1023,7 @@ Endothelial   Astrocyte       Oligo         OPC   Microglia         SMC
 <div class="nb-output">
 <p>0.769038208168643</p>
 </div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">h12u</span>, <span class="va">kind</span> <span class="op">==</span> <span class="st">"different types"</span><span class="op">)</span></span>
 <span><span class="va">lab</span> <span class="op">&lt;-</span> <span class="va">lab</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">lab</span><span class="op">$</span><span class="va">log2_oe</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="op">]</span></span>
 <span></span>
@@ -1014,12 +1049,12 @@ cross-type co-localization at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>≳</mo></mrow><annotation encoding="application/x-tex">r \gtrsim</annotation></semantics></math>
 one cell diameter (here about 10–20 µm).</p>
 </div>
-<div class="section level3">
-<h3 id="the-random-feature-model-on-a-region">The random-feature model on a region<a class="anchor" aria-label="anchor" href="#the-random-feature-model-on-a-region"></a>
-</h3>
+<div class="section level4">
+<h4 id="the-random-feature-model-on-a-region">The random-feature model on a region<a class="anchor" aria-label="anchor" href="#the-random-feature-model-on-a-region"></a>
+</h4>
 <p>The model is fitted to an 800 × 800 µm region spanning deep cortex,
 white matter and hippocampus (8 µm bins, marker genes only).</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">crop</span> <span class="op">&lt;-</span> <span class="va">xtx</span><span class="op">[</span><span class="va">xtx</span><span class="op">$</span><span class="va">x</span> <span class="op">&gt;=</span> <span class="fl">2600</span> <span class="op">&amp;</span> <span class="va">xtx</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;</span> <span class="fl">3400</span> <span class="op">&amp;</span> <span class="va">xtx</span><span class="op">$</span><span class="va">y</span> <span class="op">&gt;=</span> <span class="fl">1700</span> <span class="op">&amp;</span> <span class="va">xtx</span><span class="op">$</span><span class="va">y</span> <span class="op">&lt;</span> <span class="fl">2500</span> <span class="op">&amp;</span> <span class="va">xtx</span><span class="op">$</span><span class="va">gene</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">set_of</span><span class="op">)</span>, <span class="op">]</span></span>
 <span><span class="va">cb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bin_transcripts.html">bin_transcripts</a></span><span class="op">(</span><span class="va">crop</span>, bin_size <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">t0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -1032,7 +1067,7 @@ white matter and hippocampus (8 µm bins, marker genes only).</p>
   factor length scales: 8.05, 12.1, 17.6, 36, 80.8, 96.2 
   cellularity field: sd 0.03, length scale 35.4
   convergence: 1 (NEW_X)</code></pre>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">cfit</span><span class="op">$</span><span class="va">lengthscales</span><span class="op">)</span></span>
 <span><span class="va">fields</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">ord</span>, <span class="kw">function</span><span class="op">(</span><span class="va">k</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">cb</span><span class="op">$</span><span class="va">coords</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">]</span>, value <span class="op">=</span> <span class="va">cfit</span><span class="op">$</span><span class="va">field_grid</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"factor"</span>, <span class="va">k</span><span class="op">)</span><span class="op">]</span>,</span>
@@ -1082,7 +1117,7 @@ white matter and hippocampus (8 µm bins, marker genes only).</p>
 </ol>
 </div>
 <p><img src="figures/segmentation_free_tutorial/fig-10.png" style="width:100.0%"></p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tt_c</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pcf_cross.html">pcf_cross</a></span><span class="op">(</span><span class="va">cb</span>, <span class="va">cb</span><span class="op">$</span><span class="va">genes</span>, <span class="va">cb</span><span class="op">$</span><span class="va">genes</span>, r_max <span class="op">=</span> <span class="fl">50</span>, r_step <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">agree</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">nm</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">i</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">nm</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">j</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">e</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pcf_cross.html">pcf_cross</a></span><span class="op">(</span><span class="va">cb</span>, <span class="va">brain_sets</span><span class="op">[[</span><span class="va">nm</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">]</span>, <span class="va">brain_sets</span><span class="op">[[</span><span class="va">nm</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span><span class="op">]</span>, r_max <span class="op">=</span> <span class="fl">50</span>, r_step <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
@@ -1154,9 +1189,9 @@ tissue: vessels and meninges are sparse, line-like structures whose
 log-intensity is not Gaussian.</p>
 </div>
 </div>
-<div class="section level2">
-<h2 id="practical-guidance">6. Practical guidance<a class="anchor" aria-label="anchor" href="#practical-guidance"></a>
-</h2>
+<div class="section level3">
+<h3 id="practical-guidance">6. Practical guidance<a class="anchor" aria-label="anchor" href="#practical-guidance"></a>
+</h3>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Start model-free.</strong>
@@ -1190,7 +1225,7 @@ Dirichlet-process spectral mixture and Gibbs sampler of the original
 RFLVM are not implemented yet; model-based estimates are shrunk towards
 0 at short range.</li>
 </ol>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>R version 4.3.2 (2023-10-31)
 Platform: aarch64-apple-darwin20 (64-bit)
