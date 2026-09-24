@@ -238,11 +238,11 @@ $`\mathrm{O/E}_{i\to j} = \frac{\text{share of } j
 \text{ among the neighbours of } j}{p_i}`$. It answers “is there more
 $`i`$–$`j`$ contact than chance?”, not “from whose point of view”. The
 heatmap of `plot_nhood_heatmap(value = "log2_oe")` shows the average of
-the two directions. Two directional questions (row = centre cell type
-$`i`$, column = neighbour type $`j`$) are answered on the unweighted
-$`k`$-NN graph without the cell itself, with $`n_{u,j}`$ the number of
-type-$`j`$ neighbours of cell $`u`$ and $`d_u`$ its number of
-neighbours:
+the two directions, once per pair (lower triangle). Two directional
+questions (row = centre cell type $`i`$, column = neighbour type $`j`$)
+are answered on the unweighted $`k`$-NN graph without the cell itself,
+with $`n_{u,j}`$ the number of type-$`j`$ neighbours of cell $`u`$ and
+$`d_u`$ its number of neighbours:
 
 ``` math
 \mathrm{contact}_{ij} = \frac{1}{n_i}\sum_{u \in i} 1[n_{u,j} \ge 1],

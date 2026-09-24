@@ -72,6 +72,10 @@
   all ordered pairs. `plot_nhood_heatmap(value = "dominance_log2_oe")`
   draws them without symmetrising; the pair-level heatmap is labelled as
   the average of both directions.
+- [`plot_nhood_heatmap()`](https://juninamo.github.io/spatialCooccur/reference/plot_nhood_heatmap.md):
+  new default `triangle = "auto"` draws symmetric pair-level values once
+  (lower triangle with the diagonal) and directional values in full;
+  `triangle = "full"` restores the previous layout.
 - Tutorials use `log2_oe` with the max-T adjusted `padj`; new sections
   on
   [`cooccur_local_oe()`](https://juninamo.github.io/spatialCooccur/reference/cooccur_local_oe.md),

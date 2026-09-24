@@ -16,7 +16,7 @@ download it to run the code yourself.
 format(Sys.time(), '%d %B, %Y')
 ```
 
-‘24 September, 2026’
+‘25 September, 2026’
 
 ## Spatial neighborhood analysis (SNA, cell type level analysis)
 
