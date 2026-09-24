@@ -62,31 +62,41 @@ theme_tut <- theme_minimal(base_size = 12) +
 
 ### A quick check of the permutation null
 
-`nhood_enrichment()` compares the observed number of neighbor edges between two cell types with a label-permutation null. If cells are placed completely at random, the z-scores should look like draws from N(0, 1) for **every** pair, same-type pairs (the diagonal) included. This is the first thing to check before comparing groups.
+`nhood_enrichment()` compares the observed number of neighbor edges between two cell types with a label-permutation null. If cells are placed completely at random, the z-scores should look like draws from N(0, 1) for **every** pair, same-type pairs (the diagonal) included. This is the first thing to check before comparing groups. Use many tissues for this check: there are only K same-type pairs per tissue (8 here), so with a few tissues the diagonal histogram looks irregular by chance alone. Below, 80 random tissues give 640 same-type and 4,480 different-type values, and the actual test (`pvalue < 0.05`) is checked as well: it should be about 5% for both.
 
 > **Note.** spatialCooccur ≤ 0.99.1 shuffled the row and column labels *independently*, so each cell had two different labels in the null. Under spatial randomness that inflated same-type z-scores to about +11 and pushed different-type z-scores to about −2. The current version uses a single permutation for rows and columns. z-scores from earlier versions are not comparable with those below.
 
 ```r
 set.seed(1)
-null_z <- do.call(rbind, lapply(1:10, function(r) {
+# 80 random tissues x 8 cell types: 640 same-type and 4,480 different-type z-scores
+null_runs <- lapply(1:80, function(r) {
   n <- 1500
   d <- data.frame(x = runif(n, 0, 600), y = runif(n, 0, 600),
                   cell_type = factor(sample(paste0("cell_type_", 1:8), n, replace = TRUE)))
   rownames(d) <- paste0("r", r, "_c", seq_len(n))
-  z <- nhood_enrichment(d, cluster_key = "cell_type", neighbors.k = 10,
-                        n_perms = 200, seed = r, n_jobs = 1)$zscore
+  nhood_enrichment(d, cluster_key = "cell_type", neighbors.k = 10,
+                   n_perms = 200, seed = r, n_jobs = 1)
+})
+null_z <- do.call(rbind, lapply(null_runs, function(o) {
+  z <- o$zscore
   data.frame(z = c(z), pair = ifelse(c(row(z) == col(z)), "same type (diagonal)", "different types"))
 }))
+aggregate(z ~ pair, data = null_z, FUN = function(v) round(c(n = length(v), mean = mean(v), sd = sd(v)), 2))
 
-aggregate(z ~ pair, data = null_z, FUN = function(v) round(c(mean = mean(v), sd = sd(v)), 2))
+# the actual test: share of pairs with pvalue < 0.05 (should be about 5%)
+null_p <- do.call(rbind, lapply(null_runs, function(o) {
+  up <- upper.tri(o$pvalue, diag = TRUE)
+  data.frame(p = o$pvalue[up], pair = ifelse(row(o$pvalue)[up] == col(o$pvalue)[up], "same type (diagonal)", "different types"))
+}))
+aggregate(p ~ pair, data = null_p, FUN = function(v) round(mean(v < 0.05), 3))
 
 options(repr.plot.width = 8, repr.plot.height = 3.6)
 ggplot(null_z, aes(z)) +
-  geom_histogram(aes(y = after_stat(density)), bins = 25, fill = "#2a78d6", color = "white") +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.25, fill = "#2a78d6", color = "white") +
   stat_function(fun = dnorm, linewidth = 0.8, color = "grey20") +
   facet_wrap(~ pair) +
   labs(title = "Under spatial randomness, z-scores follow N(0, 1)",
-       subtitle = "10 random tissues x 8 cell types; black line = standard normal density",
+       subtitle = "80 random tissues x 8 cell types; black line = standard normal density",
        x = "neighborhood enrichment z-score", y = "density") +
   theme_tut
 ```
@@ -96,11 +106,25 @@ ggplot(null_z, aes(z)) +
 <caption>A data.frame: 2 × 2</caption>
 <thead>
 	<tr><th scope=col>pair</th><th scope=col>z</th></tr>
-	<tr><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl[,2]&gt;</th></tr>
+	<tr><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl[,3]&gt;</th></tr>
 </thead>
 <tbody>
-	<tr><td>different types     </td><td> 0.03, 0.96</td></tr>
-	<tr><td>same type (diagonal)</td><td>-0.19, 1.00</td></tr>
+	<tr><td>different types     </td><td>4480,  0.01, 1.01</td></tr>
+	<tr><td>same type (diagonal)</td><td> 640, -0.04, 0.99</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="nb-output">
+<table class="dataframe">
+<caption>A data.frame: 2 × 2</caption>
+<thead>
+	<tr><th scope=col>pair</th><th scope=col>p</th></tr>
+	<tr><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><td>different types     </td><td>0.046</td></tr>
+	<tr><td>same type (diagonal)</td><td>0.045</td></tr>
 </tbody>
 </table>
 </div>
@@ -219,7 +243,7 @@ head(per_image[order(per_image$sample_id), ], 4)
 ```
 
 ```{.output}
-Time difference of 14.06373 secs
+Time difference of 14.26745 secs
 ```
 
 <div class="nb-output">
@@ -466,7 +490,12 @@ plot_volcano_groups(vol, label_top = 6) + theme_tut + labs(x = "effect (log2 O/E
 
 ![](figures/case_control_tutorial/fig-05.png){width="100%"}
 
-Besides T1-T2, several pairs of **T2 or T1 with a third cell type** are significantly *depleted* in cases. This is not a false positive. In cases more T2 cells sit right next to T1 cells, so T1 and T2 have fewer neighbors of every other type. Within-image enrichment scores are relative: enriching one partner depletes the others. Read such pairs as consequences of the main change, not as independent findings.
+Only T1-T2 was planted, so every other pair that passes BH is a **false discovery or a side effect**, and it is worth knowing both:
+
+* **Side effect of the planted pair.** Within-image scores are relative. When more T2 cells sit right next to T1 cells, T1 and T2 have fewer neighbours of every other type (blue in the heatmap), and the remaining cell types become slightly more likely to neighbour each other. Across 160 simulated images this shift is small: about +0.01 to +0.02 log2 O/E for pairs among T3-T8, and about -0.08 for T1 or T2 with a third type.
+* **Chance.** Benjamini-Hochberg controls the *false discovery rate*: on average about 5% of the pairs called significant are expected to be false, and with only a few discoveries a single false one is common.
+
+In this run T5-T5 (effect +0.07, far smaller than T1-T2) passes BH although nothing was planted for T5; it is most likely chance on top of the small relative shift. Read such pairs as consequences of the main change or as candidates to confirm, not as independent findings, and look at their effect size and per-patient values.
 
 Always plot the per-patient values behind a hit. Large points are patient means, small points the individual images:
 
@@ -741,131 +770,7 @@ pp$x <- x[pp$patient]
 options(repr.plot.width = 5.5, repr.plot.height = 4.5)
 ggplot(pp, aes(x, log2_oe)) + geom_point(aes(color = patient), show.legend = FALSE) +
   geom_smooth(method = "lm", se = FALSE, color = "grey40", linetype = "dashed") +
-  labs(x = "clinical variable x", y = "log2 O/E (cell_type_1 – cell_type_2)", title = "Images of 12 patients") + theme_minimal()
-```
-
-```{.output}
-`geom_smooth()` using formula = 'y ~ x'
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
-```
-
-```{.output}
-Warning message in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
-```
-
-```{.output}
-Warning message in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <e2>”
-```
-
-```{.output}
-Warning message in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <80>”
-```
-
-```{.output}
-Warning message in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
-“conversion failure on 'log2 O/E (cell_type_1 – cell_type_2)' in 'mbcsToSbcs': dot substituted for <93>”
+  labs(x = "clinical variable x", y = "log2 O/E (cell_type_1 - cell_type_2)", title = "Images of 12 patients") + theme_minimal()
 ```
 
 ![](figures/case_control_tutorial/fig-10.png){width="100%"}

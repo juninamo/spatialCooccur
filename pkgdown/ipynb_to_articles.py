@@ -126,7 +126,9 @@ def convert(nb_path):
             if kind == "stream":
                 body = text(out["text"])
                 if out.get("name") == "stderr":
-                    body = clean_stderr(body)
+                    # messages and warnings from R and other packages (Seurat,
+                    # ggplot2, ...) are not tutorial content: leave them out
+                    continue
                 else:
                     body = "\n".join(l for l in strip_ansi(body).splitlines()
                                       if not PROGRESS_RE.match(l))
