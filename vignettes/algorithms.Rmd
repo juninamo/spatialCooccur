@@ -42,8 +42,8 @@ label (e.g. cell type). For each function we additionally use:
 
 * $A \in \{0, 1\}^{N \times N}$ — adjacency of a $k$-nearest-neighbor
   (kNN) graph on $\{\mathbf{x}_v\}$, with $A_{uv} = 1$ iff $v$ is one of
-  the $k$ nearest neighbors of $u$. Built with
-  `Seurat::FindNeighbors(..., k.param = k)`.
+  the $k$ nearest neighbors of $u$ (the cell itself included). Built
+  exactly with a kd-tree (`RANN::nn2(coords, k = k)`).
 * $d_v = \sum_u A_{uv}$ — the (in-)degree of $v$ in the kNN graph.
 * $N_r(v) = \{u \in \mathcal{V}\setminus\{v\} : \lVert \mathbf{x}_u -
   \mathbf{x}_v \rVert \le r\}$ — radius-$r$ neighborhood, computed with
@@ -141,10 +141,10 @@ with a `cell_type_1` cell.
 
 ### Step 1 — build the kNN adjacency
 
-Construct the kNN graph with `Seurat::FindNeighbors(coords, k.param = k)`.
-Let $A \in \{0, 1\}^{N \times N}$ be the resulting adjacency
-(`neighbors$nn`) or the shared-NN matrix (`neighbors$snn`), depending on
-`connectivity_key`.
+Construct the exact kNN graph with a kd-tree (`RANN::nn2(coords, k = k)`;
+the cell counts as its own neighbour, as in `Seurat::FindNeighbors`). Let
+$A \in \{0, 1\}^{N \times N}$ be the resulting adjacency, or, with
+`connectivity_key = "snn"`, Seurat's shared-nearest-neighbour matrix.
 
 ### Step 2 — degree weighting (optional, off by default)
 

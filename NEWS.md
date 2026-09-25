@@ -115,6 +115,13 @@
 
 ## Other bug fixes
 
+* `nhood_enrichment()`, `nhood_enrichment.Seurat()`, `cooccur_local()` and
+  `cooccur_local.Seurat()` build the kNN graph exactly with a kd-tree
+  (`RANN::nn2`) instead of Seurat's approximate annoy search. On 200,000
+  cells the graph takes 0.4 s instead of 33 s, and 99.995% of links are
+  identical (on four RA sections, log2 O/E changed by at most 0.016 and the
+  significant pairs were identical). `connectivity_key = "snn"` still uses
+  `Seurat::FindNeighbors()`.
 * `nhood_enrichment()` with `n_jobs > 1`: the workers did not load the Matrix
   methods, so every worker failed and the permutations silently fell back to
   sequential (no speed-up). The workers now load Matrix, and a fallback to
