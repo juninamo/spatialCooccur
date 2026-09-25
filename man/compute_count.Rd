@@ -10,7 +10,7 @@ compute_count(
   int_clust_col,
   n_cls,
   cluster_data,
-  transformation = TRUE
+  transformation = FALSE
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ compute_count(
 
 \item{cluster_data}{Original cluster assignments.}
 
-\item{transformation}{Whether to transform counts based on adjacency normalization.}
+\item{transformation}{If `TRUE`, `adj` holds link weights (e.g. 1 / (1 + d_u)) that are summed; `FALSE` (default) counts binary links.}
 }
 \value{
 A co-occurrence count matrix.

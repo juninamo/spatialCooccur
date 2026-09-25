@@ -9,6 +9,15 @@
 
 ## Changes that affect results
 
+* `nhood_enrichment()`, `nhood_enrichment.Seurat()` and
+  `nhood_enrichment_per_sample()`: the default is now `transformation = FALSE`
+  (every kNN link counts once, as in squidpy). The previous default weighted
+  each link from cell u by 1 / (1 + d_u), d_u = number of cells that chose u.
+  With a kNN graph every cell sends k links at any density, so this was not a
+  density correction; in simulations it kept the calibration (false positives
+  4-5% per pair, 2-7% family-wise) but lowered power (planted pair, 1,500
+  cells: 14% with the weighting vs 28% without). Use `transformation = TRUE`
+  to reproduce earlier results. The docs now describe what the weighting does.
 * `nhood_enrichment()`: `log2_oe` is now centred on the label shuffles
   (the mean of the same log ratio over the shuffles is subtracted), so it is
   0 on average without interaction for any number of cells. The log of a
@@ -46,7 +55,11 @@
   `ard` argument: a group penalty on each factor's loadings that shrinks
   unneeded factors, reported as `factor_strength`. New `rff_factor_test()`:
   parametric-bootstrap p-value per factor against the largest factor fitted
-  to null data (family-wise over factors).
+  to null data (family-wise over factors). The test statistic is the program
+  strength (loading norm after removing the loading shared by all genes):
+  factors that move all genes together are cellularity, not gene programs,
+  and the raw loading norm called such factors significant in simulations
+  without any program. `fit_spatial_rff()` also returns `program_strength`.
 * `rff_fields()` (experimental): evaluates the latent fields of a
   `fit_spatial_rff()` fit (cellularity and the `K` factors, on the
   unit-variance scale of `fit$field_grid`) at any coordinates - cell

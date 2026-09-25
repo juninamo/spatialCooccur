@@ -629,7 +629,9 @@ pcf_matrix <- function(binned, gene_sets, r_max = 100, r_step = binned$grid$bin_
 #'
 #' @return An object of class `spatial_rff_fit` with the estimates
 #'   (`alpha`, `L`, `sigma0`, `lengthscales`, `density_lengthscale`, `gamma`,
-#'   `dispersion`), `factor_strength` (norm of each factor's loadings), the
+#'   `dispersion`), `factor_strength` (norm of each factor's loadings),
+#'   `program_strength` (norm after removing the loading shared by all genes,
+#'   which cannot be told apart from cellularity), the
 #'   random frequencies, the genes, the settings (`settings`, used by
 #'   [rff_factor_test()]) and convergence information.
 #' @references Gundersen GW, Zhang MM, Engelhardt BE (2021). Latent variable
@@ -835,6 +837,7 @@ fit_spatial_rff <- function(binned, n_factors = 3,
     center = colMeans(as.matrix(binned$coords[keep, c("x", "y")])),
     offset_grid = offset_grid, offset_matrix = offset_matrix,
     factor_strength = stats::setNames(sqrt(colSums(p$L^2)), colnames(p$L)),
+    program_strength = stats::setNames(sqrt(colSums(sweep(p$L, 2, colMeans(p$L))^2)), colnames(p$L)),
     settings = list(n_factors = n_factors, lengthscales = lengthscales, density_lengthscale = density_lengthscale,
                     ard = ard, n_features = n_features, family = family, max_iter = max_iter, seed = seed),
     bin_size = binned$grid$bin_size, has_density = has_d,
@@ -1014,23 +1017,35 @@ rff_offset <- function(binned, covariates, genes = NULL, ridge = 1e-4) {
 #' Significance of residual spatial factors by parametric bootstrap
 #'
 #' **Experimental.** Tests whether the factors of a [fit_spatial_rff()] fit
-#' are stronger than factors fitted to data without any factor structure.
-#' Counts are simulated from the fitted null model (bin area, offset, gene
-#' intercepts, cellularity field and dispersion, but no factors), the same
-#' model is refitted to each simulated data set, and the largest factor
-#' strength (norm of a factor's loadings) is recorded. Each observed factor is
-#' compared with this max-null distribution, which controls the family-wise
-#' error over factors.
+#' are gene programs stronger than those fitted to data without any factor
+#' structure. Counts are simulated from the fitted null model (bin area,
+#' offset, gene intercepts, cellularity field and dispersion, but no
+#' factors), the same model is refitted to each simulated data set, and the
+#' largest factor statistic is recorded. Each observed factor is compared with
+#' this max-null distribution, which controls the family-wise error over
+#' factors.
+#'
+#' The default statistic is the program strength: the norm of a factor's
+#' loadings after removing their mean over genes. A factor that moves all
+#' genes together is extra cellularity (e.g. fine-scale density that the
+#' smooth cellularity field cannot follow), not a gene program; such factors
+#' are reported (`uniform_share`) but not declared significant. In
+#' simulations the raw loading norm (`statistic = "strength"`) called such
+#' factors significant in data without any program.
 #'
 #' @param fit Output of [fit_spatial_rff()].
 #' @param binned The `binned_transcripts` object used for the fit.
 #' @param n_boot Number of simulated null data sets.
 #' @param max_iter Iterations for the refits (default: those of the fit).
+#' @param statistic `"program"` (default; loading norm after removing the
+#'   mean over genes) or `"strength"` (raw loading norm).
 #' @param seed Random seed.
 #'
-#' @return A data frame with one row per factor: `factor`, `strength`,
-#'   `lengthscale`, `p` (share of null data sets whose strongest factor is at
-#'   least as strong, with the +1 correction), and the top genes by
+#' @return A data frame with one row per factor: `factor`, `strength` (raw
+#'   loading norm), `program_strength`, `uniform_share` (share of the squared
+#'   loading norm that is common to all genes; near 1 = cellularity-like),
+#'   `lengthscale`, `p` (share of null data sets whose largest statistic is
+#'   at least as large, with the +1 correction), and the top genes by
 #'   absolute loading. The null maxima are attached as attribute
 #'   `null_max`.
 #' @seealso [fit_spatial_rff()], [rff_offset()], [rff_fields()]
@@ -1042,7 +1057,9 @@ rff_offset <- function(binned, covariates, genes = NULL, ridge = 1e-4) {
 #' fit <- fit_spatial_rff(b, n_factors = 2, ard = 2, n_features = 24, max_iter = 40)
 #' rff_factor_test(fit, b, n_boot = 4)
 #' }
-rff_factor_test <- function(fit, binned, n_boot = 19, max_iter = NULL, seed = 1) {
+rff_factor_test <- function(fit, binned, n_boot = 19, max_iter = NULL,
+                            statistic = c("program", "strength"), seed = 1) {
+  statistic <- match.arg(statistic)
   if (!inherits(fit, "spatial_rff_fit")) stop("`fit` must come from fit_spatial_rff().")
   st <- fit$settings
   if (is.null(st)) stop("`fit` was made before settings were stored; refit with the current package.")
@@ -1067,18 +1084,22 @@ rff_factor_test <- function(fit, binned, n_boot = 19, max_iter = NULL, seed = 1)
                           density_lengthscale = st$density_lengthscale, offset = offset_arg, ard = st$ard,
                           n_features = st$n_features, family = st$family,
                           max_iter = if (is.null(max_iter)) st$max_iter else max_iter, seed = seed + b)
-    max(f0$factor_strength)
+    if (statistic == "program") max(sqrt(colSums(sweep(f0$L, 2, colMeans(f0$L))^2))) else max(f0$factor_strength)
   }, numeric(1))
+  Lc <- sweep(fit$L, 2, colMeans(fit$L))
+  prog <- sqrt(colSums(Lc^2)); stat <- if (statistic == "program") prog else fit$factor_strength
   top <- vapply(seq_along(fit$factor_strength), function(k) {
     o <- order(-abs(fit$L[, k]))[seq_len(min(5, length(genes)))]
     paste(sprintf("%s (%+.2f)", genes[o], fit$L[o, k]), collapse = ", ")
   }, "")
   out <- data.frame(factor = names(fit$factor_strength), strength = unname(fit$factor_strength),
+                    program_strength = unname(prog),
+                    uniform_share = unname(1 - prog^2 / pmax(fit$factor_strength^2, 1e-12)),
                     lengthscale = fit$lengthscales,
-                    p = vapply(fit$factor_strength, function(v) (1 + sum(null_max >= v)) / (n_boot + 1), 0),
+                    p = vapply(stat, function(v) (1 + sum(null_max >= v)) / (n_boot + 1), 0),
                     top_genes = top, row.names = NULL)
   attr(out, "null_max") <- null_max
-  out[order(out$p, -out$strength), ]
+  out[order(out$p, -out$program_strength), ]
 }
 
 #' Model-based cross pair correlation from a fitted random-feature LGCP

@@ -4,7 +4,14 @@
 \alias{rff_factor_test}
 \title{Significance of residual spatial factors by parametric bootstrap}
 \usage{
-rff_factor_test(fit, binned, n_boot = 19, max_iter = NULL, seed = 1)
+rff_factor_test(
+  fit,
+  binned,
+  n_boot = 19,
+  max_iter = NULL,
+  statistic = c("program", "strength"),
+  seed = 1
+)
 }
 \arguments{
 \item{fit}{Output of [fit_spatial_rff()].}
@@ -15,24 +22,38 @@ rff_factor_test(fit, binned, n_boot = 19, max_iter = NULL, seed = 1)
 
 \item{max_iter}{Iterations for the refits (default: those of the fit).}
 
+\item{statistic}{`"program"` (default; loading norm after removing the
+mean over genes) or `"strength"` (raw loading norm).}
+
 \item{seed}{Random seed.}
 }
 \value{
-A data frame with one row per factor: `factor`, `strength`,
-  `lengthscale`, `p` (share of null data sets whose strongest factor is at
-  least as strong, with the +1 correction), and the top genes by
+A data frame with one row per factor: `factor`, `strength` (raw
+  loading norm), `program_strength`, `uniform_share` (share of the squared
+  loading norm that is common to all genes; near 1 = cellularity-like),
+  `lengthscale`, `p` (share of null data sets whose largest statistic is
+  at least as large, with the +1 correction), and the top genes by
   absolute loading. The null maxima are attached as attribute
   `null_max`.
 }
 \description{
 **Experimental.** Tests whether the factors of a [fit_spatial_rff()] fit
-are stronger than factors fitted to data without any factor structure.
-Counts are simulated from the fitted null model (bin area, offset, gene
-intercepts, cellularity field and dispersion, but no factors), the same
-model is refitted to each simulated data set, and the largest factor
-strength (norm of a factor's loadings) is recorded. Each observed factor is
-compared with this max-null distribution, which controls the family-wise
-error over factors.
+are gene programs stronger than those fitted to data without any factor
+structure. Counts are simulated from the fitted null model (bin area,
+offset, gene intercepts, cellularity field and dispersion, but no
+factors), the same model is refitted to each simulated data set, and the
+largest factor statistic is recorded. Each observed factor is compared with
+this max-null distribution, which controls the family-wise error over
+factors.
+}
+\details{
+The default statistic is the program strength: the norm of a factor's
+loadings after removing their mean over genes. A factor that moves all
+genes together is extra cellularity (e.g. fine-scale density that the
+smooth cellularity field cannot follow), not a gene program; such factors
+are reported (`uniform_share`) but not declared significant. In
+simulations the raw loading norm (`statistic = "strength"`) called such
+factors significant in data without any program.
 }
 \examples{
 \donttest{

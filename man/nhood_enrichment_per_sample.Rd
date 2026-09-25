@@ -14,7 +14,7 @@ nhood_enrichment_per_sample(
   cluster_levels = NULL,
   neighbors.k = 30,
   connectivity_key = "nn",
-  transformation = TRUE,
+  transformation = FALSE,
   n_perms = 100,
   seed = 1938493,
   n_jobs = 1
@@ -44,11 +44,13 @@ samples.}
 
 \item{connectivity_key}{Type of graph: "nn" or "snn".}
 
-\item{transformation}{If `TRUE` (default), each link from cell u is
-weighted 1 / (1 + d_u), with d_u the number of cells that chose u as a
-neighbour: a mild down-weighting of hub cells. With a kNN graph every
-cell sends k links at any density, so this is not a density correction;
-density is handled by the label shuffles.}
+\item{transformation}{If `TRUE`, each link from cell u is weighted
+1 / (1 + d_u), with d_u the number of cells that chose u as a neighbour
+(a mild down-weighting of hub cells). `FALSE` (default since 0.99.3)
+counts every kNN link once, as squidpy does. With a kNN graph every cell
+sends k links at any density, so the weighting is not a density
+correction (density is handled by the label shuffles); in simulations it
+kept the calibration but lowered power.}
 
 \item{n_perms}{Number of permutations.}
 

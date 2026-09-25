@@ -454,7 +454,7 @@ nhood_enrichment_per_sample <- function(obj, sample_key, group_key, cluster_key,
                                         cluster_levels = NULL,
                                         neighbors.k = 30,
                                         connectivity_key = "nn",
-                                        transformation = TRUE,
+                                        transformation = FALSE,
                                         n_perms = 100,
                                         seed = 1938493,
                                         n_jobs = 1) {

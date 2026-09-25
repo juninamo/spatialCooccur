@@ -38,4 +38,8 @@ test_that("rff_factor_test() returns a p-value per factor", {
   expect_equal(nrow(tt), 2)
   expect_true(all(tt$p > 0 & tt$p <= 1))
   expect_length(attr(tt, "null_max"), 2)
+  expect_true(all(c("program_strength", "uniform_share") %in% names(tt)))
+  expect_true(all(tt$program_strength <= tt$strength + 1e-12))
+  expect_equal(unname(f$program_strength), unname(sqrt(colSums(sweep(f$L, 2, colMeans(f$L))^2))))
+  expect_length(attr(rff_factor_test(f, b, n_boot = 2, max_iter = 10, statistic = "strength"), "null_max"), 2)
 })

@@ -203,7 +203,7 @@ generate_sim <- function(close_ratio = 0.7,
 #' @param int_clust_col Vector of cluster labels for columns.
 #' @param n_cls Number of clusters.
 #' @param cluster_data Original cluster assignments.
-#' @param transformation Whether to transform counts based on adjacency normalization.
+#' @param transformation If `TRUE`, `adj` holds link weights (e.g. 1 / (1 + d_u)) that are summed; `FALSE` (default) counts binary links.
 #'
 #' @return A co-occurrence count matrix.
 #' @export
@@ -213,7 +213,7 @@ generate_sim <- function(close_ratio = 0.7,
 #' cl <- factor(sample(c("a", "b"), 20, replace = TRUE))
 #' lab <- paste0("Cluster", cl)
 #' compute_count(adj, lab, lab, n_cls = 2, cluster_data = cl)
-compute_count <- function(adj, int_clust_row, int_clust_col, n_cls, cluster_data, transformation = TRUE) {
+compute_count <- function(adj, int_clust_row, int_clust_col, n_cls, cluster_data, transformation = FALSE) {
   lv <- paste0("Cluster", levels(cluster_data))
   # One-hot cluster indicator matrices: counts = t(M_row) %*% adj %*% M_col,
   # i.e. counts[i, j] = sum of adj over (row cells in i) x (col cells in j).
@@ -634,11 +634,13 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
 #' @param cluster_key Metadata column for cluster IDs.
 #' @param neighbors.k Number of neighbors to construct graph.
 #' @param connectivity_key Which graph to use: "nn" or "snn".
-#' @param transformation If `TRUE` (default), each link from cell u is
-#'   weighted 1 / (1 + d_u), with d_u the number of cells that chose u as a
-#'   neighbour: a mild down-weighting of hub cells. With a kNN graph every
-#'   cell sends k links at any density, so this is not a density correction;
-#'   density is handled by the label shuffles.
+#' @param transformation If `TRUE`, each link from cell u is weighted
+#'   1 / (1 + d_u), with d_u the number of cells that chose u as a neighbour
+#'   (a mild down-weighting of hub cells). `FALSE` (default since 0.99.3)
+#'   counts every kNN link once, as squidpy does. With a kNN graph every cell
+#'   sends k links at any density, so the weighting is not a density
+#'   correction (density is handled by the label shuffles); in simulations it
+#'   kept the calibration but lowered power.
 #' @param n_perms Number of permutations for significance testing.
 #' @param seed Random seed for reproducibility.
 #' @param n_jobs Number of cores to use in parallel.
@@ -657,7 +659,7 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
 #'                                neighbors.k = 10, n_perms = 20, n_jobs = 1)
 #' res <- SeuratObject::Misc(seu, slot = "cell_type_nhood_enrichment")
 #' round(res$zscore, 1)
-nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4) {
+nhood_enrichment.Seurat <- function(seurat_obj, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = FALSE, n_perms = 100, seed = 1938493, n_jobs = 4) {
   if (!cluster_key %in% colnames(seurat_obj@meta.data)) {
     stop("Cluster key ", cluster_key, " not found in meta.data")
   }
@@ -946,11 +948,13 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #' @param cluster_key Column with cluster labels.
 #' @param neighbors.k Number of neighbors to use.
 #' @param connectivity_key Type of graph: "nn" or "snn".
-#' @param transformation If `TRUE` (default), each link from cell u is
-#'   weighted 1 / (1 + d_u), with d_u the number of cells that chose u as a
-#'   neighbour: a mild down-weighting of hub cells. With a kNN graph every
-#'   cell sends k links at any density, so this is not a density correction;
-#'   density is handled by the label shuffles.
+#' @param transformation If `TRUE`, each link from cell u is weighted
+#'   1 / (1 + d_u), with d_u the number of cells that chose u as a neighbour
+#'   (a mild down-weighting of hub cells). `FALSE` (default since 0.99.3)
+#'   counts every kNN link once, as squidpy does. With a kNN graph every cell
+#'   sends k links at any density, so the weighting is not a density
+#'   correction (density is handled by the label shuffles); in simulations it
+#'   kept the calibration but lowered power.
 #' @param n_perms Number of permutations.
 #' @param seed Random seed.
 #' @param n_jobs Number of parallel jobs. `1` runs sequentially.
@@ -998,7 +1002,7 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #'                         n_perms = 50, n_jobs = 1)
 #' round(res$zscore, 1)
 #' round(res$log2_oe, 2)
-nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = TRUE, n_perms = 100, seed = 1938493, n_jobs = 4) {
+nhood_enrichment <- function(df, cluster_key, neighbors.k = 30, connectivity_key = "nn", transformation = FALSE, n_perms = 100, seed = 1938493, n_jobs = 4) {
   #if(inherits(df, "Seurat")){
   #  return(nhood_enrichment.Seurat(df, cluster_key, neighbors.k, connectivity_key, transformation, n_perms, seed, n_jobs))
   #}

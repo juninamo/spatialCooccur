@@ -146,20 +146,23 @@ Let $A \in \{0, 1\}^{N \times N}$ be the resulting adjacency
 (`neighbors$nn`) or the shared-NN matrix (`neighbors$snn`), depending on
 `connectivity_key`.
 
-### Step 2 — degree normalize (optional)
+### Step 2 — degree weighting (optional, off by default)
 
-When `transformation = TRUE`, each link from cell $u$ is divided by the
+By default (`transformation = FALSE`) every kNN link counts once, as in
+squidpy. When `transformation = TRUE`, each link from cell $u$ is divided by the
 number of cells that chose $u$ as a neighbour (plus one), which mildly
 down-weights "hub" cells chosen by many others. With a kNN graph every cell
 sends $k$ links at any density and $d_u$ averages $k$ in both dense and sparse
 tissue; it differs mainly at density transitions (e.g. cells just outside a
 dense cluster are chosen less often). Density itself is handled by the label
-shuffles, which keep every position:
+shuffles, which keep every position. In simulations the weighting kept the
+calibration but lowered power (planted pair, 1,500 cells: 14% vs 28%), so it
+is off by default:
 
 $$
-\tilde A_{uv} \;=\; \frac{A_{uv}}{d_v + 1},
+\tilde A_{uv} \;=\; \frac{A_{uv}}{d_u + 1},
 \qquad
-d_v = \sum_{u} A_{uv}.
+d_u = \sum_{w} A_{wu}.
 $$
 
 Otherwise $\tilde A = A$ and the function counts edges as binary.

@@ -18,7 +18,7 @@ format(Sys.time(), '%d %B, %Y')
 ```
 
 <div class="nb-output">
-'24 September, 2026'
+'25 September, 2026'
 </div>
 
 ```r
@@ -85,8 +85,8 @@ rm(data); gc(); gc()
 	<tr><th></th><th scope=col>used</th><th scope=col>(Mb)</th><th scope=col>gc trigger</th><th scope=col>(Mb)</th><th scope=col>limit (Mb)</th><th scope=col>max used</th><th scope=col>(Mb)</th></tr>
 </thead>
 <tbody>
-	<tr><th scope=row>Ncells</th><td>12945208</td><td>691.4</td><td>19692738</td><td>1051.8</td><td>    NA</td><td>19692738</td><td>1051.8</td></tr>
-	<tr><th scope=row>Vcells</th><td>27133329</td><td>207.1</td><td>45754539</td><td> 349.1</td><td>204800</td><td>45728698</td><td> 348.9</td></tr>
+	<tr><th scope=row>Ncells</th><td>12949604</td><td>691.6</td><td>19692738</td><td>1051.8</td><td>    NA</td><td>19692738</td><td>1051.8</td></tr>
+	<tr><th scope=row>Vcells</th><td>27252693</td><td>208.0</td><td>45754530</td><td> 349.1</td><td>204800</td><td>45750535</td><td> 349.1</td></tr>
 </tbody>
 </table>
 </div>
@@ -98,8 +98,8 @@ rm(data); gc(); gc()
 	<tr><th></th><th scope=col>used</th><th scope=col>(Mb)</th><th scope=col>gc trigger</th><th scope=col>(Mb)</th><th scope=col>limit (Mb)</th><th scope=col>max used</th><th scope=col>(Mb)</th></tr>
 </thead>
 <tbody>
-	<tr><th scope=row>Ncells</th><td>12951604</td><td>691.7</td><td>19692738</td><td>1051.8</td><td>    NA</td><td>19692738</td><td>1051.8</td></tr>
-	<tr><th scope=row>Vcells</th><td>27147639</td><td>207.2</td><td>45754539</td><td> 349.1</td><td>204800</td><td>45728698</td><td> 348.9</td></tr>
+	<tr><th scope=row>Ncells</th><td>12955997</td><td>692.0</td><td>19692738</td><td>1051.8</td><td>    NA</td><td>19692738</td><td>1051.8</td></tr>
+	<tr><th scope=row>Vcells</th><td>27266998</td><td>208.1</td><td>45754530</td><td> 349.1</td><td>204800</td><td>45750535</td><td> 349.1</td></tr>
 </tbody>
 </table>
 </div>
@@ -486,7 +486,7 @@ xenium.obj <- nhood_enrichment.Seurat(
   cluster_key = cluster_col, 
   neighbors.k = neighbors.k_, 
   connectivity_key = "nn", 
-  transformation = TRUE,
+  transformation = FALSE,
   n_perms = n_perm, seed = seed, n_jobs = 4
 )
 end_time = Sys.time()
@@ -499,7 +499,7 @@ difftime(end_time, start_time, units = "secs")
 ```
 
 ```{.output}
-Time difference of 3.642823 secs
+Time difference of 3.541155 secs
 ```
 
 ```r
@@ -643,7 +643,7 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
 ```
 
 ```{.output}
-Time difference of 2.079798 secs
+Time difference of 1.52937 secs
 ```
 
 ```{.output}
@@ -711,7 +711,7 @@ Number of edges: 1340944
 Running Louvain algorithm...
 Maximum modularity in 10 random starts: 0.9585
 Number of communities: 27
-Elapsed time: 7 seconds
+Elapsed time: 6 seconds
 ```
 
 ```r
@@ -897,7 +897,7 @@ xenium.obj <- nhood_enrichment.Seurat(
   cluster_key = cluster_col, 
   neighbors.k = neighbors.k_, 
   connectivity_key = "nn", 
-  transformation = TRUE,
+  transformation = FALSE,
   n_perms = n_perm, seed = seed, n_jobs = 4
 )
 end_time = Sys.time()
@@ -910,7 +910,7 @@ difftime(end_time, start_time, units = "secs")
 ```
 
 ```{.output}
-Time difference of 7.805199 secs
+Time difference of 12.89734 secs
 ```
 
 ```r
@@ -981,7 +981,7 @@ summary(cooccur_local_df)
 ```
 
 ```{.output}
-Time difference of 7.06738 secs
+Time difference of 8.145201 secs
 ```
 
 ```{.output}
@@ -1056,7 +1056,7 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] spacexr_2.2.1         cohalu_0.99.3 testthat_3.2.1       
+ [1] spacexr_2.2.1         cohalu_0.99.3         testthat_3.2.1       
  [4] ComplexHeatmap_2.18.0 circlize_0.4.15       ggplot2_3.4.4        
  [7] SCP_0.5.6             dplyr_1.1.4           magrittr_2.0.3       
 [10] Seurat_5.2.1          SeuratObject_5.0.2    sp_2.1-2             
