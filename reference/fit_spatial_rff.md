@@ -26,6 +26,7 @@ fit_spatial_rff(
   offset = c("area", "smoothed_total"),
   offset_bandwidth = 10,
   offset_genes = NULL,
+  ard = 0,
   n_features = 64,
   family = c("nb", "poisson"),
   max_iter = 500,
@@ -66,6 +67,15 @@ fit_spatial_rff(
   it is the recommended choice for \`rff_pair_correlation(type =
   "composition")\` in group comparisons.
 
+  A numeric matrix (bins x genes, natural log scale) can be given
+  instead: a per-bin, per-gene log offset describing structure that is
+  already known, e.g. from \[rff_offset()\] fitted on cell-type
+  composition, domains or an embedding (PCA, Harmony, SCIGMA). The
+  factors then describe only the spatially coherent variation that this
+  known structure does not explain ("residual RFLVM"). Rows are all bins
+  of \`binned\` or only its in-tissue bins; columns are genes (matched
+  by name when named). The bin area is added internally.
+
 - offset_bandwidth:
 
   Standard deviation (same unit as the coordinates) of the Gaussian
@@ -78,6 +88,15 @@ fit_spatial_rff(
   removes the co-localization of the tested sets; use reference genes
   that are not part of the tested pair (e.g. broadly expressed genes)
   instead.
+
+- ard:
+
+  Strength of a group penalty \\\lambda\sum_k \lVert L\_{\cdot
+  k}\rVert_2\\ on the loading vector of each factor (automatic relevance
+  determination): factors that are not needed shrink to (near) zero as a
+  whole, so \`n_factors\` can be set generously. \`0\` (default) keeps
+  the Gaussian prior only. After the fit, \`factor_strength\` gives the
+  norm of each factor's loadings.
 
 - n_features:
 
@@ -104,8 +123,9 @@ fit_spatial_rff(
 
 An object of class \`spatial_rff_fit\` with the estimates (\`alpha\`,
 \`L\`, \`sigma0\`, \`lengthscales\`, \`density_lengthscale\`, \`gamma\`,
-\`dispersion\`), the random frequencies, the genes and convergence
-information.
+\`dispersion\`), \`factor_strength\` (norm of each factor's loadings),
+the random frequencies, the genes, the settings (\`settings\`, used by
+\[rff_factor_test()\]) and convergence information.
 
 ## References
 
@@ -122,5 +142,6 @@ fit
 #> <spatial_rff_fit> nb model, 9 genes, 400 bins, 2 factors
 #>   factor length scales: 11.2, 20 
 #>   cellularity field: sd 0.79, length scale 34.2
+#>   factor strength (loading norm): 2.46, 1.8 
 #>   convergence: 1 (NEW_X)
 ```

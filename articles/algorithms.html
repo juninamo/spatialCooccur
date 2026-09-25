@@ -785,6 +785,23 @@ gives the composition version. Because each
 is a function of the coordinates, <code><a href="../reference/rff_fields.html">rff_fields()</a></code> evaluates
 the fitted (unit-variance) fields at any point - cell centroids or
 transcripts - and averages them per cell when a cell id is given.</p>
+<p><strong>Residual factors.</strong> To look for spatial programs that
+known structure does not explain, a per-bin, per-gene log offset
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>o</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">o_{bj}</annotation></semantics></math>
+is added,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>μ</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>a</mi><mo>+</mo><msub><mi>o</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>α</mi><mi>j</mi></msub><mo>+</mo><msub><mi>σ</mi><mn>0</mn></msub><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>L</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub><msub><mi>f</mi><mi>k</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log \mu_{bj} = \log a + o_{bj} + \alpha_j + \sigma_0 f_0(u_b) + \sum_k L_{jk} f_k(u_b)</annotation></semantics></math>.
+<code><a href="../reference/rff_offset.html">rff_offset()</a></code> builds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>o</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">o_{bj}</annotation></semantics></math>
+from covariates of the bins (cell-type composition, domains, or an
+embedding such as PCA, Harmony or SCIGMA) by a ridge-penalised Poisson
+regression per gene. The penalty
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><msub><mo>∑</mo><mi>k</mi></msub><msub><mrow><mo stretchy="true" form="prefix">‖</mo><msub><mi>L</mi><mrow><mi>⋅</mi><mi>k</mi></mrow></msub><mo stretchy="true" form="postfix">‖</mo></mrow><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\lambda \sum_k \lVert L_{\cdot k} \rVert_2</annotation></semantics></math>
+(<code>ard</code>) shrinks whole factors that are not needed.
+<code><a href="../reference/rff_factor_test.html">rff_factor_test()</a></code> simulates counts from the fitted model
+without factors, refits, and compares each factor’s strength
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mrow><mo stretchy="true" form="prefix">‖</mo><msub><mi>L</mi><mrow><mi>⋅</mi><mi>k</mi></mrow></msub><mo stretchy="true" form="postfix">‖</mo></mrow><mn>2</mn></msub><annotation encoding="application/x-tex">\lVert L_{\cdot k} \rVert_2</annotation></semantics></math>
+with the largest null factor (parametric bootstrap, family-wise over
+factors).</p>
 </div>
 <div class="section level4">
 <h4 id="gene-level-modules-colocalization_gene_matrix-colocalization_modules-module_enrichment">Gene-level modules — <code>colocalization_gene_matrix()</code>,

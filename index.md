@@ -114,7 +114,10 @@ The notebooks behind these pages are in
   [`rff_pair_correlation()`](https://juninamo.github.io/cohalu/reference/rff_pair_correlation.md);
   [`rff_fields()`](https://juninamo.github.io/cohalu/reference/rff_fields.md)
   returns the fitted latent fields (cellularity and factors) per cell,
-  transcript or any point
+  transcript or any point; residual factors beyond known structure with
+  [`rff_offset()`](https://juninamo.github.io/cohalu/reference/rff_offset.md) +
+  `fit_spatial_rff(offset = , ard = )`, tested by
+  [`rff_factor_test()`](https://juninamo.github.io/cohalu/reference/rff_factor_test.md)
 - [`colocalization_per_sample()`](https://juninamo.github.io/cohalu/reference/colocalization_per_sample.md)
   feeds
   [`compare_groups()`](https://juninamo.github.io/cohalu/reference/compare_groups.md)

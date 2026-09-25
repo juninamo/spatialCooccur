@@ -101,6 +101,7 @@ closed-form gradients (L-BFGS-B).</p>
 <span>  offset <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"area"</span>, <span class="st">"smoothed_total"</span><span class="op">)</span>,</span>
 <span>  offset_bandwidth <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  offset_genes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ard <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  n_features <span class="op">=</span> <span class="fl">64</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nb"</span>, <span class="st">"poisson"</span><span class="op">)</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">500</span>,</span>
@@ -133,14 +134,22 @@ them over scales breaks the symmetry between factors.</p></dd>
 
 <dt id="arg-offset">offset<a class="anchor" aria-label="anchor" href="#arg-offset"></a></dt>
 <dd><p>How overall cellularity enters the model. `"area"` (bin
-area only; cellularity is modelled by the latent field \(f_0\)) or
-`"smoothed_total"`: the log of the observed total transcript density,
-Gaussian-smoothed with bandwidth `offset_bandwidth`, is used as offset
-and no cellularity field is fitted. The latter conditions on where
-transcripts are, like the label permutation of [nhood_enrichment()],
-so that the factors describe composition only; it is the recommended
-choice for `rff_pair_correlation(type = "composition")` in group
-comparisons.</p></dd>
+  area only; cellularity is modelled by the latent field \(f_0\)) or
+  `"smoothed_total"`: the log of the observed total transcript density,
+  Gaussian-smoothed with bandwidth `offset_bandwidth`, is used as offset
+  and no cellularity field is fitted. The latter conditions on where
+  transcripts are, like the label permutation of [nhood_enrichment()],
+  so that the factors describe composition only; it is the recommended
+  choice for `rff_pair_correlation(type = "composition")` in group
+  comparisons.</p>
+<p>A numeric matrix (bins x genes, natural log scale) can be given instead:
+  a per-bin, per-gene log offset describing structure that is already
+  known, e.g. from [rff_offset()] fitted on cell-type composition, domains
+  or an embedding (PCA, Harmony, SCIGMA). The factors then describe only
+  the spatially coherent variation that this known structure does not
+  explain ("residual RFLVM"). Rows are all bins of `binned` or only its
+  in-tissue bins; columns are genes (matched by name when named). The bin
+  area is added internally.</p></dd>
 
 
 <dt id="arg-offset-bandwidth">offset_bandwidth<a class="anchor" aria-label="anchor" href="#arg-offset-bandwidth"></a></dt>
@@ -154,6 +163,15 @@ of the Gaussian kernel used for `offset = "smoothed_total"`.</p></dd>
 transcripts also removes the co-localization of the tested sets; use
 reference genes that are not part of the tested pair (e.g. broadly
 expressed genes) instead.</p></dd>
+
+
+<dt id="arg-ard">ard<a class="anchor" aria-label="anchor" href="#arg-ard"></a></dt>
+<dd><p>Strength of a group penalty
+\(\lambda\sum_k \lVert L_{\cdot k}\rVert_2\) on the loading vector of
+each factor (automatic relevance determination): factors that are not
+needed shrink to (near) zero as a whole, so `n_factors` can be set
+generously. `0` (default) keeps the Gaussian prior only. After the fit,
+`factor_strength` gives the norm of each factor's loadings.</p></dd>
 
 
 <dt id="arg-n-features">n_features<a class="anchor" aria-label="anchor" href="#arg-n-features"></a></dt>
@@ -181,8 +199,9 @@ expressed genes) instead.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class `spatial_rff_fit` with the estimates
   (`alpha`, `L`, `sigma0`, `lengthscales`, `density_lengthscale`, `gamma`,
-  `dispersion`), the random frequencies, the genes and convergence
-  information.</p>
+  `dispersion`), `factor_strength` (norm of each factor's loadings), the
+  random frequencies, the genes, the settings (`settings`, used by
+  [rff_factor_test()]) and convergence information.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -199,6 +218,7 @@ expressed genes) instead.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;spatial_rff_fit&gt; nb model, 9 genes, 400 bins, 2 factors</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   factor length scales: 11.2, 20 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   cellularity field: sd 0.79, length scale 34.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   factor strength (loading norm): 2.46, 1.8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   convergence: 1 (NEW_X)</span>
 </code></pre></div>
     </div>

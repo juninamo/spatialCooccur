@@ -84,6 +84,11 @@ log-Gaussian Cox process factor model (after Gundersen et al. 2021).
 - [`rff_fields()`](https://juninamo.github.io/cohalu/reference/rff_fields.md)
   : Latent fields of a fitted random-feature LGCP at cells, transcripts
   or any point
+- [`rff_offset()`](https://juninamo.github.io/cohalu/reference/rff_offset.md)
+  : Offset for a residual random-feature model: expression explained by
+  known structure
+- [`rff_factor_test()`](https://juninamo.github.io/cohalu/reference/rff_factor_test.md)
+  : Significance of residual spatial factors by parametric bootstrap
 - [`rff_pair_correlation()`](https://juninamo.github.io/cohalu/reference/rff_pair_correlation.md)
   : Model-based cross pair correlation from a fitted random-feature LGCP
 - [`colocalization_per_sample()`](https://juninamo.github.io/cohalu/reference/colocalization_per_sample.md)

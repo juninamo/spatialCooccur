@@ -488,6 +488,20 @@ evaluates the fitted (unit-variance) fields at any point - cell
 centroids or transcripts - and averages them per cell when a cell id is
 given.
 
+**Residual factors.** To look for spatial programs that known structure
+does not explain, a per-bin, per-gene log offset $`o_{bj}`$ is added,
+$`\log \mu_{bj} = \log a + o_{bj} + \alpha_j + \sigma_0 f_0(u_b) + \sum_k L_{jk} f_k(u_b)`$.
+[`rff_offset()`](https://juninamo.github.io/cohalu/reference/rff_offset.md)
+builds $`o_{bj}`$ from covariates of the bins (cell-type composition,
+domains, or an embedding such as PCA, Harmony or SCIGMA) by a
+ridge-penalised Poisson regression per gene. The penalty
+$`\lambda \sum_k \lVert L_{\cdot k} \rVert_2`$ (`ard`) shrinks whole
+factors that are not needed.
+[`rff_factor_test()`](https://juninamo.github.io/cohalu/reference/rff_factor_test.md)
+simulates counts from the fitted model without factors, refits, and
+compares each factor’s strength $`\lVert L_{\cdot k} \rVert_2`$ with the
+largest null factor (parametric bootstrap, family-wise over factors).
+
 #### Gene-level modules — `colocalization_gene_matrix()`, `colocalization_modules()`, `module_enrichment()`
 
 With a disc kernel $`K_r`$ (one FFT convolution per gene),
