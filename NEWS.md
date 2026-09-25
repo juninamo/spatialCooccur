@@ -115,6 +115,10 @@
 
 ## Other bug fixes
 
+* `nhood_enrichment()` with `n_jobs > 1`: the workers did not load the Matrix
+  methods, so every worker failed and the permutations silently fell back to
+  sequential (no speed-up). The workers now load Matrix, and a fallback to
+  sequential is reported as a warning.
 * `nhood_enrichment()` is now reproducible for a given `seed`, both
   sequentially and with `n_jobs > 1` (worker RNG streams are seeded).
 * `compare_groups()` and `nhood_enrichment()` no longer overwrite the caller's

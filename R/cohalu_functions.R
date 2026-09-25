@@ -513,6 +513,10 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
     on.exit(parallel::stopCluster(cl), add = TRUE)
     # Seed the worker RNG streams so results are reproducible for a given seed.
     parallel::clusterSetRNGStream(cl, iseed = seed)
+    # The workers need the Matrix methods for the sparse adjacency (==, !=,
+    # %*%); without them every worker fails and the run falls back to
+    # sequential, silently losing the speed-up.
+    parallel::clusterEvalQ(cl, suppressPackageStartupMessages(requireNamespace("Matrix", quietly = TRUE)))
     # Ship self-contained copies of the workers' functions so that the
     # workers do not need cohalu itself to be installed.
     fn_env <- new.env(parent = baseenv())
@@ -538,7 +542,7 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
     }
     if (is.null(out)) {
       # bounded retries exhausted -> sequential fallback (avoids infinite hang)
-      message("[cohalu] falling back to sequential permutations.")
+      warning("[cohalu] parallel permutations failed; falling back to sequential (n_jobs = 1).", call. = FALSE)
       out <- run_seq()
     }
     out

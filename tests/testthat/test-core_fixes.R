@@ -134,3 +134,12 @@ test_that("plot_nhood_heatmap() draws symmetric pair-level values once and direc
   expect_equal(nrow(plot_nhood_heatmap(r, triangle = "full")$data), K * K)
   expect_equal(nrow(plot_nhood_heatmap(r, value = "dominance_log2_oe")$data), K * K)
 })
+
+test_that("parallel shuffles run in the workers (no silent fallback to sequential)", {
+  skip_on_cran()
+  d <- generate_sim(close_ratio = 0.8, n_types = 4, n_cells = 300, max_loc = 250,
+                    test_type = "distribute", distance_param = 10, seed = 1)
+  rownames(d) <- paste0("c", seq_len(nrow(d)))
+  expect_no_warning(r <- nhood_enrichment(d, "cell_type", neighbors.k = 10, n_perms = 20, seed = 1, n_jobs = 2))
+  expect_true(all(is.finite(r$log2_oe)))
+})
