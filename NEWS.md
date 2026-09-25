@@ -38,6 +38,15 @@
 
 ## New features
 
+* Residual random-feature model (experimental): `fit_spatial_rff()` accepts
+  a per-bin, per-gene log `offset` matrix describing structure that is
+  already known (cell-type composition, domains, or an embedding such as
+  PCA, Harmony or SCIGMA; built with the new `rff_offset()`), so that the
+  factors capture only the remaining spatially coherent variation. New
+  `ard` argument: a group penalty on each factor's loadings that shrinks
+  unneeded factors, reported as `factor_strength`. New `rff_factor_test()`:
+  parametric-bootstrap p-value per factor against the largest factor fitted
+  to null data (family-wise over factors).
 * `rff_fields()` (experimental): evaluates the latent fields of a
   `fit_spatial_rff()` fit (cellularity and the `K` factors, on the
   unit-variance scale of `fit$field_grid`) at any coordinates - cell

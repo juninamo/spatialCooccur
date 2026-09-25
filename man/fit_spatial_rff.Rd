@@ -12,6 +12,7 @@ fit_spatial_rff(
   offset = c("area", "smoothed_total"),
   offset_bandwidth = 10,
   offset_genes = NULL,
+  ard = 0,
   n_features = 64,
   family = c("nb", "poisson"),
   max_iter = 500,
@@ -31,14 +32,23 @@ them over scales breaks the symmetry between factors.}
 (`NULL` to omit the field). Ignored when `offset = "smoothed_total"`.}
 
 \item{offset}{How overall cellularity enters the model. `"area"` (bin
-area only; cellularity is modelled by the latent field \eqn{f_0}) or
-`"smoothed_total"`: the log of the observed total transcript density,
-Gaussian-smoothed with bandwidth `offset_bandwidth`, is used as offset
-and no cellularity field is fitted. The latter conditions on where
-transcripts are, like the label permutation of [nhood_enrichment()],
-so that the factors describe composition only; it is the recommended
-choice for `rff_pair_correlation(type = "composition")` in group
-comparisons.}
+  area only; cellularity is modelled by the latent field \eqn{f_0}) or
+  `"smoothed_total"`: the log of the observed total transcript density,
+  Gaussian-smoothed with bandwidth `offset_bandwidth`, is used as offset
+  and no cellularity field is fitted. The latter conditions on where
+  transcripts are, like the label permutation of [nhood_enrichment()],
+  so that the factors describe composition only; it is the recommended
+  choice for `rff_pair_correlation(type = "composition")` in group
+  comparisons.
+
+  A numeric matrix (bins x genes, natural log scale) can be given instead:
+  a per-bin, per-gene log offset describing structure that is already
+  known, e.g. from [rff_offset()] fitted on cell-type composition, domains
+  or an embedding (PCA, Harmony, SCIGMA). The factors then describe only
+  the spatially coherent variation that this known structure does not
+  explain ("residual RFLVM"). Rows are all bins of `binned` or only its
+  in-tissue bins; columns are genes (matched by name when named). The bin
+  area is added internally.}
 
 \item{offset_bandwidth}{Standard deviation (same unit as the coordinates)
 of the Gaussian kernel used for `offset = "smoothed_total"`.}
@@ -48,6 +58,13 @@ of the Gaussian kernel used for `offset = "smoothed_total"`.}
 transcripts also removes the co-localization of the tested sets; use
 reference genes that are not part of the tested pair (e.g. broadly
 expressed genes) instead.}
+
+\item{ard}{Strength of a group penalty
+\eqn{\lambda\sum_k \lVert L_{\cdot k}\rVert_2} on the loading vector of
+each factor (automatic relevance determination): factors that are not
+needed shrink to (near) zero as a whole, so `n_factors` can be set
+generously. `0` (default) keeps the Gaussian prior only. After the fit,
+`factor_strength` gives the norm of each factor's loadings.}
 
 \item{n_features}{Number of random frequencies `M` (2M features).}
 
@@ -63,8 +80,9 @@ expressed genes) instead.}
 \value{
 An object of class `spatial_rff_fit` with the estimates
   (`alpha`, `L`, `sigma0`, `lengthscales`, `density_lengthscale`, `gamma`,
-  `dispersion`), the random frequencies, the genes and convergence
-  information.
+  `dispersion`), `factor_strength` (norm of each factor's loadings), the
+  random frequencies, the genes, the settings (`settings`, used by
+  [rff_factor_test()]) and convergence information.
 }
 \description{
 **Experimental.** Segmentation-free model of

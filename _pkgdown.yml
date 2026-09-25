@@ -110,6 +110,8 @@ reference:
   - module_enrichr
   - fit_spatial_rff
   - rff_fields
+  - rff_offset
+  - rff_factor_test
   - rff_pair_correlation
   - colocalization_per_sample
   - simulate_transcripts

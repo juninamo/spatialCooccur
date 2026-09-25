@@ -90,7 +90,9 @@ The notebooks behind these pages are in [`vignettes/`](vignettes/).
 - Random-feature log-Gaussian Cox process factor model after Gundersen,
   Zhang & Engelhardt (AISTATS 2021): `fit_spatial_rff()`,
   `rff_pair_correlation()`; `rff_fields()` returns the fitted latent
-  fields (cellularity and factors) per cell, transcript or any point
+  fields (cellularity and factors) per cell, transcript or any point;
+  residual factors beyond known structure with `rff_offset()` +
+  `fit_spatial_rff(offset = , ard = )`, tested by `rff_factor_test()`
 - `colocalization_per_sample()` feeds `compare_groups()`
 - Unsupervised, gene-level: `colocalization_gene_matrix()` (gene x gene
   log2 O/E of transcript pairs within a radius), `colocalization_modules()`

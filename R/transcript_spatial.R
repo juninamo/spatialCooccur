@@ -598,6 +598,15 @@ pcf_matrix <- function(binned, gene_sets, r_max = 100, r_step = binned$grid$bin_
 #'   so that the factors describe composition only; it is the recommended
 #'   choice for `rff_pair_correlation(type = "composition")` in group
 #'   comparisons.
+#'
+#'   A numeric matrix (bins x genes, natural log scale) can be given instead:
+#'   a per-bin, per-gene log offset describing structure that is already
+#'   known, e.g. from [rff_offset()] fitted on cell-type composition, domains
+#'   or an embedding (PCA, Harmony, SCIGMA). The factors then describe only
+#'   the spatially coherent variation that this known structure does not
+#'   explain ("residual RFLVM"). Rows are all bins of `binned` or only its
+#'   in-tissue bins; columns are genes (matched by name when named). The bin
+#'   area is added internally.
 #' @param offset_bandwidth Standard deviation (same unit as the coordinates)
 #'   of the Gaussian kernel used for `offset = "smoothed_total"`.
 #' @param offset_genes Genes whose transcripts define the smoothed total
@@ -605,6 +614,12 @@ pcf_matrix <- function(binned, gene_sets, r_max = 100, r_step = binned$grid$bin_
 #'   transcripts also removes the co-localization of the tested sets; use
 #'   reference genes that are not part of the tested pair (e.g. broadly
 #'   expressed genes) instead.
+#' @param ard Strength of a group penalty
+#'   \eqn{\lambda\sum_k \lVert L_{\cdot k}\rVert_2} on the loading vector of
+#'   each factor (automatic relevance determination): factors that are not
+#'   needed shrink to (near) zero as a whole, so `n_factors` can be set
+#'   generously. `0` (default) keeps the Gaussian prior only. After the fit,
+#'   `factor_strength` gives the norm of each factor's loadings.
 #' @param n_features Number of random frequencies `M` (2M features).
 #' @param family `"nb"` (negative binomial, gene-specific dispersion) or
 #'   `"poisson"`.
@@ -614,8 +629,9 @@ pcf_matrix <- function(binned, gene_sets, r_max = 100, r_step = binned$grid$bin_
 #'
 #' @return An object of class `spatial_rff_fit` with the estimates
 #'   (`alpha`, `L`, `sigma0`, `lengthscales`, `density_lengthscale`, `gamma`,
-#'   `dispersion`), the random frequencies, the genes and convergence
-#'   information.
+#'   `dispersion`), `factor_strength` (norm of each factor's loadings), the
+#'   random frequencies, the genes, the settings (`settings`, used by
+#'   [rff_factor_test()]) and convergence information.
 #' @references Gundersen GW, Zhang MM, Engelhardt BE (2021). Latent variable
 #'   modeling with random features. AISTATS, PMLR 130.
 #' @export
@@ -630,17 +646,30 @@ fit_spatial_rff <- function(binned, n_factors = 3,
                             offset = c("area", "smoothed_total"),
                             offset_bandwidth = 10,
                             offset_genes = NULL,
+                            ard = 0,
                             n_features = 64,
                             family = c("nb", "poisson"),
                             max_iter = 500,
                             seed = 1,
                             verbose = FALSE) {
   family <- match.arg(family)
-  offset <- match.arg(offset)
   if (!inherits(binned, "binned_transcripts")) stop("`binned` must come from bin_transcripts().")
+  keep <- binned$coords$in_tissue
+  O_mat <- NULL
+  if (is.matrix(offset) || is.data.frame(offset)) {
+    O_mat <- as.matrix(offset)
+    if (!is.numeric(O_mat)) stop("A matrix `offset` must be numeric (log scale).")
+    if (nrow(O_mat) == nrow(binned$coords)) O_mat <- O_mat[keep, , drop = FALSE]
+    if (nrow(O_mat) != sum(keep)) stop("A matrix `offset` needs one row per bin or per in-tissue bin.")
+    if (!is.null(colnames(O_mat))) {
+      if (!all(binned$genes %in% colnames(O_mat))) stop("A matrix `offset` lacks columns for some genes.")
+      O_mat <- O_mat[, binned$genes, drop = FALSE]
+    } else if (ncol(O_mat) != length(binned$genes)) stop("A matrix `offset` needs one column per gene.")
+    if (any(!is.finite(O_mat))) stop("A matrix `offset` must be finite.")
+    offset <- "matrix"
+  } else offset <- match.arg(offset)
   .local_seed(seed)
   if (offset == "smoothed_total") density_lengthscale <- NULL
-  keep <- binned$coords$in_tissue
   Y <- as.matrix(binned$counts[keep, , drop = FALSE])
   U <- as.matrix(binned$coords[keep, c("x", "y")])
   U <- sweep(U, 2, colMeans(U))
@@ -662,6 +691,8 @@ fit_spatial_rff <- function(binned, n_factors = 3,
   } else {
     offset_grid <- rep(log_area, nrow(binned$coords))
   }
+  # per-gene offset (known structure); log_area stays the per-bin part
+  O_eta <- if (is.null(O_mat)) 0 else O_mat
   Omega <- matrix(stats::rnorm(M * 2), M, 2)
   Z <- U %*% t(Omega)                         # N x M
   s <- 1 / sqrt(M)
@@ -678,7 +709,8 @@ fit_spatial_rff <- function(binned, n_factors = 3,
   if (family == "nb") add("log_r", J)
 
   theta0 <- numeric(pos)
-  theta0[idx$alpha] <- log(colSums(Y) + 0.5) - log(sum(exp(rep_len(log_area, N))))
+  theta0[idx$alpha] <- if (is.null(O_mat)) log(colSums(Y) + 0.5) - log(sum(exp(rep_len(log_area, N)))) else
+    log(colSums(Y) + 0.5) - log(colSums(exp(log_area + O_mat)))
   theta0[idx$L] <- stats::rnorm(J * K, sd = 0.1)
   theta0[idx$gamma] <- stats::rnorm(n_fields * 2 * M, sd = 0.1)
   ell_all <- c(if (has_d) density_lengthscale, ell_init)
@@ -713,7 +745,7 @@ fit_spatial_rff <- function(binned, n_factors = 3,
       dF[, k] <- s * ((sA * A) %*% gc - (cA * A) %*% gs)
     }
     Lfull <- if (has_d) cbind(p$sigma0, p$L) else p$L
-    eta <- log_area + matrix(p$alpha, N, J, byrow = TRUE) + Fm %*% t(Lfull)
+    eta <- log_area + O_eta + matrix(p$alpha, N, J, byrow = TRUE) + Fm %*% t(Lfull)
     mu <- exp(eta)
     if (family == "poisson") {
       nll <- sum(mu) - sum(Y * eta) + lfy
@@ -731,6 +763,10 @@ fit_spatial_rff <- function(binned, n_factors = 3,
     RtF <- crossprod(R, Fm)                # J x n_fields
     fac <- if (has_d) seq_len(K) + 1 else seq_len(K)
     grad[idx$L] <- as.vector(RtF[, fac, drop = FALSE]) + th[idx$L]
+    if (ard > 0) {
+      Lm <- matrix(th[idx$L], J, K); nrm <- sqrt(colSums(Lm^2) + 1e-6)
+      grad[idx$L] <- grad[idx$L] + ard * as.vector(sweep(Lm, 2, nrm, "/"))
+    }
     gg <- matrix(0, 2 * M, n_fields)
     for (k in seq_len(n_fields)) {
       A <- Z / p$ell[k]
@@ -745,7 +781,8 @@ fit_spatial_rff <- function(binned, n_factors = 3,
     prior <- 0.5 * sum(th[idx$L]^2) + 0.5 * sum(th[idx$gamma]^2) +
       0.5 * sum((th[idx$log_ell] - prior_ell_mean)^2) +
       (if (has_d) th[idx$log_sigma0]^2 / 8 else 0) +
-      (if (family == "nb") sum((th[idx$log_r] - log(10))^2) / 18 else 0)
+      (if (family == "nb") sum((th[idx$log_r] - log(10))^2) / 18 else 0) +
+      (if (ard > 0) ard * sum(sqrt(colSums(matrix(th[idx$L], J, K)^2) + 1e-6)) else 0)
     list(value = nll + prior, grad = grad)
   }
 
@@ -783,6 +820,11 @@ fit_spatial_rff <- function(binned, n_factors = 3,
   rownames(p$L) <- colnames(Y)
   colnames(p$L) <- paste0("factor", seq_len(K))
   names(p$alpha) <- colnames(Y)
+  offset_matrix <- NULL
+  if (!is.null(O_mat)) {
+    offset_matrix <- matrix(0, nrow(binned$coords), J, dimnames = list(NULL, colnames(Y)))
+    offset_matrix[keep, ] <- O_mat
+  }
   structure(list(
     alpha = p$alpha, L = p$L, sigma0 = p$sigma0,
     lengthscales = if (has_d) p$ell[-1] else p$ell,
@@ -791,7 +833,10 @@ fit_spatial_rff <- function(binned, n_factors = 3,
     Omega = Omega, family = family, genes = colnames(Y), n_bins = N,
     field_grid = field_grid, grid = binned$grid, in_tissue = keep,
     center = colMeans(as.matrix(binned$coords[keep, c("x", "y")])),
-    offset_grid = offset_grid,
+    offset_grid = offset_grid, offset_matrix = offset_matrix,
+    factor_strength = stats::setNames(sqrt(colSums(p$L^2)), colnames(p$L)),
+    settings = list(n_factors = n_factors, lengthscales = lengthscales, density_lengthscale = density_lengthscale,
+                    ard = ard, n_features = n_features, family = family, max_iter = max_iter, seed = seed),
     bin_size = binned$grid$bin_size, has_density = has_d,
     objective = opt$value, convergence = opt$convergence, message = opt$message,
     iterations = opt$counts, offset = offset
@@ -807,6 +852,9 @@ print.spatial_rff_fit <- function(x, ...) {
     cat(sprintf("  cellularity field: sd %.2f, length scale %.3g\n",
                 x$sigma0, x$density_lengthscale))
   }
+  if (!is.null(x$factor_strength))
+    cat("  factor strength (loading norm):", paste(signif(x$factor_strength, 3), collapse = ", "), "\n")
+  if (identical(x$offset, "matrix")) cat("  per-gene offset (known structure) included: residual factors\n")
   cat(sprintf("  convergence: %d (%s)\n", x$convergence, x$message))
   invisible(x)
 }
@@ -900,6 +948,137 @@ rff_fields <- function(fit, coords, x_col = "x", y_col = "y", by = NULL,
   res <- data.frame(levels(grp), n_points = n, avg, check.names = FALSE, row.names = NULL)
   names(res)[1] <- by
   res
+}
+
+#' Offset for a residual random-feature model: expression explained by known structure
+#'
+#' **Experimental.** Fits, for every gene, a Poisson regression of the bin
+#' counts on covariates that describe structure already known - cell-type
+#' composition of the bins, tissue domains (one-hot), or an embedding such as
+#' PCA, Harmony or SCIGMA - with the bin area as offset, and returns the
+#' fitted log expectation per bin and gene (without the bin area). Passed as
+#' `offset` to [fit_spatial_rff()], the spatial factors then capture only the
+#' spatially coherent variation that the covariates do not explain.
+#'
+#' @param binned A `binned_transcripts` object.
+#' @param covariates Numeric matrix or data frame with one row per bin of
+#'   `binned` (all bins, or only the in-tissue bins). Factors (e.g. domain or
+#'   section labels) are expanded to indicator columns. An intercept is added.
+#' @param genes Genes to model (default: all genes of `binned`).
+#' @param ridge Small ridge penalty stabilising the per-gene fits (collinear
+#'   or sparse covariates).
+#'
+#' @return A numeric matrix (in-tissue bins x genes, natural log scale) for
+#'   `fit_spatial_rff(offset = )`.
+#' @seealso [fit_spatial_rff()], [rff_factor_test()]
+#' @export
+#' @examples
+#' tx <- simulate_transcripts(size = 120, rate = 0.02, n_genes_per_set = 3)
+#' b <- bin_transcripts(tx, bin_size = 6)
+#' # known structure: here a smooth coordinate trend as a stand-in covariate
+#' cv <- b$coords[b$coords$in_tissue, c("x", "y")]
+#' off <- rff_offset(b, cv)
+#' fit <- fit_spatial_rff(b, n_factors = 3, offset = off, ard = 2,
+#'                        n_features = 32, max_iter = 50)
+#' fit$factor_strength
+rff_offset <- function(binned, covariates, genes = NULL, ridge = 1e-4) {
+  if (!inherits(binned, "binned_transcripts")) stop("`binned` must come from bin_transcripts().")
+  keep <- binned$coords$in_tissue
+  X <- as.data.frame(covariates)
+  if (nrow(X) == nrow(binned$coords)) X <- X[keep, , drop = FALSE]
+  if (nrow(X) != sum(keep)) stop("`covariates` needs one row per bin or per in-tissue bin.")
+  X <- stats::model.matrix(~ ., data = X)
+  sc <- apply(X, 2, stats::sd); sc[!is.finite(sc) | sc == 0] <- 1; sc[1] <- 1
+  X <- sweep(X, 2, sc, "/")
+  if (is.null(genes)) genes <- binned$genes
+  Y <- as.matrix(binned$counts[keep, genes, drop = FALSE])
+  la <- 2 * log(binned$grid$bin_size)
+  P <- ncol(X); pen <- c(0, rep(ridge * nrow(X), P - 1))
+  out <- vapply(seq_along(genes), function(j) {
+    y <- Y[, j]
+    beta <- c(log((sum(y) + 0.5) / (nrow(X) * exp(la))), rep(0, P - 1))
+    for (it in seq_len(50)) {                       # IRLS with a ridge penalty
+      eta <- la + drop(X %*% beta); mu <- exp(eta)
+      z <- eta - la + (y - mu) / mu
+      H <- crossprod(X * mu, X) + diag(pen, P)
+      nb <- solve(H, crossprod(X * mu, z))
+      if (max(abs(nb - beta)) < 1e-6) { beta <- drop(nb); break }
+      beta <- drop(nb)
+    }
+    drop(X %*% beta)
+  }, numeric(nrow(X)))
+  out <- matrix(out, ncol = length(genes), dimnames = list(NULL, genes))
+  out
+}
+
+#' Significance of residual spatial factors by parametric bootstrap
+#'
+#' **Experimental.** Tests whether the factors of a [fit_spatial_rff()] fit
+#' are stronger than factors fitted to data without any factor structure.
+#' Counts are simulated from the fitted null model (bin area, offset, gene
+#' intercepts, cellularity field and dispersion, but no factors), the same
+#' model is refitted to each simulated data set, and the largest factor
+#' strength (norm of a factor's loadings) is recorded. Each observed factor is
+#' compared with this max-null distribution, which controls the family-wise
+#' error over factors.
+#'
+#' @param fit Output of [fit_spatial_rff()].
+#' @param binned The `binned_transcripts` object used for the fit.
+#' @param n_boot Number of simulated null data sets.
+#' @param max_iter Iterations for the refits (default: those of the fit).
+#' @param seed Random seed.
+#'
+#' @return A data frame with one row per factor: `factor`, `strength`,
+#'   `lengthscale`, `p` (share of null data sets whose strongest factor is at
+#'   least as strong, with the +1 correction), and the top genes by
+#'   absolute loading. The null maxima are attached as attribute
+#'   `null_max`.
+#' @seealso [fit_spatial_rff()], [rff_offset()], [rff_fields()]
+#' @export
+#' @examples
+#' \donttest{
+#' tx <- simulate_transcripts(size = 100, rate = 0.02, n_genes_per_set = 3)
+#' b <- bin_transcripts(tx, bin_size = 6)
+#' fit <- fit_spatial_rff(b, n_factors = 2, ard = 2, n_features = 24, max_iter = 40)
+#' rff_factor_test(fit, b, n_boot = 4)
+#' }
+rff_factor_test <- function(fit, binned, n_boot = 19, max_iter = NULL, seed = 1) {
+  if (!inherits(fit, "spatial_rff_fit")) stop("`fit` must come from fit_spatial_rff().")
+  st <- fit$settings
+  if (is.null(st)) stop("`fit` was made before settings were stored; refit with the current package.")
+  if (identical(fit$offset, "smoothed_total")) stop("rff_factor_test() supports offset = \"area\" or a matrix offset.")
+  .local_seed(seed)
+  keep <- fit$in_tissue; N <- sum(keep)
+  genes <- fit$genes
+  la <- 2 * log(fit$bin_size)
+  off <- if (is.null(fit$offset_matrix)) 0 else fit$offset_matrix[keep, genes, drop = FALSE]
+  dens <- if (fit$has_density) fit$sigma0 * fit$field_grid[keep, "density"] else 0
+  mu0 <- exp(la + off + matrix(fit$alpha[genes], N, length(genes), byrow = TRUE) + dens)
+  offset_arg <- if (is.null(fit$offset_matrix)) "area" else fit$offset_matrix
+  null_max <- vapply(seq_len(n_boot), function(b) {
+    ysim <- if (identical(st$family, "nb")) {
+      matrix(stats::rnbinom(length(mu0), size = rep(fit$dispersion[genes], each = N), mu = mu0), N)
+    } else matrix(stats::rpois(length(mu0), mu0), N)
+    bs <- binned
+    cnt <- Matrix::Matrix(0, nrow(binned$coords), length(genes), sparse = TRUE, dimnames = list(NULL, genes))
+    cnt[which(keep), ] <- ysim
+    bs$counts <- cnt; bs$genes <- genes
+    f0 <- fit_spatial_rff(bs, n_factors = st$n_factors, lengthscales = st$lengthscales,
+                          density_lengthscale = st$density_lengthscale, offset = offset_arg, ard = st$ard,
+                          n_features = st$n_features, family = st$family,
+                          max_iter = if (is.null(max_iter)) st$max_iter else max_iter, seed = seed + b)
+    max(f0$factor_strength)
+  }, numeric(1))
+  top <- vapply(seq_along(fit$factor_strength), function(k) {
+    o <- order(-abs(fit$L[, k]))[seq_len(min(5, length(genes)))]
+    paste(sprintf("%s (%+.2f)", genes[o], fit$L[o, k]), collapse = ", ")
+  }, "")
+  out <- data.frame(factor = names(fit$factor_strength), strength = unname(fit$factor_strength),
+                    lengthscale = fit$lengthscales,
+                    p = vapply(fit$factor_strength, function(v) (1 + sum(null_max >= v)) / (n_boot + 1), 0),
+                    top_genes = top, row.names = NULL)
+  attr(out, "null_max") <- null_max
+  out[order(out$p, -out$strength), ]
 }
 
 #' Model-based cross pair correlation from a fitted random-feature LGCP
@@ -1004,6 +1183,7 @@ rff_pair_correlation <- function(fit, set_a, set_b, r,
   intensity <- function(genes) {
     eta <- fit$field_grid[, cols, drop = FALSE] %*% t(Lfull[genes, cols, drop = FALSE])
     eta <- sweep(eta, 2, fit$alpha[genes], "+") + base
+    if (!is.null(fit$offset_matrix)) eta <- eta + fit$offset_matrix[, genes, drop = FALSE]
     matrix(rowSums(exp(eta)), g$nx, g$ny)
   }
   r_max <- max(r) + g$bin_size
