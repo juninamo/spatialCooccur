@@ -11,7 +11,7 @@ compute_count(
   int_clust_col,
   n_cls,
   cluster_data,
-  transformation = TRUE
+  transformation = FALSE
 )
 ```
 
@@ -39,7 +39,8 @@ compute_count(
 
 - transformation:
 
-  Whether to transform counts based on adjacency normalization.
+  If \`TRUE\`, \`adj\` holds link weights (e.g. 1 / (1 + d_u)) that are
+  summed; \`FALSE\` (default) counts binary links.
 
 ## Value
 
@@ -54,6 +55,6 @@ cl <- factor(sample(c("a", "b"), 20, replace = TRUE))
 lab <- paste0("Cluster", cl)
 compute_count(adj, lab, lab, n_cls = 2, cluster_data = cl)
 #>          Clustera Clusterb
-#> Clustera   0.4663    5.260
-#> Clusterb  -1.9216   -6.988
+#> Clustera        0        1
+#> Clusterb        0        1
 ```

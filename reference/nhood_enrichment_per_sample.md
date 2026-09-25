@@ -19,7 +19,7 @@ nhood_enrichment_per_sample(
   cluster_levels = NULL,
   neighbors.k = 30,
   connectivity_key = "nn",
-  transformation = TRUE,
+  transformation = FALSE,
   n_perms = 100,
   seed = 1938493,
   n_jobs = 1
@@ -69,7 +69,13 @@ nhood_enrichment_per_sample(
 
 - transformation:
 
-  Whether to normalize adjacency matrix.
+  If \`TRUE\`, each link from cell u is weighted 1 / (1 + d_u), with d_u
+  the number of cells that chose u as a neighbour (a mild down-weighting
+  of hub cells). \`FALSE\` (default since 0.99.3) counts every kNN link
+  once, as squidpy does. With a kNN graph every cell sends k links at
+  any density, so the weighting is not a density correction (density is
+  handled by the label shuffles); in simulations it kept the calibration
+  but lowered power.
 
 - n_perms:
 
@@ -116,13 +122,13 @@ ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
                                   patient_key = "patient",
                                   neighbors.k = 8, n_perms = 20, n_jobs = 1)
 head(ps)
-#>   sample_id   cluster_i   cluster_j     zscore     count  expected     log2_oe
-#> 1    case_1 cell_type_1 cell_type_1 -0.9537898 10.903161 11.939407 -0.12397834
-#> 2    case_1 cell_type_2 cell_type_1  1.8156814 13.839842 11.100589  0.32757807
-#> 3    case_1 cell_type_3 cell_type_1  1.3443756 11.350588  9.538782  0.26153578
-#> 4    case_1 cell_type_4 cell_type_1 -0.4322207  6.665726  7.093406 -0.07494921
-#> 5    case_1 cell_type_1 cell_type_2  0.8979087 12.126217 11.006377  0.14726284
-#> 6    case_1 cell_type_2 cell_type_2 -0.3407436 23.960856 24.600343 -0.03393146
+#>   sample_id   cluster_i   cluster_j      zscore count expected     log2_oe
+#> 1    case_1 cell_type_1 cell_type_1 -0.06586273    97    97.55 -0.00335273
+#> 2    case_1 cell_type_2 cell_type_1  2.47272268   116    91.20  0.35214865
+#> 3    case_1 cell_type_3 cell_type_1  1.11040938    90    79.80  0.18048954
+#> 4    case_1 cell_type_4 cell_type_1 -0.47684887    55    58.85 -0.08318455
+#> 5    case_1 cell_type_1 cell_type_2  2.72903009   112    90.90  0.30323640
+#> 6    case_1 cell_type_2 cell_type_2  0.53105897   207   200.20  0.05073765
 #>   group patient n_cells n_i n_j
 #> 1  case  case_1     200  41  41
 #> 2  case  case_1     200  63  41

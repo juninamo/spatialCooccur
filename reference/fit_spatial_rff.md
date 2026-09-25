@@ -124,7 +124,9 @@ fit_spatial_rff(
 An object of class \`spatial_rff_fit\` with the estimates (\`alpha\`,
 \`L\`, \`sigma0\`, \`lengthscales\`, \`density_lengthscale\`, \`gamma\`,
 \`dispersion\`), \`factor_strength\` (norm of each factor's loadings),
-the random frequencies, the genes, the settings (\`settings\`, used by
+\`program_strength\` (norm after removing the loading shared by all
+genes, which cannot be told apart from cellularity), the random
+frequencies, the genes, the settings (\`settings\`, used by
 \[rff_factor_test()\]) and convergence information.
 
 ## References

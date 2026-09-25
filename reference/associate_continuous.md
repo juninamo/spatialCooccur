@@ -107,11 +107,11 @@ ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
                                   neighbors.k = 10, n_perms = 30, n_jobs = 1)
 crp <- setNames(rexp(8), unique(ps$patient))
 head(associate_continuous(ps, crp, value = "log2_oe"))
-#>     cluster_i   cluster_j n_patients   estimate          p      padj   method
-#> 9 cell_type_3 cell_type_3          8 -0.7619048 0.03675595 0.3308036 spearman
-#> 8 cell_type_2 cell_type_3          8  0.5000000 0.21617063 0.6034598 spearman
-#> 2 cell_type_2 cell_type_1          8 -0.4285714 0.29920635 0.6034598 spearman
-#> 5 cell_type_2 cell_type_2          8 -0.3809524 0.35987103 0.6034598 spearman
-#> 7 cell_type_1 cell_type_3          8  0.3809524 0.35987103 0.6034598 spearman
-#> 1 cell_type_1 cell_type_1          8  0.3333333 0.42787698 0.6034598 spearman
+#>     cluster_i   cluster_j n_patients   estimate         p      padj   method
+#> 6 cell_type_3 cell_type_2          8  0.5000000 0.2161706 0.7959821 spearman
+#> 8 cell_type_2 cell_type_3          8  0.4761905 0.2430556 0.7959821 spearman
+#> 2 cell_type_2 cell_type_1          8 -0.4285714 0.2992063 0.7959821 spearman
+#> 4 cell_type_1 cell_type_2          8 -0.3333333 0.4278770 0.7959821 spearman
+#> 5 cell_type_2 cell_type_2          8 -0.2380952 0.5821429 0.7959821 spearman
+#> 9 cell_type_3 cell_type_3          8 -0.2380952 0.5821429 0.7959821 spearman
 ```

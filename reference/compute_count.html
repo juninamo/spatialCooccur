@@ -60,7 +60,7 @@
 <span>  <span class="va">int_clust_col</span>,</span>
 <span>  <span class="va">n_cls</span>,</span>
 <span>  <span class="va">cluster_data</span>,</span>
-<span>  transformation <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  transformation <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -89,7 +89,7 @@
 
 
 <dt id="arg-transformation">transformation<a class="anchor" aria-label="anchor" href="#arg-transformation"></a></dt>
-<dd><p>Whether to transform counts based on adjacency normalization.</p></dd>
+<dd><p>If `TRUE`, `adj` holds link weights (e.g. 1 / (1 + d_u)) that are summed; `FALSE` (default) counts binary links.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -105,8 +105,8 @@
 <span class="r-in"><span><span class="va">lab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Cluster"</span>, <span class="va">cl</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">compute_count</span><span class="op">(</span><span class="va">adj</span>, <span class="va">lab</span>, <span class="va">lab</span>, n_cls <span class="op">=</span> <span class="fl">2</span>, cluster_data <span class="op">=</span> <span class="va">cl</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          Clustera Clusterb</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clustera   0.4663    5.260</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Clusterb  -1.9216   -6.988</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clustera        0        1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Clusterb        0        1</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

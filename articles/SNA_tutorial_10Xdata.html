@@ -94,7 +94,7 @@ download it to run the code yourself.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">'%d %B, %Y'</span><span class="op">)</span></span></code></pre></div>
 <div class="nb-output">
-<p>‘24 September, 2026’</p>
+<p>‘25 September, 2026’</p>
 </div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
@@ -186,10 +186,10 @@ max used
 Ncells
 </th>
 <td>
-12945208
+12949604
 </td>
 <td>
-691.4
+691.6
 </td>
 <td>
 19692738
@@ -212,13 +212,13 @@ NA
 Vcells
 </th>
 <td>
-27133329
+27252693
 </td>
 <td>
-207.1
+208.0
 </td>
 <td>
-45754539
+45754530
 </td>
 <td>
 349.1
@@ -227,10 +227,10 @@ Vcells
 204800
 </td>
 <td>
-45728698
+45750535
 </td>
 <td>
-348.9
+349.1
 </td>
 </tr>
 </tbody>
@@ -272,10 +272,10 @@ max used
 Ncells
 </th>
 <td>
-12951604
+12955997
 </td>
 <td>
-691.7
+692.0
 </td>
 <td>
 19692738
@@ -298,13 +298,13 @@ NA
 Vcells
 </th>
 <td>
-27147639
+27266998
 </td>
 <td>
-207.2
+208.1
 </td>
 <td>
-45754539
+45754530
 </td>
 <td>
 349.1
@@ -313,10 +313,10 @@ Vcells
 204800
 </td>
 <td>
-45728698
+45750535
 </td>
 <td>
-348.9
+349.1
 </td>
 </tr>
 </tbody>
@@ -3094,14 +3094,14 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
 <span>  cluster_key <span class="op">=</span> <span class="va">cluster_col</span>, </span>
 <span>  neighbors.k <span class="op">=</span> <span class="va">neighbors.k_</span>, </span>
 <span>  connectivity_key <span class="op">=</span> <span class="st">"nn"</span>, </span>
-<span>  transformation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  transformation <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_perms <span class="op">=</span> <span class="va">n_perm</span>, seed <span class="op">=</span> <span class="va">seed</span>, n_jobs <span class="op">=</span> <span class="fl">4</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Elapsed time:"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">end_time</span>, <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>[1] "Elapsed time:"</code></pre>
-<pre class="output"><code>Time difference of 3.642823 secs</code></pre>
+<pre class="output"><code>Time difference of 3.541155 secs</code></pre>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="va">xenium.obj</span><span class="op">@</span><span class="va">misc</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">cluster_col</span>, <span class="st">"_nhood_enrichment"</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">L</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>; <span class="va">P</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">padj</span></span>
@@ -3664,7 +3664,7 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
              Endothelial_cells           BasalMyo_tumor_cells 
                             69                            854 </code></pre>
 <pre class="output"><code>[1] "Elapsed time:"</code></pre>
-<pre class="output"><code>Time difference of 2.079798 secs</code></pre>
+<pre class="output"><code>Time difference of 1.52937 secs</code></pre>
 <pre class="output"><code> cooccur_local_Cytotoxic_T_Cancer-associated_fibroblasts
  Min.   :0.0000000                                      
  1st Qu.:0.0000000                                      
@@ -3719,7 +3719,7 @@ Number of edges: 1340944
 Running Louvain algorithm...
 Maximum modularity in 10 random starts: 0.9585
 Number of communities: 27
-Elapsed time: 7 seconds</code></pre>
+Elapsed time: 6 seconds</code></pre>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cluster_col</span><span class="op">=</span><span class="st">"seurat_clusters"</span></span>
 <span><span class="va">g</span> <span class="op">=</span> <span class="fu">CellDimPlot</span><span class="op">(</span></span>
@@ -3871,14 +3871,14 @@ Elapsed time: 7 seconds</code></pre>
 <span>  cluster_key <span class="op">=</span> <span class="va">cluster_col</span>, </span>
 <span>  neighbors.k <span class="op">=</span> <span class="va">neighbors.k_</span>, </span>
 <span>  connectivity_key <span class="op">=</span> <span class="st">"nn"</span>, </span>
-<span>  transformation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  transformation <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_perms <span class="op">=</span> <span class="va">n_perm</span>, seed <span class="op">=</span> <span class="va">seed</span>, n_jobs <span class="op">=</span> <span class="fl">4</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Elapsed time:"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">end_time</span>, <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span></span></code></pre></div>
 <pre class="output"><code>[1] "Elapsed time:"</code></pre>
-<pre class="output"><code>Time difference of 7.805199 secs</code></pre>
+<pre class="output"><code>Time difference of 12.89734 secs</code></pre>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="va">xenium.obj</span><span class="op">@</span><span class="va">misc</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">cluster_col</span>, <span class="st">"_nhood_enrichment"</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">L</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">log2_oe</span>; <span class="va">P</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">padj</span></span>
@@ -3937,7 +3937,7 @@ Elapsed time: 7 seconds</code></pre>
       VLMC 
       1417 </code></pre>
 <pre class="output"><code>[1] "Elapsed time:"</code></pre>
-<pre class="output"><code>Time difference of 7.06738 secs</code></pre>
+<pre class="output"><code>Time difference of 8.145201 secs</code></pre>
 <pre class="output"><code> cooccur_local_L6_IT_L6_CT
  Min.   :0.00000          
  1st Qu.:0.00000          
@@ -3998,7 +3998,7 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] spacexr_2.2.1         cohalu_0.99.3 testthat_3.2.1       
+ [1] spacexr_2.2.1         cohalu_0.99.3         testthat_3.2.1       
  [4] ComplexHeatmap_2.18.0 circlize_0.4.15       ggplot2_3.4.4        
  [7] SCP_0.5.6             dplyr_1.1.4           magrittr_2.0.3       
 [10] Seurat_5.2.1          SeuratObject_5.0.2    sp_2.1-2             

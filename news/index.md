@@ -12,6 +12,19 @@
 
 ### Changes that affect results
 
+- [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md),
+  [`nhood_enrichment.Seurat()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.Seurat.md)
+  and
+  [`nhood_enrichment_per_sample()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment_per_sample.md):
+  the default is now `transformation = FALSE` (every kNN link counts
+  once, as in squidpy). The previous default weighted each link from
+  cell u by 1 / (1 + d_u), d_u = number of cells that chose u. With a
+  kNN graph every cell sends k links at any density, so this was not a
+  density correction; in simulations it kept the calibration (false
+  positives 4-5% per pair, 2-7% family-wise) but lowered power (planted
+  pair, 1,500 cells: 14% with the weighting vs 28% without). Use
+  `transformation = TRUE` to reproduce earlier results. The docs now
+  describe what the weighting does.
 - [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md):
   `log2_oe` is now centred on the label shuffles (the mean of the same
   log ratio over the shuffles is subtracted), so it is 0 on average
@@ -59,7 +72,13 @@
   New
   [`rff_factor_test()`](https://juninamo.github.io/cohalu/reference/rff_factor_test.md):
   parametric-bootstrap p-value per factor against the largest factor
-  fitted to null data (family-wise over factors).
+  fitted to null data (family-wise over factors). The test statistic is
+  the program strength (loading norm after removing the loading shared
+  by all genes): factors that move all genes together are cellularity,
+  not gene programs, and the raw loading norm called such factors
+  significant in simulations without any program.
+  [`fit_spatial_rff()`](https://juninamo.github.io/cohalu/reference/fit_spatial_rff.md)
+  also returns `program_strength`.
 - [`rff_fields()`](https://juninamo.github.io/cohalu/reference/rff_fields.md)
   (experimental): evaluates the latent fields of a
   [`fit_spatial_rff()`](https://juninamo.github.io/cohalu/reference/fit_spatial_rff.md)

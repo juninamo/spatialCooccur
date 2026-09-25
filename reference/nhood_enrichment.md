@@ -10,7 +10,7 @@ nhood_enrichment(
   cluster_key,
   neighbors.k = 30,
   connectivity_key = "nn",
-  transformation = TRUE,
+  transformation = FALSE,
   n_perms = 100,
   seed = 1938493,
   n_jobs = 4
@@ -37,7 +37,13 @@ nhood_enrichment(
 
 - transformation:
 
-  Whether to normalize adjacency matrix.
+  If \`TRUE\`, each link from cell u is weighted 1 / (1 + d_u), with d_u
+  the number of cells that chose u as a neighbour (a mild down-weighting
+  of hub cells). \`FALSE\` (default since 0.99.3) counts every kNN link
+  once, as squidpy does. With a kNN graph every cell sends k links at
+  any density, so the weighting is not a density correction (density is
+  handled by the label shuffles); in simulations it kept the calibration
+  but lowered power.
 
 - n_perms:
 
@@ -95,24 +101,24 @@ res <- nhood_enrichment(df, cluster_key = "cell_type", neighbors.k = 10,
                         n_perms = 50, n_jobs = 1)
 round(res$zscore, 1)
 #>                    Clustercell_type_1 Clustercell_type_2 Clustercell_type_3
-#> Clustercell_type_1               -0.5                1.0                1.8
-#> Clustercell_type_2                0.4                1.3               -2.8
-#> Clustercell_type_3                1.0               -2.2                1.5
-#> Clustercell_type_4               -0.5               -0.1                0.5
+#> Clustercell_type_1               -0.5                2.0                1.8
+#> Clustercell_type_2                1.3                3.1               -2.2
+#> Clustercell_type_3                1.6               -1.2                1.3
+#> Clustercell_type_4               -1.3               -1.0                0.0
 #>                    Clustercell_type_4
-#> Clustercell_type_1               -2.0
-#> Clustercell_type_2               -2.4
-#> Clustercell_type_3               -0.9
-#> Clustercell_type_4                3.0
+#> Clustercell_type_1               -2.6
+#> Clustercell_type_2               -3.1
+#> Clustercell_type_3               -1.3
+#> Clustercell_type_4                2.1
 round(res$log2_oe, 2)
 #>                    Clustercell_type_1 Clustercell_type_2 Clustercell_type_3
-#> Clustercell_type_1              -0.04               0.11               0.16
-#> Clustercell_type_2               0.04               0.12              -0.30
-#> Clustercell_type_3               0.10              -0.25               0.13
-#> Clustercell_type_4              -0.05              -0.01               0.07
+#> Clustercell_type_1              -0.04               0.20               0.14
+#> Clustercell_type_2               0.12               0.21              -0.20
+#> Clustercell_type_3               0.13              -0.11               0.10
+#> Clustercell_type_4              -0.15              -0.09               0.01
 #>                    Clustercell_type_4
-#> Clustercell_type_1              -0.25
-#> Clustercell_type_2              -0.27
-#> Clustercell_type_3              -0.09
-#> Clustercell_type_4               0.25
+#> Clustercell_type_1              -0.32
+#> Clustercell_type_2              -0.29
+#> Clustercell_type_3              -0.15
+#> Clustercell_type_4               0.16
 ```

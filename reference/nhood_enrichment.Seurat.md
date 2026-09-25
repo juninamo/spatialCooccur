@@ -10,7 +10,7 @@ nhood_enrichment.Seurat(
   cluster_key,
   neighbors.k = 30,
   connectivity_key = "nn",
-  transformation = TRUE,
+  transformation = FALSE,
   n_perms = 100,
   seed = 1938493,
   n_jobs = 4
@@ -37,7 +37,13 @@ nhood_enrichment.Seurat(
 
 - transformation:
 
-  Logical, whether to normalize adjacency matrix.
+  If \`TRUE\`, each link from cell u is weighted 1 / (1 + d_u), with d_u
+  the number of cells that chose u as a neighbour (a mild down-weighting
+  of hub cells). \`FALSE\` (default since 0.99.3) counts every kNN link
+  once, as squidpy does. With a kNN graph every cell sends k links at
+  any density, so the weighting is not a density correction (density is
+  handled by the label shuffles); in simulations it kept the calibration
+  but lowered power.
 
 - n_perms:
 
@@ -71,13 +77,13 @@ seu <- nhood_enrichment.Seurat(seu, cluster_key = "cell_type",
 res <- SeuratObject::Misc(seu, slot = "cell_type_nhood_enrichment")
 round(res$zscore, 1)
 #>                    Clustercell_type_1 Clustercell_type_2 Clustercell_type_3
-#> Clustercell_type_1               -0.5                1.3                1.8
-#> Clustercell_type_2                0.5                1.0               -2.8
-#> Clustercell_type_3                1.1               -2.4                1.2
-#> Clustercell_type_4               -0.7                0.0                0.6
+#> Clustercell_type_1               -0.5                2.2                1.8
+#> Clustercell_type_2                1.4                2.7               -2.3
+#> Clustercell_type_3                1.8               -1.2                1.1
+#> Clustercell_type_4               -1.7               -0.9                0.1
 #>                    Clustercell_type_4
-#> Clustercell_type_1               -2.8
-#> Clustercell_type_2               -2.9
-#> Clustercell_type_3               -0.8
-#> Clustercell_type_4                3.1
+#> Clustercell_type_1               -3.5
+#> Clustercell_type_2               -3.3
+#> Clustercell_type_3               -1.2
+#> Clustercell_type_4                2.4
 ```

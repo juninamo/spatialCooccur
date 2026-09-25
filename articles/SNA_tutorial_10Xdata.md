@@ -16,7 +16,7 @@ download it to run the code yourself.
 format(Sys.time(), '%d %B, %Y')
 ```
 
-‘24 September, 2026’
+‘25 September, 2026’
 
 ``` r
 
@@ -78,15 +78,15 @@ rm(data); gc(); gc()
 
 |        | used     | (Mb)  | gc trigger | (Mb)   | limit (Mb) | max used | (Mb)   |
 |--------|----------|-------|------------|--------|------------|----------|--------|
-| Ncells | 12945208 | 691.4 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
-| Vcells | 27133329 | 207.1 | 45754539   | 349.1  | 204800     | 45728698 | 348.9  |
+| Ncells | 12949604 | 691.6 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
+| Vcells | 27252693 | 208.0 | 45754530   | 349.1  | 204800     | 45750535 | 349.1  |
 
 A matrix: 2 × 7 of type dbl {.table .dataframe}
 
 |        | used     | (Mb)  | gc trigger | (Mb)   | limit (Mb) | max used | (Mb)   |
 |--------|----------|-------|------------|--------|------------|----------|--------|
-| Ncells | 12951604 | 691.7 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
-| Vcells | 27147639 | 207.2 | 45754539   | 349.1  | 204800     | 45728698 | 348.9  |
+| Ncells | 12955997 | 692.0 | 19692738   | 1051.8 | NA         | 19692738 | 1051.8 |
+| Vcells | 27266998 | 208.1 | 45754530   | 349.1  | 204800     | 45750535 | 349.1  |
 
 A matrix: 2 × 7 of type dbl {.table .dataframe}
 
@@ -454,7 +454,7 @@ xenium.obj <- nhood_enrichment.Seurat(
   cluster_key = cluster_col, 
   neighbors.k = neighbors.k_, 
   connectivity_key = "nn", 
-  transformation = TRUE,
+  transformation = FALSE,
   n_perms = n_perm, seed = seed, n_jobs = 4
 )
 end_time = Sys.time()
@@ -467,7 +467,7 @@ difftime(end_time, start_time, units = "secs")
 ```
 
 ``` output
-Time difference of 3.642823 secs
+Time difference of 3.541155 secs
 ```
 
 ``` r
@@ -608,7 +608,7 @@ Proliferating_epithelial_cells   Tumor-associated_macrophages
 ```
 
 ``` output
-Time difference of 2.079798 secs
+Time difference of 1.52937 secs
 ```
 
 ``` output
@@ -680,7 +680,7 @@ Number of edges: 1340944
 Running Louvain algorithm...
 Maximum modularity in 10 random starts: 0.9585
 Number of communities: 27
-Elapsed time: 7 seconds
+Elapsed time: 6 seconds
 ```
 
 ``` r
@@ -878,7 +878,7 @@ xenium.obj <- nhood_enrichment.Seurat(
   cluster_key = cluster_col, 
   neighbors.k = neighbors.k_, 
   connectivity_key = "nn", 
-  transformation = TRUE,
+  transformation = FALSE,
   n_perms = n_perm, seed = seed, n_jobs = 4
 )
 end_time = Sys.time()
@@ -891,7 +891,7 @@ difftime(end_time, start_time, units = "secs")
 ```
 
 ``` output
-Time difference of 7.805199 secs
+Time difference of 12.89734 secs
 ```
 
 ``` r
@@ -964,7 +964,7 @@ summary(cooccur_local_df)
 ```
 
 ``` output
-Time difference of 7.06738 secs
+Time difference of 8.145201 secs
 ```
 
 ``` output
@@ -1042,7 +1042,7 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] spacexr_2.2.1         cohalu_0.99.3 testthat_3.2.1       
+ [1] spacexr_2.2.1         cohalu_0.99.3         testthat_3.2.1       
  [4] ComplexHeatmap_2.18.0 circlize_0.4.15       ggplot2_3.4.4        
  [7] SCP_0.5.6             dplyr_1.1.4           magrittr_2.0.3       
 [10] Seurat_5.2.1          SeuratObject_5.0.2    sp_2.1-2             

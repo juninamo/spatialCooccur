@@ -57,5 +57,5 @@ fit <- fit_spatial_rff(b, n_factors = 3, offset = off, ard = 2,
                        n_features = 32, max_iter = 50)
 fit$factor_strength
 #>  factor1  factor2  factor3 
-#> 1.357359 1.733956 1.128550 
+#> 1.357358 1.733956 1.128550 
 ```

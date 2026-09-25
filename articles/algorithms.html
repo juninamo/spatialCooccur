@@ -293,15 +293,31 @@ matrix (<code>neighbors$snn</code>), depending on
 <code>connectivity_key</code>.</p>
 </div>
 <div class="section level4">
-<h4 id="step-2-degree-normalize-optional">Step 2 — degree normalize (optional)<a class="anchor" aria-label="anchor" href="#step-2-degree-normalize-optional"></a>
+<h4 id="step-2-degree-weighting-optional-off-by-default">Step 2 — degree weighting (optional, off by default)<a class="anchor" aria-label="anchor" href="#step-2-degree-weighting-optional-off-by-default"></a>
 </h4>
-<p>When <code>transformation = TRUE</code>, divide each column by the
-(column) degree plus one to keep highly-connected cells from
-dominating:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>A</mi><mo accent="true">̃</mo></mover><mrow><mi>u</mi><mi>v</mi></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mfrac><msub><mi>A</mi><mrow><mi>u</mi><mi>v</mi></mrow></msub><mrow><msub><mi>d</mi><mi>v</mi></msub><mo>+</mo><mn>1</mn></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>d</mi><mi>v</mi></msub><mo>=</mo><munder><mo>∑</mo><mi>u</mi></munder><msub><mi>A</mi><mrow><mi>u</mi><mi>v</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\tilde A_{uv} \;=\; \frac{A_{uv}}{d_v + 1},
+<p>By default (<code>transformation = FALSE</code>) every kNN link
+counts once, as in squidpy. When <code>transformation = TRUE</code>,
+each link from cell
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+is divided by the number of cells that chose
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+as a neighbour (plus one), which mildly down-weights “hub” cells chosen
+by many others. With a kNN graph every cell sends
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+links at any density and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>u</mi></msub><annotation encoding="application/x-tex">d_u</annotation></semantics></math>
+averages
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+in both dense and sparse tissue; it differs mainly at density
+transitions (e.g. cells just outside a dense cluster are chosen less
+often). Density itself is handled by the label shuffles, which keep
+every position. In simulations the weighting kept the calibration but
+lowered power (planted pair, 1,500 cells: 14% vs 28%), so it is off by
+default:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>A</mi><mo accent="true">̃</mo></mover><mrow><mi>u</mi><mi>v</mi></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mfrac><msub><mi>A</mi><mrow><mi>u</mi><mi>v</mi></mrow></msub><mrow><msub><mi>d</mi><mi>u</mi></msub><mo>+</mo><mn>1</mn></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>d</mi><mi>u</mi></msub><mo>=</mo><munder><mo>∑</mo><mi>w</mi></munder><msub><mi>A</mi><mrow><mi>w</mi><mi>u</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\tilde A_{uv} \;=\; \frac{A_{uv}}{d_u + 1},
 \qquad
-d_v = \sum_{u} A_{uv}.
+d_u = \sum_{w} A_{wu}.
 </annotation></semantics></math></p>
 <p>Otherwise
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>A</mi><mo accent="true">̃</mo></mover><mo>=</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">\tilde A = A</annotation></semantics></math>

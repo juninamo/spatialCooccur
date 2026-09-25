@@ -132,16 +132,16 @@ ggplot(null_z, aes(z)) +
 | pair                 | z                |
 |----------------------|------------------|
 | \<chr\>              | \<dbl\[,3\]\>    |
-| different types      | 4480, 0.01, 1.01 |
-| same type (diagonal) | 640, -0.04, 0.99 |
+| different types      | 4480, 0.00, 0.99 |
+| same type (diagonal) | 640, -0.02, 1.01 |
 
 A data.frame: 2 × 2 {.table .dataframe}
 
 | pair                 | p       |
 |----------------------|---------|
 | \<chr\>              | \<dbl\> |
-| different types      | 0.046   |
-| same type (diagonal) | 0.045   |
+| different types      | 0.038   |
+| same type (diagonal) | 0.041   |
 
 A data.frame: 2 × 2 {.table .dataframe}
 
@@ -268,16 +268,16 @@ head(per_image[order(per_image$sample_id), ], 4)
 ```
 
 ``` output
-Time difference of 14.26745 secs
+Time difference of 24.509 secs
 ```
 
 |  | sample_id | cluster_i | cluster_j | zscore | count | expected | log2_oe | group | patient | n_cells | n_i | n_j |
 |----|----|----|----|----|----|----|----|----|----|----|----|----|
 |  | \<chr\> | \<chr\> | \<chr\> | \<dbl\> | \<dbl\> | \<dbl\> | \<dbl\> | \<chr\> | \<chr\> | \<int\> | \<int\> | \<int\> |
-| 1 | case_1_img1 | cell_type_1 | cell_type_1 | -1.79535546 | 36.59245 | 39.69216 | -0.1156676619 | case | case_1 | 1200 | 177 | 177 |
-| 2 | case_1_img1 | cell_type_2 | cell_type_1 | 2.42332465 | 23.02136 | 19.78173 | 0.2210913979 | case | case_1 | 1200 | 154 | 177 |
-| 3 | case_1_img1 | cell_type_3 | cell_type_1 | -0.02485323 | 18.91202 | 18.94504 | 0.0009870095 | case | case_1 | 1200 | 149 | 177 |
-| 4 | case_1_img1 | cell_type_4 | cell_type_1 | -0.59872946 | 14.14555 | 14.84565 | -0.0647837528 | case | case_1 | 1200 | 115 | 177 |
+| 1 | case_1_img1 | cell_type_1 | cell_type_1 | -1.2004935 | 391 | 413.215 | -0.07810674 | case | case_1 | 1200 | 177 | 177 |
+| 2 | case_1_img1 | cell_type_2 | cell_type_1 | 3.4730906 | 249 | 205.030 | 0.28177704 | case | case_1 | 1200 | 154 | 177 |
+| 3 | case_1_img1 | cell_type_3 | cell_type_1 | -0.4244845 | 192 | 197.405 | -0.03688506 | case | case_1 | 1200 | 149 | 177 |
+| 4 | case_1_img1 | cell_type_4 | cell_type_1 | -0.6691624 | 147 | 154.520 | -0.06770401 | case | case_1 | 1200 | 115 | 177 |
 
 A cohaluSample: 4 × 12 {.table .dataframe}
 
@@ -337,8 +337,8 @@ size_tests
 | score   | effect  | p       |
 |---------|---------|---------|
 | \<chr\> | \<dbl\> | \<dbl\> |
-| zscore  | 2.0600  | 0.0104  |
-| log2_oe | 0.0313  | 0.7980  |
+| zscore  | 2.17000 | 0.0148  |
+| log2_oe | 0.00239 | 1.0000  |
 
 A data.frame: 2 × 3 {.table .dataframe}
 
@@ -470,14 +470,14 @@ head(res_lmm[, c(cols[1:3], "estimate", cols[4:5])], 8)
 |     | cluster_i   | cluster_j   | effect      | estimate    | p            | padj        |
 |-----|-------------|-------------|-------------|-------------|--------------|-------------|
 |     | \<chr\>     | \<chr\>     | \<dbl\>     | \<dbl\>     | \<dbl\>      | \<dbl\>     |
-| 1   | cell_type_1 | cell_type_2 | 0.23421766  | 0.23421766  | 0.0001839993 | 0.006623974 |
-| 2   | cell_type_5 | cell_type_5 | 0.07059004  | 0.07059004  | 0.0011341037 | 0.020413867 |
-| 3   | cell_type_2 | cell_type_4 | -0.09248981 | -0.09248981 | 0.0068634564 | 0.065588885 |
-| 4   | cell_type_4 | cell_type_6 | 0.08643789  | 0.08643789  | 0.0072876539 | 0.065588885 |
-| 5   | cell_type_1 | cell_type_5 | -0.07413566 | -0.07413566 | 0.0122984323 | 0.088548713 |
-| 6   | cell_type_2 | cell_type_7 | -0.06985906 | -0.06985906 | 0.0155709422 | 0.093425653 |
-| 7   | cell_type_3 | cell_type_3 | 0.05571945  | 0.05571945  | 0.0280125042 | 0.143850074 |
-| 8   | cell_type_1 | cell_type_6 | -0.08979510 | -0.08979510 | 0.0319666831 | 0.143850074 |
+| 1   | cell_type_1 | cell_type_2 | 0.27443623  | 0.27443623  | 9.781294e-05 | 0.003521266 |
+| 2   | cell_type_2 | cell_type_2 | 0.07324431  | 0.07324431  | 5.713688e-03 | 0.102846376 |
+| 3   | cell_type_1 | cell_type_5 | -0.07967767 | -0.07967767 | 1.085754e-02 | 0.119994510 |
+| 4   | cell_type_5 | cell_type_5 | 0.04990065  | 0.04990065  | 1.333272e-02 | 0.119994510 |
+| 5   | cell_type_4 | cell_type_6 | 0.07269684  | 0.07269684  | 2.174060e-02 | 0.156532315 |
+| 6   | cell_type_1 | cell_type_3 | -0.07142746 | -0.07142746 | 2.867925e-02 | 0.172075503 |
+| 7   | cell_type_2 | cell_type_4 | -0.06605778 | -0.06605778 | 4.663721e-02 | 0.237677365 |
+| 8   | cell_type_1 | cell_type_6 | -0.08541877 | -0.08541877 | 5.281719e-02 | 0.237677365 |
 
 A data.frame: 8 × 6 {.table .dataframe}
 
@@ -493,9 +493,9 @@ signif(summary_tbl, 3)
 |                              | effect  | p        | padj    |
 |------------------------------|---------|----------|---------|
 |                              | \<dbl\> | \<dbl\>  | \<dbl\> |
-| Wilcoxon, patient level      | 0.234   | 0.000622 | 0.01120 |
-| LMM, images in patients      | 0.234   | 0.000184 | 0.00662 |
-| Permutation, patient-blocked | 0.234   | 0.000400 | 0.00720 |
+| Wilcoxon, patient level      | 0.274   | 6.22e-04 | 0.02240 |
+| LMM, images in patients      | 0.274   | 9.78e-05 | 0.00352 |
+| Permutation, patient-blocked | 0.274   | 4.00e-04 | 0.01440 |
 
 A data.frame: 3 × 3 {.table .dataframe}
 
@@ -524,18 +524,18 @@ discovery or a side effect**, and it is worth knowing both:
   When more T2 cells sit right next to T1 cells, T1 and T2 have fewer
   neighbours of every other type (blue in the heatmap), and the
   remaining cell types become slightly more likely to neighbour each
-  other. Across 160 simulated images this shift is small: about +0.01 to
-  +0.02 log2 O/E for pairs among T3-T8, and about -0.08 for T1 or T2
-  with a third type.
+  other. This shift is small: in the table above, pairs of T1 with a
+  third type move by about -0.07 to -0.09 log2 O/E, far less than T1-T2
+  (+0.27).
 - **Chance.** Benjamini-Hochberg controls the *false discovery rate*: on
   average about 5% of the pairs called significant are expected to be
   false, and with only a few discoveries a single false one is common.
 
-In this run T5-T5 (effect +0.07, far smaller than T1-T2) passes BH
-although nothing was planted for T5; it is most likely chance on top of
-the small relative shift. Read such pairs as consequences of the main
-change or as candidates to confirm, not as independent findings, and
-look at their effect size and per-patient values.
+In this run only T1-T2 passes BH; the next pairs (e.g. T2-T2, T1-T5,
+effects of about 0.05-0.08) have padj around 0.1. If such a pair passes
+in another data set, read it as consequences of the main change or as
+candidates to confirm, not as independent findings, and look at their
+effect size and per-patient values.
 
 Always plot the per-patient values behind a hit. Large points are
 patient means, small points the individual images:
@@ -584,7 +584,7 @@ signif(tgt(res_adj)[, c("effect", "estimate", "p", "padj")], 3)
 |     | effect  | estimate | p        | padj    |
 |-----|---------|----------|----------|---------|
 |     | \<dbl\> | \<dbl\>  | \<dbl\>  | \<dbl\> |
-| 1   | 0.234   | 0.241    | 0.000195 | 0.00702 |
+| 1   | 0.274   | 0.282    | 9.81e-05 | 0.00353 |
 
 A data.frame: 1 × 4 {.table .dataframe}
 
@@ -640,10 +640,10 @@ fpr
 |  | method | rate | lo | hi |
 |----|----|----|----|----|
 |  | \<fct\> | \<dbl\> | \<dbl\> | \<dbl\> |
-| Wilcoxon, images as units (pseudoreplication) | Wilcoxon, images as units (pseudoreplication) | 0.184 | 0.15098874 | 0.22079907 |
-| Wilcoxon, patient level | Wilcoxon, patient level | 0.044 | 0.02777677 | 0.06586100 |
-| LMM, images in patients | LMM, images in patients | 0.036 | 0.02147286 | 0.05630018 |
-| Permutation, patient-blocked | Permutation, patient-blocked | 0.048 | 0.03099317 | 0.07058080 |
+| Wilcoxon, images as units (pseudoreplication) | Wilcoxon, images as units (pseudoreplication) | 0.236 | 0.19943530 | 0.27571918 |
+| Wilcoxon, patient level | Wilcoxon, patient level | 0.036 | 0.02147286 | 0.05630018 |
+| LMM, images in patients | LMM, images in patients | 0.028 | 0.01539060 | 0.04653333 |
+| Permutation, patient-blocked | Permutation, patient-blocked | 0.034 | 0.01992860 | 0.05388035 |
 
 A data.frame: 4 × 4 {.table .dataframe}
 
@@ -829,20 +829,20 @@ associate_continuous(per_image_c, x, value = "log2_oe", method = "lmm")[1:3, ]
 |  | cluster_i | cluster_j | n_patients | estimate | p | padj | method |
 |----|----|----|----|----|----|----|----|
 |  | \<chr\> | \<chr\> | \<int\> | \<dbl\> | \<dbl\> | \<dbl\> | \<chr\> |
-| 12 | cell_type_2 | cell_type_3 | 12 | -0.7482517 | 0.005124082 | 0.1280649 | spearman |
-| 10 | cell_type_5 | cell_type_2 | 12 | -0.7062937 | 0.010245194 | 0.1280649 | spearman |
-| 24 | cell_type_4 | cell_type_5 | 12 | 0.6713287 | 0.016831456 | 0.1402621 | spearman |
-| 6 | cell_type_1 | cell_type_2 | 12 | 0.6433566 | 0.024003191 | 0.1415984 | spearman |
-| 22 | cell_type_2 | cell_type_5 | 12 | -0.6293706 | 0.028319671 | 0.1415984 | spearman |
+| 6 | cell_type_1 | cell_type_2 | 12 | 0.8181818 | 0.001143105 | 0.02857763 | spearman |
+| 22 | cell_type_2 | cell_type_5 | 12 | -0.7762238 | 0.002992864 | 0.03741080 | spearman |
+| 2 | cell_type_2 | cell_type_1 | 12 | 0.7412587 | 0.005801150 | 0.04834292 | spearman |
+| 7 | cell_type_2 | cell_type_2 | 12 | 0.6153846 | 0.033169901 | 0.19294226 | spearman |
+| 10 | cell_type_5 | cell_type_2 | 12 | -0.6013986 | 0.038588453 | 0.19294226 | spearman |
 
 A data.frame: 5 × 7 {.table .dataframe}
 
 |  | cluster_i | cluster_j | n_patients | estimate | p | padj | method |
 |----|----|----|----|----|----|----|----|
 |  | \<chr\> | \<chr\> | \<int\> | \<dbl\> | \<dbl\> | \<dbl\> | \<chr\> |
-| 6 | cell_type_1 | cell_type_2 | 12 | 0.2222628 | 0.000438941 | 0.01097352 | lmm |
-| 22 | cell_type_2 | cell_type_5 | 12 | -0.3031745 | 0.001198851 | 0.01498564 | lmm |
-| 1 | cell_type_1 | cell_type_1 | 12 | -0.1345798 | 0.003447825 | 0.02873187 | lmm |
+| 6 | cell_type_1 | cell_type_2 | 12 | 0.2744775 | 2.548383e-07 | 6.370958e-06 | lmm |
+| 2 | cell_type_2 | cell_type_1 | 12 | 0.2341431 | 2.499744e-03 | 2.209334e-02 | lmm |
+| 22 | cell_type_2 | cell_type_5 | 12 | -0.2406141 | 2.651201e-03 | 2.209334e-02 | lmm |
 
 A data.frame: 3 × 7 {.table .dataframe}
 
@@ -882,8 +882,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] patchwork_1.1.3       ggplot2_3.4.4         cohalu_0.99.3
-[4] testthat_3.2.1       
+[1] patchwork_1.1.3 ggplot2_3.4.4   cohalu_0.99.3   testthat_3.2.1 
 
 loaded via a namespace (and not attached):
   [1] RColorBrewer_1.1-3     rstudioapi_0.15.0      jsonlite_2.0.0        
