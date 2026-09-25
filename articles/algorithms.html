@@ -124,8 +124,9 @@ iff
 is one of the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 nearest neighbors of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>.
-Built with <code>Seurat::FindNeighbors(..., k.param = k)</code>.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+(the cell itself included). Built exactly with a kd-tree
+(<code>RANN::nn2(coords, k = k)</code>).</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>v</mi></msub><mo>=</mo><msub><mo>∑</mo><mi>u</mi></msub><msub><mi>A</mi><mrow><mi>u</mi><mi>v</mi></mrow></msub></mrow><annotation encoding="application/x-tex">d_v = \sum_u A_{uv}</annotation></semantics></math>
 — the (in-)degree of
@@ -285,12 +286,13 @@ paired with a <code>cell_type_1</code> cell.</p>
 <div class="section level4">
 <h4 id="step-1-build-the-knn-adjacency">Step 1 — build the kNN adjacency<a class="anchor" aria-label="anchor" href="#step-1-build-the-knn-adjacency"></a>
 </h4>
-<p>Construct the kNN graph with
-<code>Seurat::FindNeighbors(coords, k.param = k)</code>. Let
+<p>Construct the exact kNN graph with a kd-tree
+(<code>RANN::nn2(coords, k = k)</code>; the cell counts as its own
+neighbour, as in <code><a href="https://satijalab.org/seurat/reference/FindNeighbors.html" class="external-link">Seurat::FindNeighbors</a></code>). Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><msup><mo stretchy="false" form="postfix">}</mo><mrow><mi>N</mi><mo>×</mo><mi>N</mi></mrow></msup></mrow><annotation encoding="application/x-tex">A \in \{0, 1\}^{N \times N}</annotation></semantics></math>
-be the resulting adjacency (<code>neighbors$nn</code>) or the shared-NN
-matrix (<code>neighbors$snn</code>), depending on
-<code>connectivity_key</code>.</p>
+be the resulting adjacency, or, with
+<code>connectivity_key = "snn"</code>, Seurat’s shared-nearest-neighbour
+matrix.</p>
 </div>
 <div class="section level4">
 <h4 id="step-2-degree-weighting-optional-off-by-default">Step 2 — degree weighting (optional, off by default)<a class="anchor" aria-label="anchor" href="#step-2-degree-weighting-optional-off-by-default"></a>

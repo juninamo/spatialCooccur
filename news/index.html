@@ -99,6 +99,10 @@
 <div class="section level3">
 <h3 id="other-bug-fixes-0-99-2">Other bug fixes<a class="anchor" aria-label="anchor" href="#other-bug-fixes-0-99-2"></a></h3>
 <ul><li>
+<code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code>, <code><a href="../reference/nhood_enrichment.Seurat.html">nhood_enrichment.Seurat()</a></code>, <code><a href="../reference/cooccur_local.html">cooccur_local()</a></code> and <code><a href="../reference/cooccur_local.Seurat.html">cooccur_local.Seurat()</a></code> build the kNN graph exactly with a kd-tree (<code><a href="https://jefferislab.github.io/RANN/reference/nn2.html" class="external-link">RANN::nn2</a></code>) instead of Seurat’s approximate annoy search. On 200,000 cells the graph takes 0.4 s instead of 33 s, and 99.995% of links are identical (on four RA sections, log2 O/E changed by at most 0.016 and the significant pairs were identical). <code>connectivity_key = "snn"</code> still uses <code><a href="https://satijalab.org/seurat/reference/FindNeighbors.html" class="external-link">Seurat::FindNeighbors()</a></code>.</li>
+<li>
+<code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code> with <code>n_jobs &gt; 1</code>: the workers did not load the Matrix methods, so every worker failed and the permutations silently fell back to sequential (no speed-up). The workers now load Matrix, and a fallback to sequential is reported as a warning.</li>
+<li>
 <code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code> is now reproducible for a given <code>seed</code>, both sequentially and with <code>n_jobs &gt; 1</code> (worker RNG streams are seeded).</li>
 <li>
 <code><a href="../reference/compare_groups.html">compare_groups()</a></code> and <code><a href="../reference/nhood_enrichment.html">nhood_enrichment()</a></code> no longer overwrite the caller’s RNG state.</li>

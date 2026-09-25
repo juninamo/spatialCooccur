@@ -162,17 +162,17 @@ cmp <- compare_groups(ps, value = "log2_oe", method = "wilcox",
                       ref_group = "control", symmetric = TRUE)
 head(cmp)
 #>     cluster_i   cluster_j n_total n_control n_case mean_control  mean_case
-#> 1 cell_type_1 cell_type_1       6         3      3   0.02195498 -0.1431616
-#> 2 cell_type_1 cell_type_2       6         3      3   0.02126868  0.3323852
-#> 3 cell_type_2 cell_type_2       6         3      3  -0.03593735  0.1340092
-#> 4 cell_type_2 cell_type_3       6         3      3   0.07182642 -0.2273644
-#> 5 cell_type_2 cell_type_4       6         3      3  -0.04909166 -0.2382033
-#> 6 cell_type_3 cell_type_4       6         3      3  -0.07350029  0.2006760
+#> 1 cell_type_1 cell_type_1       6         3      3   0.02195498 -0.1427047
+#> 2 cell_type_1 cell_type_2       6         3      3   0.02126868  0.3296451
+#> 3 cell_type_2 cell_type_2       6         3      3  -0.03593735  0.1333289
+#> 4 cell_type_2 cell_type_3       6         3      3   0.07182642 -0.2273715
+#> 5 cell_type_2 cell_type_4       6         3      3  -0.04909166 -0.2345983
+#> 6 cell_type_3 cell_type_4       6         3      3  -0.07350029  0.1980379
 #>       effect statistic   p      padj
-#> 1 -0.1651165         9 0.1 0.1428571
-#> 2  0.3111166         0 0.1 0.1428571
-#> 3  0.1699465         0 0.1 0.1428571
-#> 4 -0.2991908         9 0.1 0.1428571
-#> 5 -0.1891116         9 0.1 0.1428571
-#> 6  0.2741762         0 0.1 0.1428571
+#> 1 -0.1646597         9 0.1 0.1428571
+#> 2  0.3083765         0 0.1 0.1428571
+#> 3  0.1692663         0 0.1 0.1428571
+#> 4 -0.2991980         9 0.1 0.1428571
+#> 5 -0.1855066         9 0.1 0.1428571
+#> 6  0.2715382         0 0.1 0.1428571
 ```

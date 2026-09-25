@@ -154,6 +154,24 @@
 
 ### Other bug fixes
 
+- [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md),
+  [`nhood_enrichment.Seurat()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.Seurat.md),
+  [`cooccur_local()`](https://juninamo.github.io/cohalu/reference/cooccur_local.md)
+  and
+  [`cooccur_local.Seurat()`](https://juninamo.github.io/cohalu/reference/cooccur_local.Seurat.md)
+  build the kNN graph exactly with a kd-tree
+  ([`RANN::nn2`](https://jefferislab.github.io/RANN/reference/nn2.html))
+  instead of Seurat’s approximate annoy search. On 200,000 cells the
+  graph takes 0.4 s instead of 33 s, and 99.995% of links are identical
+  (on four RA sections, log2 O/E changed by at most 0.016 and the
+  significant pairs were identical). `connectivity_key = "snn"` still
+  uses
+  [`Seurat::FindNeighbors()`](https://satijalab.org/seurat/reference/FindNeighbors.html).
+- [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)
+  with `n_jobs > 1`: the workers did not load the Matrix methods, so
+  every worker failed and the permutations silently fell back to
+  sequential (no speed-up). The workers now load Matrix, and a fallback
+  to sequential is reported as a warning.
 - [`nhood_enrichment()`](https://juninamo.github.io/cohalu/reference/nhood_enrichment.md)
   is now reproducible for a given `seed`, both sequentially and with
   `n_jobs > 1` (worker RNG streams are seeded).

@@ -122,13 +122,13 @@ ps <- nhood_enrichment_per_sample(df, sample_key = "sample_id",
                                   patient_key = "patient",
                                   neighbors.k = 8, n_perms = 20, n_jobs = 1)
 head(ps)
-#>   sample_id   cluster_i   cluster_j      zscore count expected     log2_oe
-#> 1    case_1 cell_type_1 cell_type_1 -0.06586273    97    97.55 -0.00335273
-#> 2    case_1 cell_type_2 cell_type_1  2.47272268   116    91.20  0.35214865
-#> 3    case_1 cell_type_3 cell_type_1  1.11040938    90    79.80  0.18048954
-#> 4    case_1 cell_type_4 cell_type_1 -0.47684887    55    58.85 -0.08318455
-#> 5    case_1 cell_type_1 cell_type_2  2.72903009   112    90.90  0.30323640
-#> 6    case_1 cell_type_2 cell_type_2  0.53105897   207   200.20  0.05073765
+#>   sample_id   cluster_i   cluster_j      zscore count expected      log2_oe
+#> 1    case_1 cell_type_1 cell_type_1 -0.05996466    97    97.50 -0.002634965
+#> 2    case_1 cell_type_2 cell_type_1  2.51137150   116    91.10  0.353525585
+#> 3    case_1 cell_type_3 cell_type_1  1.11862222    90    79.65  0.183330821
+#> 4    case_1 cell_type_4 cell_type_1 -0.48086276    55    58.90 -0.084194562
+#> 5    case_1 cell_type_1 cell_type_2  2.68011895   112    91.05  0.300985044
+#> 6    case_1 cell_type_2 cell_type_2  0.52102225   207   200.40  0.049241298
 #>   group patient n_cells n_i n_j
 #> 1  case  case_1     200  41  41
 #> 2  case  case_1     200  63  41
