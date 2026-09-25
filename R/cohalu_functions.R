@@ -634,7 +634,11 @@ search_interaction_spot <- function(seurat_object, fov, radius, n_min, neighbors
 #' @param cluster_key Metadata column for cluster IDs.
 #' @param neighbors.k Number of neighbors to construct graph.
 #' @param connectivity_key Which graph to use: "nn" or "snn".
-#' @param transformation Logical, whether to normalize adjacency matrix.
+#' @param transformation If `TRUE` (default), each link from cell u is
+#'   weighted 1 / (1 + d_u), with d_u the number of cells that chose u as a
+#'   neighbour: a mild down-weighting of hub cells. With a kNN graph every
+#'   cell sends k links at any density, so this is not a density correction;
+#'   density is handled by the label shuffles.
 #' @param n_perms Number of permutations for significance testing.
 #' @param seed Random seed for reproducibility.
 #' @param n_jobs Number of cores to use in parallel.
@@ -942,7 +946,11 @@ cooccur_local <- function(df, cluster_x, cluster_y, connectivity_key = "nn", nei
 #' @param cluster_key Column with cluster labels.
 #' @param neighbors.k Number of neighbors to use.
 #' @param connectivity_key Type of graph: "nn" or "snn".
-#' @param transformation Whether to normalize adjacency matrix.
+#' @param transformation If `TRUE` (default), each link from cell u is
+#'   weighted 1 / (1 + d_u), with d_u the number of cells that chose u as a
+#'   neighbour: a mild down-weighting of hub cells. With a kNN graph every
+#'   cell sends k links at any density, so this is not a density correction;
+#'   density is handled by the label shuffles.
 #' @param n_perms Number of permutations.
 #' @param seed Random seed.
 #' @param n_jobs Number of parallel jobs. `1` runs sequentially.

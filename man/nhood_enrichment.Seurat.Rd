@@ -24,7 +24,11 @@ nhood_enrichment.Seurat(
 
 \item{connectivity_key}{Which graph to use: "nn" or "snn".}
 
-\item{transformation}{Logical, whether to normalize adjacency matrix.}
+\item{transformation}{If `TRUE` (default), each link from cell u is
+weighted 1 / (1 + d_u), with d_u the number of cells that chose u as a
+neighbour: a mild down-weighting of hub cells. With a kNN graph every
+cell sends k links at any density, so this is not a density correction;
+density is handled by the label shuffles.}
 
 \item{n_perms}{Number of permutations for significance testing.}
 
